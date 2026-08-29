@@ -33,54 +33,38 @@ export function ProblemListClient({
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
   const [highlightedId, setHighlightedId] = useState<number | null>(null);
 
-  // Restore scroll position to last opened problem
+  // Restore scroll position only when returning from a specific problem via hash
   useEffect(() => {
-    let targetProblemId: string | null = null;
+    if (typeof window === "undefined") return;
 
-    if (typeof window !== "undefined") {
-      const hash = window.location.hash;
-      if (hash && hash.startsWith("#problem-")) {
-        targetProblemId = hash.replace("#problem-", "");
-      } else {
-        targetProblemId = sessionStorage.getItem("roadmap_last_problem_id");
-      }
+    const hash = window.location.hash;
+    if (hash && hash.startsWith("#problem-")) {
+      const targetProblemId = hash.replace("#problem-", "");
+      const numId = parseInt(targetProblemId, 10);
+      setHighlightedId(numId);
 
-      if (targetProblemId) {
-        const numId = parseInt(targetProblemId, 10);
-        setHighlightedId(numId);
+      const timer = setTimeout(() => {
+        const el = document.getElementById(`problem-${targetProblemId}`);
+        if (el) {
+          el.scrollIntoView({ block: "center", behavior: "instant" });
+        }
+        // Clean up hash from URL so switching tabs later starts at the top
+        window.history.replaceState(null, "", window.location.pathname);
+      }, 50);
 
-        // Small timeout to allow DOM layout to settle
-        const timer = setTimeout(() => {
-          const el = document.getElementById(`problem-${targetProblemId}`);
-          if (el) {
-            el.scrollIntoView({ block: "center", behavior: "instant" });
-          } else {
-            const savedY = sessionStorage.getItem("roadmap_scroll_pos");
-            if (savedY) {
-              window.scrollTo({ top: parseInt(savedY, 10), behavior: "instant" });
-            }
-          }
-        }, 60);
+      const highlightTimer = setTimeout(() => {
+        setHighlightedId(null);
+      }, 2500);
 
-        // Remove highlight after 3 seconds
-        const highlightTimer = setTimeout(() => {
-          setHighlightedId(null);
-        }, 3000);
-
-        return () => {
-          clearTimeout(timer);
-          clearTimeout(highlightTimer);
-        };
-      }
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(highlightTimer);
+      };
+    } else {
+      // Direct tab navigation -> Always start at top
+      window.scrollTo({ top: 0, behavior: "instant" });
     }
   }, []);
-
-  const recordProblemClick = (id: number) => {
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem("roadmap_last_problem_id", id.toString());
-      sessionStorage.setItem("roadmap_scroll_pos", window.scrollY.toString());
-    }
-  };
 
   // Reset Progress Modal State
   const [showResetModal, setShowResetModal] = useState(false);
@@ -412,7 +396,6 @@ export function ProblemListClient({
                         <div>
                           <Link
                             href={`/problems/${prob.id}`}
-                            onClick={() => recordProblemClick(prob.id)}
                             style={{
                               color: isDone ? "var(--accent-acid)" : "#FFF",
                               fontWeight: 600,
@@ -456,7 +439,6 @@ export function ProblemListClient({
 
                         <Link
                           href={`/problems/${prob.id}`}
-                          onClick={() => recordProblemClick(prob.id)}
                           className="btn-editorial-outline"
                           style={{
                             fontSize: "0.75rem",

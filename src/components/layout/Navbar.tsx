@@ -145,6 +145,11 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
                 key={item.href}
                 href={item.href}
                 prefetch={true}
+                onClick={() => {
+                  if (typeof window !== "undefined") {
+                    window.scrollTo({ top: 0, behavior: "instant" });
+                  }
+                }}
                 className="font-grotesk"
                 style={{
                   color: isActive ? "var(--text-primary)" : "var(--text-secondary)",

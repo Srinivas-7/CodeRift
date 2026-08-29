@@ -85,7 +85,7 @@ export async function joinGroup(inviteCode: string) {
     return { success: false, error: "No group found with that invite code. Please double-check the code." };
   }
 
-  const alreadyMember = group.members.some((m) => m.userId === currentUser.id);
+  const alreadyMember = group.members.some((m: any) => m.userId === currentUser.id);
   if (alreadyMember) {
     return { success: false, error: "You are already an active member of this group!" };
   }

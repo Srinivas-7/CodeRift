@@ -19,7 +19,7 @@ export default async function ProblemsPage() {
         },
         select: { problemId: true },
       });
-      solvedProblemIds = statuses.map((s) => s.problemId);
+      solvedProblemIds = (statuses || []).map((s: any) => s.problemId);
     } catch (err) {
       console.error("User problem status fetch error:", err);
     }

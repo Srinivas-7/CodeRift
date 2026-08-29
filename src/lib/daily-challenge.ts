@@ -12,7 +12,7 @@ export async function getOrCreateDailyChallenge(userId: string) {
     select: { problemId: true },
   });
 
-  const solvedIds = new Set(solvedStatuses.map((s) => s.problemId));
+  const solvedIds = new Set((solvedStatuses || []).map((s: any) => s.problemId));
 
   // 2. Fetch all 191 problems ordered strictly by orderInSheet (1 to 191)
   const allProblems = await db.problem.findMany({
@@ -21,7 +21,7 @@ export async function getOrCreateDailyChallenge(userId: string) {
 
   // 3. Determine the current SDE Sheet 3-problem batch
   // Find the lowest orderInSheet problem that is still unsolved
-  const firstUnsolved = allProblems.find((p) => !solvedIds.has(p.id)) || allProblems[0];
+  const firstUnsolved = allProblems.find((p: any) => !solvedIds.has(p.id)) || allProblems[0];
   const lowestUnsolvedOrder = firstUnsolved.orderInSheet; // e.g. 1, 2, or 3 -> batch starts at 1
 
   // Batch index (1-based: 1, 4, 7, 10, 13, ...)
@@ -29,7 +29,7 @@ export async function getOrCreateDailyChallenge(userId: string) {
 
   // Pick the 3 consecutive problems for this exact SDE Sheet batch
   const batchProblems = allProblems.filter(
-    (p) => p.orderInSheet >= batchStartOrder && p.orderInSheet < batchStartOrder + 3
+    (p: any) => p.orderInSheet >= batchStartOrder && p.orderInSheet < batchStartOrder + 3
   );
 
   let sequentialNext3 = batchProblems;
@@ -95,21 +95,21 @@ export async function getOrCreateDailyChallenge(userId: string) {
     },
   });
 
-  const statusMap = new Map(userStatuses.map((s) => [s.problemId, s.status]));
+  const statusMap = new Map((userStatuses || []).map((s: any) => [s.problemId, s.status]));
 
   const problemList = problemIds
-    .map((id) => problems.find((p) => p.id === id))
+    .map((id: number) => problems.find((p: any) => p.id === id))
     .filter(Boolean)
-    .map((p) => ({
-      ...p!,
-      userStatus: statusMap.get(p!.id) || "UNSOLVED",
+    .map((p: any) => ({
+      ...p,
+      userStatus: statusMap.get(p.id) || "UNSOLVED",
       isSolved:
-        statusMap.get(p!.id) === "SOLVED" ||
-        statusMap.get(p!.id) === "OPTIMAL",
+        statusMap.get(p.id) === "SOLVED" ||
+        statusMap.get(p.id) === "OPTIMAL",
     }))
-    .sort((a, b) => a.orderInSheet - b.orderInSheet);
+    .sort((a: any, b: any) => a.orderInSheet - b.orderInSheet);
 
-  const solvedCount = problemList.filter((p) => p.isSolved).length;
+  const solvedCount = problemList.filter((p: any) => p.isSolved).length;
   const isAllSolved = solvedCount === 3;
 
   if (isAllSolved && !daily.completed) {
@@ -122,13 +122,14 @@ export async function getOrCreateDailyChallenge(userId: string) {
     });
   }
 
+  const dayNumber = Math.ceil(lowestUnsolvedOrder / 3);
+
   return {
     daily,
     problems: problemList,
     solvedCount,
     totalCount: 3,
+    dayNumber,
     isComplete: isAllSolved || daily.completed,
-    date: todayStr,
-    dayNumber: Math.floor((batchStartOrder - 1) / 3) + 1,
   };
 }

@@ -88,8 +88,8 @@ export default async function DashboardPage() {
     userRankInGroup = groupLeaderboard.findIndex((m) => m.userId === user.id) + 1;
   }
 
-  const todayXpGained = todayTransactions.reduce((acc, t) => acc + t.amount, 0);
-  const yesterdayXpGained = yesterdayTransactions.reduce((acc, t) => acc + t.amount, 0);
+  const todayXpGained = todayTransactions.reduce((acc: number, t: any) => acc + (t.amount || 0), 0);
+  const yesterdayXpGained = yesterdayTransactions.reduce((acc: number, t: any) => acc + (t.amount || 0), 0);
   const isImproved = todayXpGained >= yesterdayXpGained;
   const roadmapPercent = Math.round((totalSolvedCount / 191) * 100);
 

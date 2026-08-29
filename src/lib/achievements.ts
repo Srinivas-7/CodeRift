@@ -3,13 +3,13 @@ import { db } from "./db";
 export async function checkAndAwardAchievements(userId: string) {
   const user = await db.user.findUnique({
     where: { id: userId },
-    include: {
-      userAchievements: true,
-      groupMemberships: true,
-    },
   });
 
   if (!user) return [];
+
+  const groupMemberships = await db.groupMember.findMany({
+    where: { userId },
+  });
 
   const existingIds = new Set(
     (
@@ -17,7 +17,7 @@ export async function checkAndAwardAchievements(userId: string) {
         where: { userId },
         select: { achievementId: true },
       })
-    ).map((ua) => ua.achievementId)
+    ).map((ua: any) => ua.achievementId)
   );
 
   const unlockedNow: { id: string; name: string; icon: string; xp: number }[] = [];
@@ -42,8 +42,8 @@ export async function checkAndAwardAchievements(userId: string) {
     } else if (ach.id === "sde_master_191" && user.totalSolved >= 191) {
       shouldUnlock = true;
     } else if (ach.id === "podium_top3") {
-      const isPodium = user.groupMemberships.some(
-        (m) => m.currentRank !== null && m.currentRank <= 3
+      const isPodium = (groupMemberships || []).some(
+        (m: any) => m.currentRank !== null && m.currentRank <= 3
       );
       if (isPodium) shouldUnlock = true;
     }

@@ -31,7 +31,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
 
   // Fast parallel fetch for member daily challenges and progress
   const todayStr = new Date().toISOString().split("T")[0];
-  const memberIds = group.members.map((m) => m.userId);
+  const memberIds = (group.members || []).map((m: any) => m.userId);
 
   const todayDailies = await db.dailyChallenge.findMany({
     where: {
@@ -42,7 +42,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
 
   // Single batch query for all member solved statuses
   const allDailyProblemIds = new Set<number>();
-  todayDailies.forEach((d) => {
+  todayDailies.forEach((d: any) => {
     allDailyProblemIds.add(d.problem1Id);
     allDailyProblemIds.add(d.problem2Id);
     allDailyProblemIds.add(d.problem3Id);
@@ -57,10 +57,10 @@ export default async function GroupPage({ params }: GroupPageProps) {
     select: { userId: true, problemId: true },
   });
 
-  const solvedMap = new Set(solvedStatuses.map((s) => `${s.userId}_${s.problemId}`));
+  const solvedMap = new Set(solvedStatuses.map((s: any) => `${s.userId}_${s.problemId}`));
 
-  const memberDailyStatus = group.members.map((m) => {
-    const daily = todayDailies.find((d) => d.userId === m.userId);
+  const memberDailyStatus = (group.members || []).map((m: any) => {
+    const daily = todayDailies.find((d: any) => d.userId === m.userId);
     let count = 0;
     if (daily) {
       if (solvedMap.has(`${m.userId}_${daily.problem1Id}`)) count++;
@@ -69,14 +69,14 @@ export default async function GroupPage({ params }: GroupPageProps) {
     }
     return {
       userId: m.userId,
-      username: m.user.username,
+      username: m.user?.username || "Warrior",
       solvedCount: count,
     };
   });
 
   const isLeader =
     group.createdById === user.id ||
-    group.members.some((m) => m.userId === user.id && m.role === "LEADER");
+    (group.members || []).some((m: any) => m.userId === user.id && m.role === "LEADER");
 
   return (
     <GroupDashboardClient

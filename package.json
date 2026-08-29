@@ -4,13 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "next build",
     "start": "next start",
-    "postinstall": "prisma generate",
     "lint": "next lint",
-    "clean": "powershell -Command \"if (Test-Path .next) { Remove-Item -Recurse -Force .next }\"",
-    "db:push": "prisma db push",
-    "db:seed": "tsx prisma/seed.ts"
+    "clean": "powershell -Command \"if (Test-Path .next) { Remove-Item -Recurse -Force .next }\""
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

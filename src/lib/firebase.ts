@@ -1,4 +1,5 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
 import {
   getAuth,
   GoogleAuthProvider,
@@ -25,6 +26,7 @@ const firebaseConfig = {
 // Initialize Firebase singleton safely
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const firestore = getFirestore(app);
 
 // Auth Providers
 const googleProvider = new GoogleAuthProvider();
@@ -141,4 +143,4 @@ export function onFirebaseAuthStateChanged(callback: (user: User | null) => void
   return onAuthStateChanged(auth, callback);
 }
 
-export { app, auth, googleProvider, githubProvider };
+export { app, auth, firestore, googleProvider, githubProvider };

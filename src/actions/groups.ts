@@ -148,3 +148,176 @@ export async function leaveGroup(groupId: string) {
 
   return { success: true };
 }
+
+export async function removeMemberFromGroup(groupId: string, targetUserId: string) {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) {
+    return { success: false, error: "Authentication required." };
+  }
+
+  const group = await db.group.findUnique({
+    where: { id: groupId },
+    include: { members: true },
+  });
+
+  if (!group) {
+    return { success: false, error: "Group not found." };
+  }
+
+  const isLeader =
+    group.createdById === currentUser.id ||
+    group.members.some((m: any) => m.userId === currentUser.id && m.role === "LEADER");
+
+  if (!isLeader) {
+    return { success: false, error: "Only the Squad Leader can remove members." };
+  }
+
+  if (targetUserId === currentUser.id) {
+    return { success: false, error: "Squad Leaders cannot remove themselves. Disband or transfer leadership instead." };
+  }
+
+  await db.groupMember.delete({
+    where: {
+      userId_groupId: {
+        userId: targetUserId,
+        groupId,
+      },
+    },
+  });
+
+  // Notify removed member
+  await db.notification.create({
+    data: {
+      userId: targetUserId,
+      title: "Squad Roster Update",
+      type: "DAILY_READY",
+      message: `You were removed from squad "${group.name}".`,
+      link: "/groups",
+    },
+  });
+
+  revalidatePath(`/groups/${groupId}`);
+  revalidatePath("/groups");
+
+  return { success: true, message: "Member removed from squad." };
+}
+
+export async function updateGroupDetails(groupId: string, data: { name?: string; description?: string }) {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) {
+    return { success: false, error: "Authentication required." };
+  }
+
+  const group = await db.group.findUnique({
+    where: { id: groupId },
+    include: { members: true },
+  });
+
+  if (!group) {
+    return { success: false, error: "Group not found." };
+  }
+
+  const isLeader =
+    group.createdById === currentUser.id ||
+    group.members.some((m: any) => m.userId === currentUser.id && m.role === "LEADER");
+
+  if (!isLeader) {
+    return { success: false, error: "Only the Squad Leader can edit squad details." };
+  }
+
+  const updateData: any = {};
+  if (data.name && data.name.trim()) {
+    const cleanName = data.name.trim();
+    if (cleanName.length < 3 || cleanName.length > 30) {
+      return { success: false, error: "Squad name must be between 3 and 30 characters." };
+    }
+    updateData.name = cleanName;
+  }
+
+  if (data.description !== undefined) {
+    updateData.description = data.description.trim();
+  }
+
+  const updated = await db.group.update({
+    where: { id: groupId },
+    data: updateData,
+  });
+
+  revalidatePath(`/groups/${groupId}`);
+  revalidatePath("/groups");
+
+  return { success: true, group: updated };
+}
+
+export async function regenerateGroupInviteCode(groupId: string) {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) {
+    return { success: false, error: "Authentication required." };
+  }
+
+  const group = await db.group.findUnique({
+    where: { id: groupId },
+    include: { members: true },
+  });
+
+  if (!group) {
+    return { success: false, error: "Group not found." };
+  }
+
+  const isLeader =
+    group.createdById === currentUser.id ||
+    group.members.some((m: any) => m.userId === currentUser.id && m.role === "LEADER");
+
+  if (!isLeader) {
+    return { success: false, error: "Only the Squad Leader can regenerate the invite code." };
+  }
+
+  let newCode = generateInviteCode(group.name);
+  while (await db.group.findUnique({ where: { inviteCode: newCode } })) {
+    newCode = generateInviteCode(group.name);
+  }
+
+  const updated = await db.group.update({
+    where: { id: groupId },
+    data: { inviteCode: newCode },
+  });
+
+  revalidatePath(`/groups/${groupId}`);
+
+  return { success: true, newInviteCode: newCode };
+}
+
+export async function deleteGroup(groupId: string) {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) {
+    return { success: false, error: "Authentication required." };
+  }
+
+  const group = await db.group.findUnique({
+    where: { id: groupId },
+    include: { members: true },
+  });
+
+  if (!group) {
+    return { success: false, error: "Group not found." };
+  }
+
+  if (group.createdById !== currentUser.id) {
+    return { success: false, error: "Only the Squad Creator can disband the group." };
+  }
+
+  // Remove all members
+  await db.groupMember.deleteMany({
+    where: { groupId },
+  });
+
+  // Delete group
+  await db.group.delete({
+    where: { id: groupId },
+  });
+
+  revalidatePath("/groups");
+  revalidatePath("/dashboard");
+
+  return { success: true };
+}

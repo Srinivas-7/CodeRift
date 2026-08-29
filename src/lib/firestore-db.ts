@@ -596,6 +596,11 @@ const groupService = {
     return snap.size;
   },
 
+  async delete(args: { where: { id: string } }) {
+    await deleteDoc(doc(firestore, "groups", args.where.id));
+    return { id: args.where.id };
+  },
+
   async deleteMany() {
     const snap = await getDocs(collection(firestore, "groups"));
     for (const d of snap.docs) await deleteDoc(d.ref);

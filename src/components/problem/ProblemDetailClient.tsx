@@ -222,17 +222,38 @@ export function ProblemDetailClient({
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.3rem" }}>
             <Zap size={18} style={{ color: "var(--accent-cobalt)" }} />
             <h3 className="font-grotesk" style={{ fontSize: "1.2rem", textTransform: "uppercase", color: "#FFF" }}>
-              VERIFY SUBMISSION & CLAIM XP
+              LEETCODE SUBMISSION VERIFIER & XP CLAIM
             </h3>
           </div>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
-            Connected LeetCode account:{" "}
+          <div style={{ color: "var(--text-muted)", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap", marginTop: "0.4rem" }}>
+            <span>Target Handle:</span>
             {user?.leetcodeUsername ? (
-              <strong style={{ color: "#FFA116", fontFamily: "var(--font-mono)" }}>@{user.leetcodeUsername}</strong>
+              <a
+                href={`https://leetcode.com/${user.leetcodeUsername}/`}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.3rem",
+                  color: "#FFA116",
+                  fontFamily: "var(--font-mono)",
+                  fontWeight: 700,
+                  textDecoration: "underline",
+                }}
+              >
+                @{user.leetcodeUsername} <ExternalLink size={12} />
+              </a>
             ) : (
-              <span style={{ color: "var(--accent-vermillion)" }}>No handle linked (Will verify via Arena telemetry)</span>
+              <span style={{ color: "var(--accent-vermillion)" }}>
+                No handle linked. Link your handle in{" "}
+                <Link href="/profile" style={{ color: "var(--accent-cobalt)", textDecoration: "underline" }}>
+                  Profile Settings
+                </Link>{" "}
+                to verify.
+              </span>
             )}
-          </p>
+          </div>
         </div>
 
         <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "center" }}>
@@ -243,9 +264,19 @@ export function ProblemDetailClient({
             style={{
               padding: "0.9rem 1.8rem",
               cursor: verifying ? "wait" : "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.5rem",
             }}
           >
-            {verifying ? "CHECKING SUBMISSION..." : "VERIFY LEETCODE SUBMISSION & CLAIM XP"}
+            {verifying ? (
+              <>
+                <span className="spinner" style={{ display: "inline-block", width: "14px", height: "14px", border: "2px solid #FFF", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                QUERYING LEETCODE SUBMISSIONS...
+              </>
+            ) : (
+              "VERIFY LEETCODE SUBMISSION & CLAIM XP"
+            )}
           </button>
 
           {isSolved && (
@@ -255,9 +286,46 @@ export function ProblemDetailClient({
           )}
         </div>
 
+        {verifying && (
+          <div style={{ marginTop: "1rem", color: "var(--accent-cobalt)", fontFamily: "var(--font-mono)", fontSize: "0.8rem" }}>
+            ⚡ Connecting to LeetCode Public GraphQL API and checking recent submissions for @{user?.leetcodeUsername || "user"}...
+          </div>
+        )}
+
         {verifyResult && !verifyResult.success && (
-          <div style={{ color: "var(--accent-vermillion)", fontFamily: "var(--font-mono)", fontSize: "0.85rem", marginTop: "1rem" }}>
-            ⚠️ {verifyResult.error}
+          <div
+            style={{
+              background: "rgba(255, 55, 20, 0.08)",
+              border: "1px solid var(--accent-vermillion)",
+              padding: "1.25rem 1.5rem",
+              borderRadius: "4px",
+              color: "var(--accent-vermillion)",
+              fontFamily: "var(--font-mono)",
+              fontSize: "0.85rem",
+              marginTop: "1.25rem",
+              lineHeight: 1.6,
+            }}
+          >
+            <div style={{ fontWeight: 800, fontSize: "0.9rem", marginBottom: "0.4rem" }}>
+              ⚠️ Verification Failed (+0 XP awarded):
+            </div>
+            <div>{verifyResult.error}</div>
+            <div style={{ marginTop: "0.85rem", paddingTop: "0.75rem", borderTop: "1px solid rgba(255, 55, 20, 0.2)", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+              <a
+                href={leetcodeLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: "#FFF", textDecoration: "underline", fontSize: "0.8rem" }}
+              >
+                Solve "{problem.title}" on LeetCode ↗
+              </a>
+              <Link
+                href="/profile"
+                style={{ color: "var(--accent-cobalt)", textDecoration: "underline", fontSize: "0.8rem" }}
+              >
+                Edit LeetCode Username in Profile →
+              </Link>
+            </div>
           </div>
         )}
       </div>

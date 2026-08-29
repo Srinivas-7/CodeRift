@@ -54,17 +54,20 @@ export function slugifyTitle(title: string): string {
 export async function verifyLeetCodeSubmission(
   leetcodeUsername: string,
   problemTitle: string,
-  problemLeetcodeUrl?: string | null
+  problemLeetcodeUrl?: string | null,
+  providedSubmissionIdOrUrl?: string | null
 ): Promise<{
   verified: boolean;
   submissionId?: string;
   solvedAt?: Date;
+  lang?: string;
+  userExists?: boolean;
   message: string;
 }> {
   if (!leetcodeUsername || !leetcodeUsername.trim()) {
     return {
       verified: false,
-      message: "Please connect your LeetCode username first in your profile.",
+      message: "Please enter or link your LeetCode username first to verify submissions.",
     };
   }
 
@@ -72,11 +75,59 @@ export async function verifyLeetCodeSubmission(
   const targetSlug =
     extractLeetCodeSlug(problemLeetcodeUrl) || slugifyTitle(problemTitle);
 
+  // 1. Verify User Profile & Existence on LeetCode GraphQL
   try {
-    // 1. Attempt Query to LeetCode Public GraphQL API
+    const userQuery = {
+      query: `
+        query getUserProfile($username: String!) {
+          matchedUser(username: $username) {
+            username
+          }
+        }
+      `,
+      variables: { username: cleanUsername },
+    };
+
+    const userRes = await fetch("https://leetcode.com/graphql", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        Referer: `https://leetcode.com/${cleanUsername}/`,
+      },
+      body: JSON.stringify(userQuery),
+      next: { revalidate: 0 },
+    });
+
+    if (userRes.ok) {
+      const userData = await userRes.json();
+      if (!userData?.data?.matchedUser && userData?.errors?.length) {
+        return {
+          verified: false,
+          userExists: false,
+          message: `LeetCode account @${cleanUsername} does not exist on LeetCode. Please check the spelling of your LeetCode username.`,
+        };
+      }
+    }
+  } catch (err) {
+    console.warn("LeetCode user existence check failed", err);
+  }
+
+  let totalSubmissionsChecked = 0;
+
+  // 2. Query official LeetCode GraphQL API for recent submissions & accepted submissions
+  try {
     const graphqlQuery = {
       query: `
-        query recentAcSubmissions($username: String!, $limit: Int!) {
+        query recentSubmissions($username: String!, $limit: Int!) {
+          recentSubmissionList(username: $username, limit: $limit) {
+            id
+            title
+            titleSlug
+            statusDisplay
+            lang
+            timestamp
+          }
           recentAcSubmissionList(username: $username, limit: $limit) {
             id
             title
@@ -87,7 +138,7 @@ export async function verifyLeetCodeSubmission(
       `,
       variables: {
         username: cleanUsername,
-        limit: 20,
+        limit: 50,
       },
     };
 
@@ -95,7 +146,7 @@ export async function verifyLeetCodeSubmission(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) DSA-Arena/1.0",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         Referer: `https://leetcode.com/${cleanUsername}/`,
       },
       body: JSON.stringify(graphqlQuery),
@@ -104,69 +155,96 @@ export async function verifyLeetCodeSubmission(
 
     if (res.ok) {
       const data = await res.json();
-      const acList: LeetCodeRecentSubmission[] =
+      const recentSubs: LeetCodeRecentSubmission[] =
+        data?.data?.recentSubmissionList || [];
+      const recentAc: LeetCodeRecentSubmission[] =
         data?.data?.recentAcSubmissionList || [];
 
-      // Check if target problem exists in recent accepted list
-      const matched = acList.find(
+      totalSubmissionsChecked = Math.max(recentSubs.length, recentAc.length);
+
+      // Match in recentAcSubmissionList
+      const acMatch = recentAc.find(
         (sub) =>
           sub.titleSlug?.toLowerCase() === targetSlug ||
-          slugifyTitle(sub.title) === targetSlug ||
-          sub.title.toLowerCase().includes(problemTitle.toLowerCase())
+          slugifyTitle(sub.title || "") === targetSlug ||
+          sub.title?.toLowerCase().trim() === problemTitle.toLowerCase().trim()
       );
 
-      if (matched) {
-        const solvedDate = matched.timestamp
-          ? new Date(parseInt(matched.timestamp, 10) * 1000)
+      if (acMatch) {
+        const solvedDate = acMatch.timestamp
+          ? new Date(parseInt(acMatch.timestamp, 10) * 1000)
           : new Date();
         return {
           verified: true,
-          submissionId: matched.id || `LC-${Date.now()}`,
+          submissionId: acMatch.id,
           solvedAt: solvedDate,
-          message: `✓ Verified accepted submission for "${matched.title}" from @${cleanUsername}!`,
+          message: `✓ Verified accepted submission for "${acMatch.title}" from @${cleanUsername}! (Submission #${acMatch.id})`,
+        };
+      }
+
+      // Match in recentSubmissionList with statusDisplay === 'Accepted'
+      const subMatch = recentSubs.find(
+        (s) =>
+          (s.titleSlug?.toLowerCase() === targetSlug ||
+            slugifyTitle(s.title || "") === targetSlug ||
+            s.title?.toLowerCase().trim() === problemTitle.toLowerCase().trim()) &&
+          (s.statusDisplay === "Accepted" || s.statusDisplay === "ACCEPTED")
+      );
+
+      if (subMatch) {
+        const solvedDate = subMatch.timestamp
+          ? new Date(parseInt(subMatch.timestamp, 10) * 1000)
+          : new Date();
+        return {
+          verified: true,
+          submissionId: subMatch.id,
+          lang: subMatch.lang,
+          solvedAt: solvedDate,
+          message: `✓ Verified accepted submission for "${subMatch.title}" from @${cleanUsername}! (${subMatch.lang || "Code"}, Submission #${subMatch.id})`,
         };
       }
     }
   } catch (err) {
-    console.warn("LeetCode GraphQL check failed, using fallback verification", err);
+    console.warn("LeetCode GraphQL check failed, trying secondary endpoints", err);
   }
 
-  // 2. Secondary public profile check endpoint
+  // 3. Fallback: Alfa LeetCode API check endpoint
   try {
-    const secondaryRes = await fetch(
-      `https://leetcode-api-faisalshohag.vercel.app/${cleanUsername}`,
+    const alfaRes = await fetch(
+      `https://alfa-leetcode-api.onrender.com/${cleanUsername}/acSubmission?limit=50`,
       { next: { revalidate: 0 } }
     );
-    if (secondaryRes.ok) {
-      const secData = await secondaryRes.json();
-      const recentSubs = secData?.recentSubmissions || [];
-      const matched = recentSubs.find(
+    if (alfaRes.ok) {
+      const alfaData = await alfaRes.json();
+      const subs = alfaData?.submission || alfaData?.recentSubmissions || [];
+      totalSubmissionsChecked = Math.max(totalSubmissionsChecked, subs.length);
+      const matched = subs.find(
         (s: any) =>
-          (s.titleSlug?.toLowerCase() === targetSlug ||
-            slugifyTitle(s.title || "") === targetSlug) &&
-          s.statusDisplay === "Accepted"
+          s.titleSlug?.toLowerCase() === targetSlug ||
+          slugifyTitle(s.title || "") === targetSlug ||
+          s.title?.toLowerCase().trim() === problemTitle.toLowerCase().trim()
       );
 
       if (matched) {
         return {
           verified: true,
-          submissionId: matched.id || `LC-SEC-${Date.now()}`,
+          submissionId: matched.id || `LC-${Date.now()}`,
+          lang: matched.lang,
           solvedAt: matched.timestamp
             ? new Date(parseInt(matched.timestamp, 10) * 1000)
             : new Date(),
-          message: `✓ Verified accepted submission from @${cleanUsername}!`,
+          message: `✓ Verified accepted submission for "${problemTitle}" from @${cleanUsername}!`,
         };
       }
     }
   } catch (err) {
-    console.warn("Secondary LeetCode API check failed", err);
+    console.warn("Alfa LeetCode API check failed", err);
   }
 
-  // 3. Fallback verification: If the user explicitly verifies after solving on LeetCode
+  // 4. Strict result: If no accepted submission was found on LeetCode
   return {
-    verified: true,
-    submissionId: `LC-VERIFIED-${Date.now()}`,
-    solvedAt: new Date(),
-    message: `✓ Verified submission from LeetCode account @${cleanUsername}!`,
+    verified: false,
+    userExists: true,
+    message: `No "Accepted" submission found on LeetCode for "${problemTitle}" under account @${cleanUsername}. Checked ${totalSubmissionsChecked} recent submissions. Please solve and get an "Accepted" verdict on LeetCode first before verifying!`,
   };
 }

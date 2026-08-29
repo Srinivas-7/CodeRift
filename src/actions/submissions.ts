@@ -30,7 +30,15 @@ export async function verifyAndCompleteLeetCodeSubmission(input: VerifySubmissio
   }
 
   const effectiveUsername =
-    input.leetcodeUsername || user.leetcodeUsername || user.username;
+    input.leetcodeUsername?.trim().replace(/^@/, "") ||
+    user.leetcodeUsername?.trim().replace(/^@/, "");
+
+  if (!effectiveUsername) {
+    return {
+      success: false,
+      error: "Please link your LeetCode username in your Profile before verifying submissions.",
+    };
+  }
 
   // 2. Perform LeetCode Verification
   const verification = await verifyLeetCodeSubmission(

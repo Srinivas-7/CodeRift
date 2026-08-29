@@ -1,0 +1,393 @@
+:root {
+  /* Editorial Maximalist Palette */
+  --bg-primary: #0A0B10;
+  --bg-surface: #10121A;
+  --bg-card: #151822;
+  --bg-card-hover: #1B1F2D;
+  --bg-paper: #F5F2EB;
+  --bg-paper-subtle: #ECE7DD;
+
+  --text-primary: #F5F2EB;
+  --text-dark: #0A0B10;
+  --text-secondary: #A0A6B8;
+  --text-muted: #6B7286;
+  --text-dim: #4B5164;
+
+  --accent-cobalt: #2148FF;
+  --accent-cobalt-hover: #3B60FF;
+  --accent-vermillion: #FF3714;
+  --accent-amber: #FF9E00;
+  --accent-acid: #10B981;
+
+  --border-editorial: rgba(245, 242, 235, 0.12);
+  --border-editorial-strong: rgba(245, 242, 235, 0.25);
+  --border-cobalt: rgba(33, 72, 255, 0.5);
+  --border-dark: rgba(10, 11, 16, 0.15);
+
+  --font-serif: var(--font-serif), Georgia, serif;
+  --font-grotesk: var(--font-grotesk), sans-serif;
+  --font-sans: var(--font-sans), sans-serif;
+  --font-mono: var(--font-mono), monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  background-color: var(--bg-primary);
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--accent-cobalt);
+  color: #FFFFFF;
+}
+
+/* Fast Container */
+.app-container {
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 1.75rem;
+}
+
+/* Typography Hierarchy */
+.font-serif {
+  font-family: var(--font-serif);
+}
+
+.font-grotesk {
+  font-family: var(--font-grotesk);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+.font-sans {
+  font-family: var(--font-sans);
+}
+
+/* Giant Editorial Display Text */
+.display-huge {
+  font-family: var(--font-serif);
+  font-size: clamp(4.5rem, 14vw, 13rem);
+  line-height: 0.88;
+  letter-spacing: -0.04em;
+  font-weight: 400;
+}
+
+.display-title {
+  font-family: var(--font-grotesk);
+  font-size: clamp(2.5rem, 6vw, 4.8rem);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.serif-italic {
+  font-family: var(--font-serif);
+  font-style: italic;
+}
+
+.editorial-stamp {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: 1px solid var(--border-editorial);
+  padding: 0.3rem 0.75rem;
+  border-radius: 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.editorial-rule {
+  height: 1px;
+  background: var(--border-editorial);
+  width: 100%;
+  margin: 1.5rem 0;
+}
+
+.editorial-rule-strong {
+  height: 2px;
+  background: var(--text-primary);
+  width: 100%;
+  margin: 2rem 0;
+}
+
+/* High-Performance Hardware-Accelerated Card System */
+.editorial-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-editorial);
+  border-radius: 6px;
+  position: relative;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
+}
+
+.editorial-card:hover {
+  border-color: var(--border-editorial-strong);
+  background: var(--bg-card);
+  transform: translateY(-2px);
+}
+
+/* Performance Optimized Fast Problem Row */
+.problem-row-item {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 68px;
+  contain: layout style;
+  transform: translateZ(0);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-editorial);
+  border-radius: 4px;
+  padding: 0.9rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.problem-row-item:hover {
+  border-color: var(--border-editorial-strong);
+  background: var(--bg-card);
+}
+
+.problem-row-item.is-solved {
+  background: rgba(16, 185, 129, 0.04);
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.editorial-card-cobalt {
+  background: var(--accent-cobalt);
+  color: #FFFFFF;
+  border: 1px solid var(--accent-cobalt);
+}
+
+.editorial-card-paper {
+  background: var(--bg-paper);
+  color: var(--text-dark);
+  border: 1px solid var(--bg-paper-subtle);
+}
+
+/* Primary Editorial Buttons */
+.btn-editorial-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  background: var(--accent-cobalt);
+  color: #FFFFFF;
+  font-family: var(--font-grotesk);
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.9rem 1.8rem;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transform: translateZ(0);
+  transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-editorial-primary:hover {
+  background: var(--accent-cobalt-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(33, 72, 255, 0.3);
+}
+
+.btn-editorial-vermillion {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  background: var(--accent-vermillion);
+  color: #FFFFFF;
+  font-family: var(--font-grotesk);
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.9rem 1.8rem;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transform: translateZ(0);
+  transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-editorial-vermillion:hover {
+  background: #FF4E2D;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255, 55, 20, 0.3);
+}
+
+.btn-editorial-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-grotesk);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.75rem 1.4rem;
+  border-radius: 4px;
+  border: 1px solid var(--border-editorial-strong);
+  cursor: pointer;
+  text-decoration: none;
+  transform: translateZ(0);
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.btn-editorial-outline:hover {
+  background: rgba(245, 242, 235, 0.06);
+  border-color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+/* LeetCode Solve Button */
+.btn-leetcode {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: #FFA116;
+  color: #0A0B10;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.75rem 1.4rem;
+  border-radius: 4px;
+  border: none;
+  text-decoration: none;
+  cursor: pointer;
+  transform: translateZ(0);
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.btn-leetcode:hover {
+  background: #FFB338;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 161, 22, 0.25);
+}
+
+/* Editorial Badges */
+.badge-diff-easy {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent-acid);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.08);
+  padding: 0.2rem 0.5rem;
+  border-radius: 2px;
+  text-transform: uppercase;
+}
+
+.badge-diff-medium {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent-amber);
+  border: 1px solid rgba(255, 158, 0, 0.3);
+  background: rgba(255, 158, 0, 0.08);
+  padding: 0.2rem 0.5rem;
+  border-radius: 2px;
+  text-transform: uppercase;
+}
+
+.badge-diff-hard {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent-vermillion);
+  border: 1px solid rgba(255, 55, 20, 0.3);
+  background: rgba(255, 55, 20, 0.08);
+  padding: 0.2rem 0.5rem;
+  border-radius: 2px;
+  text-transform: uppercase;
+}
+
+.badge-rank-up {
+  color: var(--accent-acid);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.badge-rank-down {
+  color: var(--accent-vermillion);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.badge-rank-same {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 11, 16, 0.85);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1.5rem;
+}
+
+/* Progress bar */
+.progress-bar-bg {
+  width: 100%;
+  background: rgba(245, 242, 235, 0.08);
+  height: 4px;
+  position: relative;
+}
+
+.progress-bar-fill-cobalt {
+  height: 100%;
+  background: var(--accent-cobalt);
+  transition: width 0.3s ease;
+}
+
+.progress-bar-fill-vermillion {
+  height: 100%;
+  background: var(--accent-vermillion);
+  transition: width 0.3s ease;
+}

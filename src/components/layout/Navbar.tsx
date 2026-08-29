@@ -69,39 +69,51 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
         }}
       >
         {/* Left: Editorial Logo & Masthead Label */}
-        <div style={{ display: "flex", alignItems: "baseline", gap: "1rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
           <Link
             href="/"
             style={{
               textDecoration: "none",
               color: "var(--text-primary)",
               display: "flex",
-              alignItems: "baseline",
-              gap: "0.35rem",
+              alignItems: "center",
+              gap: "0.65rem",
             }}
           >
-            <span
-              className="font-serif"
+            <img
+              src="/logo.png"
+              alt="CodeRift Logo"
               style={{
-                fontSize: "1.85rem",
-                fontWeight: 400,
-                letterSpacing: "-0.03em",
-                lineHeight: 1,
+                width: "32px",
+                height: "32px",
+                borderRadius: "6px",
+                objectFit: "contain",
               }}
-            >
-              DSA
-            </span>
+            />
+            <div style={{ display: "flex", alignItems: "baseline", gap: "0.2rem" }}>
+              <span
+                className="font-serif"
+                style={{
+                  fontSize: "1.85rem",
+                  fontWeight: 400,
+                  letterSpacing: "-0.03em",
+                  lineHeight: 1,
+                }}
+              >
+                Code
+              </span>
               <span
                 className="font-grotesk"
                 style={{
-                  fontSize: "1.1rem",
+                  fontSize: "1.15rem",
                   fontWeight: 800,
-                  letterSpacing: "0.1em",
+                  letterSpacing: "0.08em",
                   color: "var(--accent-cobalt)",
                 }}
               >
-                ARENA
+                RIFT
               </span>
+            </div>
           </Link>
 
           <span

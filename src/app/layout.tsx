@@ -34,7 +34,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DSA ARENA — 191 Problems. 3 Every Day. Beat Your Friends.",
+  title: "CodeRift — 191 Problems. 3 Every Day. Beat Your Friends.",
   description:
     "A gamified DSA consistency platform built exclusively on Striver's SDE Sheet. Transform the 191-problem mountain into a daily 3-problem mission with private friend leaderboards, streaks, and seasons.",
 };

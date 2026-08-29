@@ -37,6 +37,11 @@ export const metadata: Metadata = {
   title: "CodeRift — 191 Problems. 3 Every Day. Beat Your Friends.",
   description:
     "A gamified DSA consistency platform built exclusively on Striver's SDE Sheet. Transform the 191-problem mountain into a daily 3-problem mission with private friend leaderboards, streaks, and seasons.",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default async function RootLayout({

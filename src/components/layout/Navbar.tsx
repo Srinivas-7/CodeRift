@@ -199,13 +199,17 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
                 <strong style={{ color: "var(--text-primary)" }}>{user.xp.toLocaleString()}</strong> XP
               </div>
 
-              {/* User Dropdown */}
-              <div style={{ position: "relative" }}>
+              {/* User Dropdown (Opens on Hover & Click) */}
+              <div
+                style={{ position: "relative" }}
+                onMouseEnter={() => setDropdownOpen(true)}
+                onMouseLeave={() => setDropdownOpen(false)}
+              >
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                   style={{
-                    background: "var(--bg-surface)",
-                    border: "1px solid var(--border-editorial)",
+                    background: dropdownOpen ? "rgba(33, 72, 255, 0.12)" : "var(--bg-surface)",
+                    border: dropdownOpen ? "1px solid var(--accent-cobalt)" : "1px solid var(--border-editorial)",
                     padding: "0.35rem 0.75rem",
                     borderRadius: "4px",
                     color: "var(--text-primary)",
@@ -216,10 +220,18 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
                     fontFamily: "var(--font-grotesk)",
                     fontWeight: 700,
                     fontSize: "0.85rem",
+                    transition: "all 0.15s ease",
                   }}
                 >
                   <span>{user.username}</span>
-                  <ChevronDown size={14} style={{ opacity: 0.6 }} />
+                  <ChevronDown
+                    size={14}
+                    style={{
+                      opacity: 0.8,
+                      transform: dropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
+                      transition: "transform 0.2s ease",
+                    }}
+                  />
                 </button>
 
                 {dropdownOpen && (
@@ -227,69 +239,37 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
                     style={{
                       position: "absolute",
                       right: 0,
-                      top: "calc(100% + 8px)",
-                      width: "220px",
-                      background: "var(--bg-card)",
-                      border: "1px solid var(--border-editorial-strong)",
-                      borderRadius: "4px",
-                      padding: "0.5rem 0",
-                      boxShadow: "0 15px 35px rgba(0, 0, 0, 0.5)",
+                      top: "100%",
+                      paddingTop: "6px",
                       zIndex: 110,
                     }}
                   >
-                    <div style={{ padding: "0.75rem 1rem", borderBottom: "1px solid var(--border-editorial)" }}>
-                      <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", textTransform: "uppercase" }}>
-                        Signed in as
-                      </div>
-                      <div style={{ fontWeight: 700, color: "#FFF", fontSize: "0.95rem" }}>
-                        {user.username}
-                      </div>
-                      {user.leetcodeUsername && (
-                        <div style={{ fontSize: "0.75rem", color: "#FFA116", fontFamily: "var(--font-mono)", marginTop: "0.2rem" }}>
-                          @{user.leetcodeUsername}
+                    <div
+                      style={{
+                        width: "220px",
+                        background: "var(--bg-card)",
+                        border: "1px solid var(--border-editorial-strong)",
+                        borderRadius: "4px",
+                        padding: "0.5rem 0",
+                        boxShadow: "0 15px 35px rgba(0, 0, 0, 0.6)",
+                      }}
+                    >
+                      <div style={{ padding: "0.75rem 1rem", borderBottom: "1px solid var(--border-editorial)" }}>
+                        <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", textTransform: "uppercase" }}>
+                          Signed in as
                         </div>
-                      )}
-                    </div>
+                        <div style={{ fontWeight: 700, color: "#FFF", fontSize: "0.95rem" }}>
+                          {user.username}
+                        </div>
+                        {user.leetcodeUsername && (
+                          <div style={{ fontSize: "0.75rem", color: "#FFA116", fontFamily: "var(--font-mono)", marginTop: "0.2rem" }}>
+                            @{user.leetcodeUsername}
+                          </div>
+                        )}
+                      </div>
 
-                    <Link
-                      href="/profile"
-                      prefetch={true}
-                      onClick={() => setDropdownOpen(false)}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.6rem",
-                        padding: "0.65rem 1rem",
-                        color: "var(--text-primary)",
-                        textDecoration: "none",
-                        fontSize: "0.85rem",
-                        fontFamily: "var(--font-grotesk)",
-                      }}
-                    >
-                      <User size={15} /> My Profile & Settings
-                    </Link>
-
-                    <Link
-                      href="/achievements"
-                      prefetch={true}
-                      onClick={() => setDropdownOpen(false)}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.6rem",
-                        padding: "0.65rem 1rem",
-                        color: "var(--text-primary)",
-                        textDecoration: "none",
-                        fontSize: "0.85rem",
-                        fontFamily: "var(--font-grotesk)",
-                      }}
-                    >
-                      <Award size={15} /> Achievement Room
-                    </Link>
-
-                    {user.role === "ADMIN" && (
                       <Link
-                        href="/admin"
+                        href="/profile"
                         prefetch={true}
                         onClick={() => setDropdownOpen(false)}
                         style={{
@@ -297,39 +277,89 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
                           alignItems: "center",
                           gap: "0.6rem",
                           padding: "0.65rem 1rem",
-                          color: "var(--accent-amber)",
+                          color: "var(--text-primary)",
                           textDecoration: "none",
                           fontSize: "0.85rem",
                           fontFamily: "var(--font-grotesk)",
+                          transition: "background 0.15s ease",
                         }}
+                        onMouseOver={(e) => (e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)")}
+                        onMouseOut={(e) => (e.currentTarget.style.background = "transparent")}
                       >
-                        <Shield size={15} /> Admin Dataset Control
+                        <User size={15} /> My Profile & Settings
                       </Link>
-                    )}
 
-                    <div style={{ borderTop: "1px solid var(--border-editorial)", marginTop: "0.3rem" }}>
-                      <button
-                        onClick={async () => {
-                          setDropdownOpen(false);
-                          await logoutUser();
-                        }}
+                      <Link
+                        href="/achievements"
+                        prefetch={true}
+                        onClick={() => setDropdownOpen(false)}
                         style={{
-                          width: "100%",
-                          textAlign: "left",
-                          background: "none",
-                          border: "none",
-                          padding: "0.65rem 1rem",
-                          color: "var(--accent-vermillion)",
-                          fontSize: "0.85rem",
-                          fontFamily: "var(--font-grotesk)",
-                          cursor: "pointer",
                           display: "flex",
                           alignItems: "center",
                           gap: "0.6rem",
+                          padding: "0.65rem 1rem",
+                          color: "var(--text-primary)",
+                          textDecoration: "none",
+                          fontSize: "0.85rem",
+                          fontFamily: "var(--font-grotesk)",
+                          transition: "background 0.15s ease",
                         }}
+                        onMouseOver={(e) => (e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)")}
+                        onMouseOut={(e) => (e.currentTarget.style.background = "transparent")}
                       >
-                        <LogOut size={15} /> Sign Out
-                      </button>
+                        <Award size={15} /> Achievement Room
+                      </Link>
+
+                      {user.role === "ADMIN" && (
+                        <Link
+                          href="/admin"
+                          prefetch={true}
+                          onClick={() => setDropdownOpen(false)}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.6rem",
+                            padding: "0.65rem 1rem",
+                            color: "var(--accent-amber)",
+                            textDecoration: "none",
+                            fontSize: "0.85rem",
+                            fontFamily: "var(--font-grotesk)",
+                            transition: "background 0.15s ease",
+                          }}
+                          onMouseOver={(e) => (e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)")}
+                          onMouseOut={(e) => (e.currentTarget.style.background = "transparent")}
+                        >
+                          <Shield size={15} /> Admin Dataset Control
+                        </Link>
+                      )}
+
+                      <div style={{ borderTop: "1px solid var(--border-editorial)", marginTop: "0.3rem" }}>
+                        <button
+                          onClick={async () => {
+                            setDropdownOpen(false);
+                            await logoutUser();
+                          }}
+                          style={{
+                            width: "100%",
+                            textAlign: "left",
+                            background: "none",
+                            border: "none",
+                            padding: "0.65rem 1rem",
+                            color: "var(--accent-vermillion)",
+                            fontSize: "0.85rem",
+                            fontFamily: "var(--font-grotesk)",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.6rem",
+                            transition: "background 0.15s ease",
+                          }}
+                          onMouseOver={(e) => (e.currentTarget.style.background = "rgba(255, 55, 20, 0.08)")}
+                          onMouseOut={(e) => (e.currentTarget.style.background = "transparent")}
+                        >
+                          <LogOut size={15} /> Sign Out
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}

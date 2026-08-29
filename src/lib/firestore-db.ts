@@ -657,7 +657,17 @@ const userAchievementService = {
 
 const seasonService = {
   async findFirst(args?: any) {
-    return {
+    try {
+      const snap = await getDocs(collection(firestore, "seasons"));
+      if (!snap.empty) {
+        const d = snap.docs[0];
+        return formatDoc({ id: d.id, ...d.data() });
+      }
+    } catch (e) {
+      console.warn("Error fetching season from firestore:", e);
+    }
+
+    const defaultSeason = {
       id: "season_1",
       name: "Season 01 Arena",
       seasonNumber: 1,
@@ -665,11 +675,33 @@ const seasonService = {
       endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       isActive: true,
       createdAt: new Date(),
+      updatedAt: new Date(),
     };
+    try {
+      await setDoc(doc(firestore, "seasons", "season_1"), defaultSeason);
+    } catch (e) {}
+    return defaultSeason;
   },
-  async findMany() {
-    return [await seasonService.findFirst()];
+
+  async update(args: { where: { id?: string }; data: any }) {
+    const id = args.where.id || "season_1";
+    const updateData: any = { ...args.data, updatedAt: new Date() };
+    if (updateData.startDate && typeof updateData.startDate === "string") {
+      updateData.startDate = new Date(updateData.startDate);
+    }
+    if (updateData.endDate && typeof updateData.endDate === "string") {
+      updateData.endDate = new Date(updateData.endDate);
+    }
+    await setDoc(doc(firestore, "seasons", id), updateData, { merge: true });
+    const snap = await getDoc(doc(firestore, "seasons", id));
+    return formatDoc({ id: snap.id, ...snap.data() });
   },
+
+  async findMany(args?: any) {
+    const current = await seasonService.findFirst(args);
+    return [current];
+  },
+
   async deleteMany() {
     return { count: 0 };
   },

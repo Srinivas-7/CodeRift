@@ -86,7 +86,8 @@ export function ProblemDetailClient({
         }}
       >
         <Link
-          href="/dashboard"
+          href={`/problems#problem-${problem.id}`}
+          scroll={false}
           style={{
             fontFamily: "var(--font-mono)",
             fontSize: "0.8rem",
@@ -94,7 +95,7 @@ export function ProblemDetailClient({
             textDecoration: "none",
           }}
         >
-          ← BACK TO DAILY MISSION
+          ← BACK TO ROADMAP PROBLEMS
         </Link>
 
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
@@ -507,9 +508,12 @@ export function ProblemDetailClient({
               ) : null}
             </div>
 
-            <div style={{ display: "flex", gap: "1rem", justifyContent: "center" }}>
-              <Link href="/dashboard" className="btn-editorial-primary">
-                BACK TO DASHBOARD →
+            <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
+              <Link href={`/problems#problem-${problem.id}`} scroll={false} className="btn-editorial-primary">
+                BACK TO ROADMAP PROBLEMS →
+              </Link>
+              <Link href="/dashboard" className="btn-editorial-outline">
+                DAILY MISSION →
               </Link>
             </div>
           </div>

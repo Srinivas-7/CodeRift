@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { SdeProblem, SDE_CATEGORIES } from "@/data/sdeSheetProblems";
 import { resetUserProgress } from "@/actions/auth";
@@ -31,6 +31,56 @@ export function ProblemListClient({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("ALL");
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
+  const [highlightedId, setHighlightedId] = useState<number | null>(null);
+
+  // Restore scroll position to last opened problem
+  useEffect(() => {
+    let targetProblemId: string | null = null;
+
+    if (typeof window !== "undefined") {
+      const hash = window.location.hash;
+      if (hash && hash.startsWith("#problem-")) {
+        targetProblemId = hash.replace("#problem-", "");
+      } else {
+        targetProblemId = sessionStorage.getItem("roadmap_last_problem_id");
+      }
+
+      if (targetProblemId) {
+        const numId = parseInt(targetProblemId, 10);
+        setHighlightedId(numId);
+
+        // Small timeout to allow DOM layout to settle
+        const timer = setTimeout(() => {
+          const el = document.getElementById(`problem-${targetProblemId}`);
+          if (el) {
+            el.scrollIntoView({ block: "center", behavior: "instant" });
+          } else {
+            const savedY = sessionStorage.getItem("roadmap_scroll_pos");
+            if (savedY) {
+              window.scrollTo({ top: parseInt(savedY, 10), behavior: "instant" });
+            }
+          }
+        }, 60);
+
+        // Remove highlight after 3 seconds
+        const highlightTimer = setTimeout(() => {
+          setHighlightedId(null);
+        }, 3000);
+
+        return () => {
+          clearTimeout(timer);
+          clearTimeout(highlightTimer);
+        };
+      }
+    }
+  }, []);
+
+  const recordProblemClick = (id: number) => {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("roadmap_last_problem_id", id.toString());
+      sessionStorage.setItem("roadmap_scroll_pos", window.scrollY.toString());
+    }
+  };
 
   // Reset Progress Modal State
   const [showResetModal, setShowResetModal] = useState(false);
@@ -331,10 +381,19 @@ export function ProblemListClient({
               <div style={{ display: "flex", flexDirection: "column", gap: "0.45rem" }}>
                 {probList.map((prob) => {
                   const isDone = solvedSet.has(prob.id);
+                  const isTarget = highlightedId === prob.id;
+
                   return (
                     <div
                       key={prob.id}
+                      id={`problem-${prob.id}`}
                       className={`problem-row-item ${isDone ? "is-solved" : ""}`}
+                      style={{
+                        scrollMarginTop: "120px",
+                        border: isTarget ? "1px solid var(--accent-cobalt)" : undefined,
+                        boxShadow: isTarget ? "0 0 20px rgba(33, 72, 255, 0.45)" : undefined,
+                        transition: "all 0.3s ease",
+                      }}
                     >
                       {/* Left: Number & Title */}
                       <div style={{ display: "flex", alignItems: "center", gap: "1rem", flex: 1, minWidth: "260px" }}>
@@ -353,6 +412,7 @@ export function ProblemListClient({
                         <div>
                           <Link
                             href={`/problems/${prob.id}`}
+                            onClick={() => recordProblemClick(prob.id)}
                             style={{
                               color: isDone ? "var(--accent-acid)" : "#FFF",
                               fontWeight: 600,
@@ -396,6 +456,7 @@ export function ProblemListClient({
 
                         <Link
                           href={`/problems/${prob.id}`}
+                          onClick={() => recordProblemClick(prob.id)}
                           className="btn-editorial-outline"
                           style={{
                             fontSize: "0.75rem",

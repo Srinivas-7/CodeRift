@@ -3,11 +3,18 @@ import { db } from "@/lib/db";
 import Link from "next/link";
 import { Trophy, Calendar, Sparkles, Award } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default async function SeasonsPage() {
   const user = await getCurrentUser();
-  const currentSeason = await db.season.findFirst({
-    where: { isActive: true },
-  });
+  let currentSeason: any = null;
+  try {
+    currentSeason = await db.season.findFirst({
+      where: { isActive: true },
+    });
+  } catch (err) {
+    console.error("Seasons fetch error:", err);
+  }
 
   return (
     <div className="app-container" style={{ padding: "3rem 1.5rem 6rem", maxWidth: "1100px" }}>

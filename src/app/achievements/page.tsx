@@ -4,18 +4,30 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Award, Trophy, Sparkles, CheckCircle2, Lock } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default async function AchievementsPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  const allAchievements = await db.achievement.findMany({
-    orderBy: { xpReward: "asc" },
-  });
+  let allAchievements: any[] = [];
+  let userAchievements: any[] = [];
 
-  const userAchievements = await db.userAchievement.findMany({
-    where: { userId: user.id },
-    select: { achievementId: true, unlockedAt: true },
-  });
+  try {
+    const [achs, userAchs] = await Promise.all([
+      db.achievement.findMany({
+        orderBy: { xpReward: "asc" },
+      }),
+      db.userAchievement.findMany({
+        where: { userId: user.id },
+        select: { achievementId: true, unlockedAt: true },
+      }),
+    ]);
+    allAchievements = achs;
+    userAchievements = userAchs;
+  } catch (err) {
+    console.error("Achievements fetch error:", err);
+  }
 
   const unlockedMap = new Map(
     userAchievements.map((ua) => [ua.achievementId, ua.unlockedAt])

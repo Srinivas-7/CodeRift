@@ -76,32 +76,46 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
               textDecoration: "none",
               color: "var(--text-primary)",
               display: "flex",
-              alignItems: "baseline",
-              gap: "0.4rem",
+              alignItems: "center",
+              gap: "0.65rem",
             }}
           >
-            <span
-              className="font-serif"
+            <img
+              src="/logo.png"
+              alt="DSA ARENA Logo"
               style={{
-                fontSize: "1.85rem",
-                fontWeight: 400,
-                letterSpacing: "-0.03em",
-                lineHeight: 1,
+                width: "32px",
+                height: "32px",
+                borderRadius: "6px",
+                objectFit: "cover",
+                border: "1px solid rgba(33, 72, 255, 0.4)",
+                boxShadow: "0 0 10px rgba(33, 72, 255, 0.3)",
               }}
-            >
-              DSA
-            </span>
-            <span
-              className="font-grotesk"
-              style={{
-                fontSize: "1.1rem",
-                fontWeight: 800,
-                letterSpacing: "0.1em",
-                color: "var(--accent-cobalt)",
-              }}
-            >
-              ARENA
-            </span>
+            />
+            <div style={{ display: "flex", alignItems: "baseline", gap: "0.35rem" }}>
+              <span
+                className="font-serif"
+                style={{
+                  fontSize: "1.85rem",
+                  fontWeight: 400,
+                  letterSpacing: "-0.03em",
+                  lineHeight: 1,
+                }}
+              >
+                DSA
+              </span>
+              <span
+                className="font-grotesk"
+                style={{
+                  fontSize: "1.1rem",
+                  fontWeight: 800,
+                  letterSpacing: "0.1em",
+                  color: "var(--accent-cobalt)",
+                }}
+              >
+                ARENA
+              </span>
+            </div>
           </Link>
 
           <span

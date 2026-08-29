@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { GroupHubClient } from "@/components/group/GroupHubClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function GroupsPage() {
   const user = await getCurrentUser();
   if (!user) {

@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { AdminClient } from "@/components/admin/AdminClient";
 import { ShieldAlert, Sparkles } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminPage() {
   const user = await getCurrentUser();
   if (!user || user.role !== "ADMIN") {

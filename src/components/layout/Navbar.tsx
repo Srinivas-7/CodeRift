@@ -76,34 +76,21 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
               textDecoration: "none",
               color: "var(--text-primary)",
               display: "flex",
-              alignItems: "center",
-              gap: "0.65rem",
+              alignItems: "baseline",
+              gap: "0.35rem",
             }}
           >
-            <img
-              src="/logo.png"
-              alt="DSA ARENA Logo"
+            <span
+              className="font-serif"
               style={{
-                width: "32px",
-                height: "32px",
-                borderRadius: "6px",
-                objectFit: "cover",
-                border: "1px solid rgba(33, 72, 255, 0.4)",
-                boxShadow: "0 0 10px rgba(33, 72, 255, 0.3)",
+                fontSize: "1.85rem",
+                fontWeight: 400,
+                letterSpacing: "-0.03em",
+                lineHeight: 1,
               }}
-            />
-            <div style={{ display: "flex", alignItems: "baseline", gap: "0.35rem" }}>
-              <span
-                className="font-serif"
-                style={{
-                  fontSize: "1.85rem",
-                  fontWeight: 400,
-                  letterSpacing: "-0.03em",
-                  lineHeight: 1,
-                }}
-              >
-                DSA
-              </span>
+            >
+              DSA
+            </span>
               <span
                 className="font-grotesk"
                 style={{
@@ -115,7 +102,6 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
               >
                 ARENA
               </span>
-            </div>
           </Link>
 
           <span

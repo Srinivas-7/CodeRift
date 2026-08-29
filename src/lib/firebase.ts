@@ -14,12 +14,12 @@ import {
 
 // Public Firebase Client configuration
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyDSAARENA_DEMO_KEY_PUBLIC",
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "dsa-arena.firebaseapp.com",
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "dsa-arena",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "dsa-arena.appspot.com",
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "1092837465",
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:1092837465:web:dsaarena789",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyChqo6ypJhp5lETgwiopZ7AXK9b00xF3UI",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "gamified-dsa.firebaseapp.com",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "gamified-dsa",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "gamified-dsa.firebasestorage.app",
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "1079760399690",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:1079760399690:web:ea4a21e4449e54721f65b3",
 };
 
 // Initialize Firebase singleton safely

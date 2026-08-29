@@ -295,35 +295,64 @@ export function ProblemDetailClient({
         {verifyResult && !verifyResult.success && (
           <div
             style={{
-              background: "rgba(255, 55, 20, 0.08)",
-              border: "1px solid var(--accent-vermillion)",
-              padding: "1.25rem 1.5rem",
+              background: "rgba(245, 158, 11, 0.06)",
+              border: "1px solid rgba(245, 158, 11, 0.35)",
+              padding: "1.35rem 1.6rem",
               borderRadius: "4px",
-              color: "var(--accent-vermillion)",
-              fontFamily: "var(--font-mono)",
-              fontSize: "0.85rem",
-              marginTop: "1.25rem",
+              marginTop: "1.5rem",
               lineHeight: 1.6,
             }}
           >
-            <div style={{ fontWeight: 800, fontSize: "0.9rem", marginBottom: "0.4rem" }}>
-              ⚠️ Verification Failed (+0 XP awarded):
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem", flexWrap: "wrap", gap: "0.5rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <span style={{ fontSize: "1.1rem" }}>⏳</span>
+                <span className="font-grotesk" style={{ fontSize: "0.95rem", fontWeight: 800, textTransform: "uppercase", color: "var(--accent-amber)" }}>
+                  NO ACCEPTED SUBMISSION FOUND YET
+                </span>
+              </div>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem", color: "var(--text-muted)", background: "rgba(255, 255, 255, 0.05)", padding: "0.2rem 0.6rem", borderRadius: "2px" }}>
+                0 XP CLAIMED
+              </span>
             </div>
-            <div>{verifyResult.error}</div>
-            <div style={{ marginTop: "0.85rem", paddingTop: "0.75rem", borderTop: "1px solid rgba(255, 55, 20, 0.2)", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+
+            <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", margin: "0.4rem 0 0.85rem 0" }}>
+              {verifyResult.error}
+            </p>
+
+            <div
+              style={{
+                background: "var(--bg-primary)",
+                border: "1px solid var(--border-editorial)",
+                padding: "0.85rem 1rem",
+                borderRadius: "2px",
+                fontFamily: "var(--font-mono)",
+                fontSize: "0.8rem",
+                color: "var(--text-muted)",
+                marginBottom: "1rem",
+              }}
+            >
+              <div style={{ color: "#FFF", fontWeight: 700, marginBottom: "0.3rem" }}>HOW TO EARN YOUR XP:</div>
+              <div>1. Click <strong style={{ color: "#FFA116" }}>"Solve on LeetCode"</strong> and submit your solution.</div>
+              <div>2. Ensure LeetCode gives you a green <strong style={{ color: "var(--accent-acid)" }}>"Accepted"</strong> verdict.</div>
+              <div>3. Return here and click <strong style={{ color: "var(--accent-cobalt)" }}>"Verify LeetCode Submission"</strong> to claim your XP!</div>
+            </div>
+
+            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
               <a
                 href={leetcodeLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ color: "#FFF", textDecoration: "underline", fontSize: "0.8rem" }}
+                className="btn-leetcode"
+                style={{ fontSize: "0.8rem", padding: "0.5rem 1rem" }}
               >
-                Solve "{problem.title}" on LeetCode ↗
+                SOLVE ON LEETCODE ↗
               </a>
               <Link
                 href="/profile"
-                style={{ color: "var(--accent-cobalt)", textDecoration: "underline", fontSize: "0.8rem" }}
+                className="btn-editorial-outline"
+                style={{ fontSize: "0.8rem", padding: "0.5rem 1rem", color: "var(--text-secondary)" }}
               >
-                Edit LeetCode Username in Profile →
+                Change LeetCode Handle
               </Link>
             </div>
           </div>

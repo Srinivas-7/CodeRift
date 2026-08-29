@@ -1,4 +1,5 @@
 import { db } from "./db";
+import { calculateLevel } from "./xp";
 
 export async function checkAndAwardAchievements(userId: string) {
   const user = await db.user.findUnique({
@@ -65,9 +66,15 @@ export async function checkAndAwardAchievements(userId: string) {
         },
       });
 
+      const updatedTotalXp = (user.xp || 0) + ach.xpReward;
+      const updatedLevel = calculateLevel(updatedTotalXp);
+
       await db.user.update({
         where: { id: userId },
-        data: { xp: { increment: ach.xpReward } },
+        data: {
+          xp: updatedTotalXp,
+          level: updatedLevel,
+        },
       });
 
       unlockedNow.push({

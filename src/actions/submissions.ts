@@ -11,7 +11,6 @@ import { revalidatePath } from "next/cache";
 interface VerifySubmissionInput {
   problemId: number;
   leetcodeUsername?: string;
-  isOptimal?: boolean;
 }
 
 export async function verifyAndCompleteLeetCodeSubmission(input: VerifySubmissionInput) {
@@ -75,18 +74,14 @@ export async function verifyAndCompleteLeetCodeSubmission(input: VerifySubmissio
     },
   });
 
-  const isFirstSolve =
-    !previousStatus ||
-    (previousStatus.status !== "SOLVED" && previousStatus.status !== "OPTIMAL");
-
-  const solveStatus = input.isOptimal ? "OPTIMAL" : "SOLVED";
+  const isFirstSolve = !previousStatus || previousStatus.status !== "SOLVED";
+  const solveStatus = "SOLVED";
 
   // 5. Calculate Server-Verified XP
   const xpBreakdown = calculateXpGain({
     difficulty: problem.difficulty,
     status: solveStatus,
     isFirstTime: isFirstSolve,
-    isOptimal: input.isOptimal,
     isDailyChallengeProblem: true,
   });
 

@@ -245,6 +245,6 @@ export async function verifyLeetCodeSubmission(
   return {
     verified: false,
     userExists: true,
-    message: `No "Accepted" submission found on LeetCode for "${problemTitle}" under account @${cleanUsername}. Checked ${totalSubmissionsChecked} recent submissions. Please solve and get an "Accepted" verdict on LeetCode first before verifying!`,
+    message: `We checked your recent LeetCode submissions under @${cleanUsername}, but haven't detected an "Accepted" solution for "${problemTitle}" yet.`,
   };
 }

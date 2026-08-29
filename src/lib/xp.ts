@@ -2,7 +2,6 @@ export interface XpBreakdown {
   baseXp: number;
   attemptXp?: number;
   firstSolveBonus?: number;
-  optimalBonus?: number;
   dailyCompleteBonus?: number;
   challengeWinBonus?: number;
   totalXp: number;
@@ -11,10 +10,9 @@ export interface XpBreakdown {
 
 export function calculateProblemXp(params: {
   difficulty: "Easy" | "Medium" | "Hard" | string;
-  status: "ATTEMPTED" | "SOLVED" | "OPTIMAL" | string;
+  status: "ATTEMPTED" | "SOLVED" | string;
   isFirstSolve?: boolean;
   isFirstTime?: boolean;
-  isOptimal?: boolean;
   isDailyChallengeProblem?: boolean;
 }): XpBreakdown {
   const { difficulty, status } = params;
@@ -24,37 +22,30 @@ export function calculateProblemXp(params: {
   const reasons: string[] = [];
   let attemptXp = 0;
   let firstSolveBonus = 0;
-  let optimalBonus = 0;
 
   if (status === "ATTEMPTED") {
     attemptXp = 25;
     reasons.push("+25 XP — Valid Learning Attempt & Code Effort");
   } else {
-    // Solved or Optimal
+    // Solved
     if (difficulty === "Easy") baseXp = 100;
     else if (difficulty === "Hard") baseXp = 300;
     else baseXp = 200; // Medium
 
     reasons.push(`+${baseXp} XP — ${difficulty} Problem Solved`);
 
-    if (status === "OPTIMAL" || params.isOptimal) {
-      optimalBonus = 50;
-      reasons.push("+50 XP — Optimal Time & Space Complexity Solution");
-    }
-
     if (isFirst) {
       firstSolveBonus = 50;
-      reasons.push("+50 XP — First Blood on this Sheet Problem");
+      reasons.push("+50 XP — First Solve Bonus on this Sheet Problem");
     }
   }
 
-  const totalXp = baseXp + attemptXp + firstSolveBonus + optimalBonus;
+  const totalXp = baseXp + attemptXp + firstSolveBonus;
 
   return {
     baseXp,
     attemptXp: attemptXp > 0 ? attemptXp : undefined,
     firstSolveBonus: firstSolveBonus > 0 ? firstSolveBonus : undefined,
-    optimalBonus: optimalBonus > 0 ? optimalBonus : undefined,
     totalXp,
     reasons,
   };

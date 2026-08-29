@@ -101,7 +101,7 @@ export default function LoginPage() {
           style={{
             maxWidth: "680px",
             width: "100%",
-            padding: "4rem 3rem",
+            padding: "clamp(2.5rem, 6vw, 4rem) clamp(1.25rem, 4vw, 3rem)",
             textAlign: "center",
             background: "var(--bg-surface)",
             border: "1px solid var(--border-editorial-strong)",
@@ -128,7 +128,7 @@ export default function LoginPage() {
               marginBottom: "1rem",
             }}
           >
-            DSA <span style={{ color: "var(--accent-cobalt)" }}>ARENA</span>
+            CODE <span style={{ color: "var(--accent-cobalt)" }}>RIFT</span>
           </h1>
 
           <div

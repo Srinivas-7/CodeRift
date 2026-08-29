@@ -391,3 +391,64 @@ body {
   background: var(--accent-vermillion);
   transition: width 0.3s ease;
 }
+
+/* ============================================================
+   RESPONSIVE MEDIA QUERIES (MOBILE & TABLET ONLY)
+   Desktop layout (min-width: 841px) is 100% preserved
+   ============================================================ */
+
+@media (max-width: 840px) {
+  .app-container {
+    padding: 0 1.25rem;
+  }
+
+  .editorial-card {
+    box-shadow: 6px 6px 0px rgba(33, 72, 255, 0.15) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-container {
+    padding: 0 1rem;
+  }
+
+  /* Prevent horizontal overflow on small mobile screens (320px - 430px) */
+  body, html {
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  /* Scale large fixed box-shadows on mobile */
+  .editorial-card {
+    box-shadow: 4px 4px 0px rgba(33, 72, 255, 0.15) !important;
+  }
+
+  /* Touch-friendly inputs with 16px font size to prevent iOS zoom */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* Responsive Problem Rows */
+  .problem-row-item {
+    padding: 0.85rem 1rem;
+    gap: 0.75rem;
+  }
+
+  /* Responsive Buttons */
+  .btn-editorial-primary,
+  .btn-editorial-vermillion,
+  .btn-editorial-outline,
+  .btn-leetcode {
+    min-height: 44px;
+  }
+
+  /* Modal Dialogs */
+  .modal-overlay {
+    padding: 1rem;
+  }
+}
+

@@ -386,15 +386,76 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
               style={{
                 color: pathname === item.href ? "var(--accent-cobalt)" : "var(--text-primary)",
                 textDecoration: "none",
-                fontSize: "1.1rem",
+                fontSize: "1.05rem",
                 fontWeight: 700,
                 textTransform: "uppercase",
+                padding: "0.25rem 0",
               }}
             >
               {item.label}
             </Link>
           ))}
-          {!user && (
+          {user ? (
+            <div style={{ borderTop: "1px solid var(--border-editorial)", paddingTop: "1rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+              <Link
+                href="/profile"
+                onClick={() => setMobileMenuOpen(false)}
+                className="font-grotesk"
+                style={{
+                  color: "var(--text-primary)",
+                  textDecoration: "none",
+                  fontSize: "1rem",
+                  fontWeight: 700,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                }}
+              >
+                <User size={16} /> WARRIOR PROFILE
+              </Link>
+              {user.role === "ADMIN" && (
+                <Link
+                  href="/admin"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="font-grotesk"
+                  style={{
+                    color: "var(--accent-vermillion)",
+                    textDecoration: "none",
+                    fontSize: "1rem",
+                    fontWeight: 700,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                  }}
+                >
+                  <Shield size={16} /> ADMIN TELEMETRY
+                </Link>
+              )}
+              <button
+                onClick={async () => {
+                  setMobileMenuOpen(false);
+                  await logoutUser();
+                  window.location.href = "/";
+                }}
+                className="font-grotesk"
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "var(--accent-vermillion)",
+                  fontSize: "0.95rem",
+                  fontWeight: 700,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  cursor: "pointer",
+                  padding: "0.25rem 0",
+                  textAlign: "left",
+                }}
+              >
+                <LogOut size={16} /> SIGN OUT
+              </button>
+            </div>
+          ) : (
             <Link
               href="/login"
               onClick={() => setMobileMenuOpen(false)}

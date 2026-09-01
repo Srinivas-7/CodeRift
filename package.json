@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "clean": "powershell -Command \"if (Test-Path .next) { Remove-Item -Recurse -Force .next }\""
+    "clean": "powershell -Command \"if (Test-Path .next) { Remove-Item -Recurse -Force .next }\"",
+    "db:clean": "node scripts/clean-db.mjs"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",

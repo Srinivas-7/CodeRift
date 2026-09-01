@@ -242,7 +242,7 @@ export default async function DashboardPage() {
               color: dailyData.isComplete ? "var(--accent-acid)" : "var(--accent-cobalt)",
             }}
           >
-            {dailyData.solvedCount} / 03 COMPLETED {dailyData.isComplete && "🎉"}
+            {dailyData.solvedCount} / {dailyData.totalCount ? dailyData.totalCount.toString().padStart(2, "0") : "03"} COMPLETED {dailyData.isComplete && "🎉"}
           </div>
         </div>
 
@@ -254,7 +254,24 @@ export default async function DashboardPage() {
             gap: "1.5rem",
           }}
         >
-          {dailyData.problems.map((prob, idx) => {
+          {dailyData.problems.length === 0 ? (
+            <div
+              className="editorial-card"
+              style={{
+                gridColumn: "1 / -1",
+                padding: "2.5rem",
+                textAlign: "center",
+                border: "1px solid var(--border-editorial)",
+              }}
+            >
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.9rem", color: "var(--accent-acid)", fontWeight: 800, marginBottom: "0.5rem" }}>
+                SEASON 01 CONCLUDED // ALL 191 SDE SHEET PROBLEMS DISPATCHED
+              </div>
+              <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", maxWidth: "600px", margin: "0 auto" }}>
+                You have reached the end of the Season 01 Roadmap. Practice existing problems or check the global leaderboard.
+              </p>
+            </div>
+          ) : dailyData.problems.map((prob, idx) => {
             const isDone = prob.isSolved;
             const xpReward =
               prob.difficulty === "Easy"
@@ -546,7 +563,7 @@ export default async function DashboardPage() {
                 {todayXpGained} XP
               </div>
               <div style={{ fontSize: "0.75rem", color: "var(--accent-acid)", fontWeight: 700 }}>
-                {dailyData.solvedCount} / 3 Solved
+                {dailyData.solvedCount} / {dailyData.totalCount ?? 3} Solved
               </div>
             </div>
           </div>

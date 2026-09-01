@@ -880,6 +880,24 @@ const friendChallengeService = {
     return snap.docs.map((d) => formatDoc({ id: d.id, ...d.data() }));
   },
 
+  async update(args: { where: { id: string }; data: any }) {
+    const ref = doc(firestore, "friend_challenges", args.where.id);
+    await updateDoc(ref, { ...args.data, updatedAt: new Date() });
+    const snap = await getDoc(ref);
+    return formatDoc({ id: snap.id, ...snap.data() });
+  },
+
+  async findUnique(args: { where: { id: string } }) {
+    const snap = await getDoc(doc(firestore, "friend_challenges", args.where.id));
+    if (!snap.exists()) return null;
+    return formatDoc({ id: snap.id, ...snap.data() });
+  },
+
+  async findFirst(args?: any) {
+    const list = await friendChallengeService.findMany(args);
+    return list[0] || null;
+  },
+
   async deleteMany(args?: any) {
     const snap = await getDocs(collection(firestore, "friend_challenges"));
     for (const d of snap.docs) await deleteDoc(d.ref);

@@ -7,6 +7,7 @@ import { updateStreakOnProblemSolved } from "@/lib/streaks";
 import { checkAndAwardAchievements } from "@/lib/achievements";
 import { verifyLeetCodeSubmission } from "@/lib/leetcode";
 import { revalidatePath } from "next/cache";
+import { getGlobalDailyProblemBatch } from "@/lib/daily-challenge";
 
 interface VerifySubmissionInput {
   problemId: number;
@@ -139,38 +140,59 @@ export async function verifyAndCompleteLeetCodeSubmission(input: VerifySubmissio
     ? user.totalSolved + 1
     : user.totalSolved;
 
-  const newTotalXp = user.xp + xpBreakdown.totalXp;
-  const newLevel = calculateLevel(newTotalXp);
+  let runningTotalXp = user.xp + xpBreakdown.totalXp;
+  let currentLevel = calculateLevel(runningTotalXp);
 
   await db.user.update({
     where: { id: user.id },
     data: {
-      xp: newTotalXp,
-      level: newLevel,
+      xp: runningTotalXp,
+      level: currentLevel,
       totalSolved: updatedTotalSolved,
     },
   });
 
-  // 10. Check if this completes today's 3/3 daily mission
+  // 10. Check if this completes today's daily mission
   const todayStr = new Date().toISOString().split("T")[0];
-  const dailyChallenge = await db.dailyChallenge.findUnique({
-    where: {
-      userId_date: {
-        userId: user.id,
-        date: todayStr,
-      },
-    },
-  });
+  const globalBatch = await getGlobalDailyProblemBatch(todayStr);
+  const dailyProblemIds = (globalBatch.problems || []).map((p: any) => p.id);
 
   let isMissionComplete = false;
-  if (dailyChallenge && !dailyChallenge.completed) {
-    const dailyProblemIds = [
-      dailyChallenge.problem1Id,
-      dailyChallenge.problem2Id,
-      dailyChallenge.problem3Id,
-    ];
+  if (dailyProblemIds.length > 0 && dailyProblemIds.includes(problem.id)) {
+    let dailyChallenge = await db.dailyChallenge.findUnique({
+      where: {
+        userId_date: {
+          userId: user.id,
+          date: todayStr,
+        },
+      },
+    });
 
-    if (dailyProblemIds.includes(problem.id)) {
+    if (!dailyChallenge) {
+      dailyChallenge = await db.dailyChallenge.upsert({
+        where: {
+          userId_date: {
+            userId: user.id,
+            date: todayStr,
+          },
+        },
+        update: {
+          problem1Id: dailyProblemIds[0] ?? null,
+          problem2Id: dailyProblemIds[1] ?? null,
+          problem3Id: dailyProblemIds[2] ?? null,
+        },
+        create: {
+          userId: user.id,
+          date: todayStr,
+          problem1Id: dailyProblemIds[0] ?? null,
+          problem2Id: dailyProblemIds[1] ?? null,
+          problem3Id: dailyProblemIds[2] ?? null,
+          completed: false,
+        },
+      });
+    }
+
+    if (dailyChallenge && !dailyChallenge.completed) {
       const solvedDailyCount = await db.userProblemStatus.count({
         where: {
           userId: user.id,
@@ -179,14 +201,14 @@ export async function verifyAndCompleteLeetCodeSubmission(input: VerifySubmissio
         },
       });
 
-      if (solvedDailyCount >= 3) {
+      if (solvedDailyCount >= dailyProblemIds.length) {
         isMissionComplete = true;
         await db.dailyChallenge.update({
           where: { id: dailyChallenge.id },
           data: { completed: true, completedAt: new Date() },
         });
 
-        // Award 3/3 Mission Bonus (+100 XP)
+        // Award 3/3 (or full daily) Mission Bonus (+100 XP)
         const MISSION_BONUS = 100;
         await db.xpTransaction.create({
           data: {
@@ -196,15 +218,78 @@ export async function verifyAndCompleteLeetCodeSubmission(input: VerifySubmissio
           },
         });
 
+        runningTotalXp += MISSION_BONUS;
+        currentLevel = calculateLevel(runningTotalXp);
+
         await db.user.update({
           where: { id: user.id },
-          data: { xp: { increment: MISSION_BONUS } },
+          data: { xp: runningTotalXp, level: currentLevel },
         });
 
         xpBreakdown.totalXp += MISSION_BONUS;
         xpBreakdown.reasons.push("🎉 3/3 DAILY MISSION COMPLETE BONUS (+100 XP)");
       }
     }
+  }
+
+  // 10.5 Check and resolve any Pending 1v1 Friend Challenges for this problem
+  try {
+    const allChallenges = await db.friendChallenge.findMany();
+    const activeDuel = allChallenges.find(
+      (c: any) =>
+        c.status === "PENDING" &&
+        c.problemId === problem.id &&
+        (c.challengedId === user.id || c.challengerId === user.id)
+    );
+
+    if (activeDuel) {
+      const duelXp = activeDuel.xpStake || 150;
+      await db.friendChallenge.update({
+        where: { id: activeDuel.id },
+        data: {
+          status: "COMPLETED",
+          winnerId: user.id,
+          completedAt: new Date(),
+        },
+      });
+
+      await db.xpTransaction.create({
+        data: {
+          userId: user.id,
+          amount: duelXp,
+          reason: "CHALLENGE_WIN",
+        },
+      });
+
+      runningTotalXp += duelXp;
+      currentLevel = calculateLevel(runningTotalXp);
+
+      await db.user.update({
+        where: { id: user.id },
+        data: { xp: runningTotalXp, level: currentLevel },
+      });
+
+      xpBreakdown.totalXp += duelXp;
+      xpBreakdown.challengeWinBonus = duelXp;
+      xpBreakdown.reasons.push(`⚔️ 1v1 DUEL VICTORY BONUS (+${duelXp} XP)`);
+
+      const opponentId =
+        activeDuel.challengedId === user.id
+          ? activeDuel.challengerId
+          : activeDuel.challengedId;
+
+      await db.notification.create({
+        data: {
+          userId: opponentId,
+          title: "⚔️ Duel Concluded",
+          type: "CHALLENGE_COMPLETED",
+          message: `⚔️ ${user.username} just conquered "${problem.title}" and won the 1v1 duel (+${duelXp} XP)!`,
+          link: `/problems/${problem.id}`,
+        },
+      });
+    }
+  } catch (err) {
+    console.warn("Duel resolution check note:", err);
   }
 
   // 11. Check and Award Achievements
@@ -234,7 +319,7 @@ export async function verifyAndCompleteLeetCodeSubmission(input: VerifySubmissio
     if (newRank > 0 && newRank < sortedMembers.length) {
       const overtakenMember = sortedMembers[newRank]; // member who dropped
       if (overtakenMember && overtakenMember.userId !== user.id) {
-        const gap = newTotalXp - overtakenMember.user.xp;
+        const gap = runningTotalXp - overtakenMember.user.xp;
         await db.notification.create({
           data: {
             userId: overtakenMember.userId,

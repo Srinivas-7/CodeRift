@@ -25,6 +25,8 @@ export async function checkAndAwardAchievements(userId: string) {
 
   const allAchievements = await db.achievement.findMany();
 
+  let runningXp = user.xp || 0;
+
   for (const ach of allAchievements) {
     if (existingIds.has(ach.id)) continue;
 
@@ -66,13 +68,13 @@ export async function checkAndAwardAchievements(userId: string) {
         },
       });
 
-      const updatedTotalXp = (user.xp || 0) + ach.xpReward;
-      const updatedLevel = calculateLevel(updatedTotalXp);
+      runningXp += ach.xpReward;
+      const updatedLevel = calculateLevel(runningXp);
 
       await db.user.update({
         where: { id: userId },
         data: {
-          xp: updatedTotalXp,
+          xp: runningXp,
           level: updatedLevel,
         },
       });

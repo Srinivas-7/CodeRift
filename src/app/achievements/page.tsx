@@ -124,7 +124,7 @@ export default async function AchievementsPage() {
                 }}
               >
                 <span style={{ color: "var(--text-muted)" }}>REWARD:</span>
-                <strong style={{ color: "var(--accent-amber)" }}>+{ach.xpReward} XP</strong>
+                <strong style={{ color: "var(--accent-amber)" }}>+{ach.xpReward} PTS</strong>
               </div>
             </div>
           );

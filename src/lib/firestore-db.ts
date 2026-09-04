@@ -12,8 +12,10 @@ import {
   orderBy as firestoreOrderBy,
   limit as firestoreLimit,
   Timestamp,
+  runTransaction,
 } from "firebase/firestore";
 import { SDE_SHEET_PROBLEMS } from "@/data/sdeSheetProblems";
+import { calculateLevel } from "@/lib/xp";
 
 // Default Achievements Definition
 const SYSTEM_ACHIEVEMENTS = [
@@ -158,6 +160,7 @@ const userService = {
     const id = args.data.id || args.data.firebaseUid || doc(collection(firestore, "users")).id;
     const record = {
       avatar: "cyber_ninja",
+      score: 0,
       xp: 0,
       level: 1,
       currentStreak: 0,
@@ -343,17 +346,21 @@ const userProblemStatusService = {
 };
 
 const dailyChallengeService = {
-  async findUnique(args: { where: { userId_date?: { userId: string; date: string }; id?: string } }) {
-    const docId = args.where.userId_date
-      ? `${args.where.userId_date.userId}_${args.where.userId_date.date}`
-      : args.where.id;
+  async findUnique(args: { where: { userId_groupId_date?: { userId: string; groupId?: string | null; date: string }; userId_date?: { userId: string; date: string }; id?: string } }) {
+    let docId = args.where.id;
+    if (args.where.userId_groupId_date) {
+      const { userId, groupId, date } = args.where.userId_groupId_date;
+      docId = groupId ? `${userId}_${groupId}_${date}` : `${userId}_${date}`;
+    } else if (args.where.userId_date) {
+      docId = `${args.where.userId_date.userId}_${args.where.userId_date.date}`;
+    }
     if (!docId) return null;
     const snap = await getDoc(doc(firestore, "daily_challenges", docId));
     if (!snap.exists()) return null;
     return formatDoc({ id: snap.id, ...snap.data() });
   },
 
-  async findMany(args?: { where?: { userId?: string | { in: string[] }; date?: string; completed?: boolean } }) {
+  async findMany(args?: { where?: { userId?: string | { in: string[] }; groupId?: string; date?: string; completed?: boolean } }) {
     const ref = collection(firestore, "daily_challenges");
     const snap = await getDocs(ref);
     let list: any[] = snap.docs.map((d) => formatDoc({ id: d.id, ...d.data() }));
@@ -364,6 +371,10 @@ const dailyChallengeService = {
       } else if (Array.isArray(args.where.userId.in)) {
         list = list.filter((c) => (args.where?.userId as any).in.includes(c.userId));
       }
+    }
+
+    if (args?.where?.groupId) {
+      list = list.filter((c) => c.groupId === args.where?.groupId);
     }
 
     if (args?.where?.date) {
@@ -377,8 +388,23 @@ const dailyChallengeService = {
     return list;
   },
 
-  async upsert(args: { where: { userId_date: { userId: string; date: string } }; update: any; create: any }) {
-    const docId = `${args.where.userId_date.userId}_${args.where.userId_date.date}`;
+  async upsert(args: { where: { userId_groupId_date?: { userId: string; groupId?: string | null; date: string }; userId_date?: { userId: string; date: string } }; update: any; create: any }) {
+    let docId = "";
+    let userId = "";
+    let date = "";
+    let groupId: string | null = null;
+
+    if (args.where.userId_groupId_date) {
+      userId = args.where.userId_groupId_date.userId;
+      groupId = args.where.userId_groupId_date.groupId || null;
+      date = args.where.userId_groupId_date.date;
+      docId = groupId ? `${userId}_${groupId}_${date}` : `${userId}_${date}`;
+    } else if (args.where.userId_date) {
+      userId = args.where.userId_date.userId;
+      date = args.where.userId_date.date;
+      docId = `${userId}_${date}`;
+    }
+
     const snap = await getDoc(doc(firestore, "daily_challenges", docId));
 
     if (snap.exists()) {
@@ -387,8 +413,9 @@ const dailyChallengeService = {
     }
 
     const createData = {
-      userId: args.where.userId_date.userId,
-      date: args.where.userId_date.date,
+      userId,
+      groupId,
+      date,
       completed: false,
       completedAt: null,
       createdAt: new Date(),
@@ -413,6 +440,123 @@ const dailyChallengeService = {
       await deleteDoc(d.ref);
     }
     return { count: snap.size };
+  },
+
+  async awardDailyBonusAtomic(args: {
+    userId: string;
+    groupId?: string | null;
+    date: string;
+    problemPhase: number;
+    bonusAmount?: number;
+    bonusReason?: string;
+  }): Promise<{
+    awarded: boolean;
+    alreadyCompleted: boolean;
+    newScore: number;
+    newLevel: number;
+    newPhase1Score: number;
+    newPhase2Score: number;
+  }> {
+    const { userId, groupId, date, problemPhase } = args;
+    const bonusAmount = args.bonusAmount ?? 20;
+    const bonusReason = args.bonusReason ?? (groupId ? `DAILY_COMPLETION_BONUS_${groupId}` : "DAILY_COMPLETION_BONUS");
+
+    const dailyDocId = groupId ? `${userId}_${groupId}_${date}` : `${userId}_${date}`;
+    const deterministicBonusId = groupId ? `bonus_${userId}_${groupId}_${date}` : `bonus_${userId}_${date}`;
+
+    const dailyRef = doc(firestore, "daily_challenges", dailyDocId);
+    const userRef = doc(firestore, "users", userId);
+    const bonusRef = doc(firestore, "xp_transactions", deterministicBonusId);
+
+    try {
+      const result = await runTransaction(firestore, async (transaction) => {
+        const dailySnap = await transaction.get(dailyRef);
+        const userSnap = await transaction.get(userRef);
+        const bonusSnap = await transaction.get(bonusRef);
+
+        const dailyData = dailySnap.exists() ? (dailySnap.data() as any) : null;
+        const userData = userSnap.exists() ? (userSnap.data() as any) : {};
+
+        // 1. If daily challenge is already completed or bonus transaction already exists, exit idempotently
+        if ((dailyData && dailyData.completed === true) || bonusSnap.exists()) {
+          return {
+            awarded: false,
+            alreadyCompleted: true,
+            newScore: (userData?.score ?? userData?.xp ?? 0),
+            newLevel: userData?.level ?? 1,
+            newPhase1Score: userData?.phase1Score ?? 0,
+            newPhase2Score: userData?.phase2Score ?? 0,
+          };
+        }
+
+        // 2. Mark daily challenge as completed
+        if (dailySnap.exists()) {
+          transaction.update(dailyRef, {
+            completed: true,
+            completedAt: new Date(),
+            updatedAt: new Date(),
+          });
+        } else {
+          transaction.set(dailyRef, {
+            id: dailyDocId,
+            userId,
+            groupId: groupId || null,
+            date,
+            completed: true,
+            completedAt: new Date(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
+        }
+
+        // 3. Create deterministic bonus transaction record
+        transaction.set(bonusRef, {
+          id: deterministicBonusId,
+          userId,
+          amount: bonusAmount,
+          reason: bonusReason,
+          createdAt: new Date(),
+        });
+
+        // 4. Update user score inside the transaction concurrency-safely
+        const currentScore = (userData?.score ?? userData?.xp ?? 0);
+        const newScore = currentScore + bonusAmount;
+        const newLevel = calculateLevel(newScore);
+        const newPhase1Score = (userData?.phase1Score ?? 0) + (problemPhase === 1 ? bonusAmount : 0);
+        const newPhase2Score = (userData?.phase2Score ?? 0) + (problemPhase === 2 ? bonusAmount : 0);
+
+        transaction.update(userRef, {
+          score: newScore,
+          xp: newScore,
+          level: newLevel,
+          phase1Score: newPhase1Score,
+          phase2Score: newPhase2Score,
+          updatedAt: new Date(),
+        });
+
+        return {
+          awarded: true,
+          alreadyCompleted: false,
+          newScore,
+          newLevel,
+          newPhase1Score,
+          newPhase2Score,
+        };
+      });
+
+      return result;
+    } catch (err) {
+      console.error("Error in awardDailyBonusAtomic:", err);
+      const user = await userService.findUnique({ where: { id: userId } });
+      return {
+        awarded: false,
+        alreadyCompleted: false,
+        newScore: user?.score ?? user?.xp ?? 0,
+        newLevel: user?.level ?? 1,
+        newPhase1Score: user?.phase1Score ?? 0,
+        newPhase2Score: user?.phase2Score ?? 0,
+      };
+    }
   },
 };
 
@@ -676,11 +820,11 @@ const seasonService = {
       id: "season_1",
       name: "Season 01 Arena",
       seasonNumber: 1,
-      startDate: new Date(),
-      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      startDate: new Date("2026-09-01T00:00:00.000Z"),
+      endDate: new Date("2026-10-01T00:00:00.000Z"),
       isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: new Date("2026-09-01T00:00:00.000Z"),
+      updatedAt: new Date("2026-09-01T00:00:00.000Z"),
     };
     try {
       await setDoc(doc(firestore, "seasons", "season_1"), defaultSeason);
@@ -775,9 +919,10 @@ const streakRecordService = {
 
 const xpTransactionService = {
   async create(args: { data: any }) {
-    const ref = doc(collection(firestore, "xp_transactions"));
+    const id = args.data.id || doc(collection(firestore, "xp_transactions")).id;
+    const ref = doc(firestore, "xp_transactions", id);
     const record = {
-      id: ref.id,
+      id,
       createdAt: new Date(),
       ...args.data,
     };

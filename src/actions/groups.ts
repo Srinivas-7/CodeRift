@@ -21,6 +21,7 @@ export async function createGroup(formData: {
   name: string;
   description?: string;
   avatar?: string;
+  phase1StartDate?: string;
 }) {
   const currentUser = await getCurrentUser();
   if (!currentUser) {
@@ -30,6 +31,16 @@ export async function createGroup(formData: {
   const name = formData.name.trim();
   if (name.length < 3 || name.length > 30) {
     return { success: false, error: "Group name must be between 3 and 30 characters." };
+  }
+
+  // Parse & validate phase1StartDate (defaults to today UTC)
+  let phase1StartDate = new Date().toISOString().split("T")[0];
+  if (formData.phase1StartDate && formData.phase1StartDate.trim()) {
+    const raw = formData.phase1StartDate.trim();
+    const parsed = new Date(raw + "T00:00:00.000Z");
+    if (!isNaN(parsed.getTime())) {
+      phase1StartDate = parsed.toISOString().split("T")[0];
+    }
   }
 
   // Generate unique invite code
@@ -44,6 +55,7 @@ export async function createGroup(formData: {
       description: formData.description?.trim() || "A fierce DSA consistency squad.",
       avatar: formData.avatar || "flame_shield",
       inviteCode,
+      phase1StartDate,
       createdById: currentUser.id,
     },
   });

@@ -23,6 +23,7 @@ export function GroupHubClient({ userGroups }: GroupHubClientProps) {
 
   const [groupName, setGroupName] = useState("");
   const [groupDesc, setGroupDesc] = useState("");
+  const [phase1StartDate, setPhase1StartDate] = useState(new Date().toISOString().split("T")[0]);
   const [inviteCodeInput, setInviteCodeInput] = useState("");
 
   const [loading, setLoading] = useState(false);
@@ -40,6 +41,7 @@ export function GroupHubClient({ userGroups }: GroupHubClientProps) {
       const res = await createGroup({
         name: groupName,
         description: groupDesc,
+        phase1StartDate,
       });
 
       if (res.success) {
@@ -269,6 +271,30 @@ export function GroupHubClient({ userGroups }: GroupHubClientProps) {
                   fontFamily: "var(--font-mono)",
                 }}
               />
+            </div>
+
+            <div style={{ marginBottom: "1.25rem" }}>
+              <label style={{ display: "block", fontFamily: "var(--font-mono)", fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "0.3rem" }}>
+                Phase 1 Start Date (32-Day Cycle Begins):
+              </label>
+              <input
+                type="date"
+                value={phase1StartDate}
+                onChange={(e) => setPhase1StartDate(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "0.75rem",
+                  background: "var(--bg-primary)",
+                  border: "1px solid var(--border-editorial)",
+                  borderRadius: "2px",
+                  color: "#FFF",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "0.9rem",
+                }}
+              />
+              <span style={{ display: "block", fontSize: "0.7rem", color: "var(--accent-cobalt)", marginTop: "0.3rem", fontFamily: "var(--font-mono)" }}>
+                Phase 1: Problems 1–96 (32 Days) → Phase 2: Problems 97–191 (32 Days)
+              </span>
             </div>
 
             <div style={{ marginBottom: "1.5rem" }}>

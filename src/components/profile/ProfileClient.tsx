@@ -133,7 +133,7 @@ export function ProfileClient({
               )}
             </div>
 
-            {/* Level & XP Progress Bar */}
+            {/* Score & Progression */}
             <div style={{ width: "280px" }}>
               <div
                 style={{
@@ -144,13 +144,13 @@ export function ProfileClient({
                   marginBottom: "0.35rem",
                 }}
               >
-                <span style={{ color: "var(--accent-cobalt)", fontWeight: 800 }}>LEVEL {levelInfo.level}</span>
-                <span style={{ color: "#FFF" }}>{user.xp.toLocaleString()} XP</span>
+                <span style={{ color: "var(--accent-cobalt)", fontWeight: 800 }}>ARENA SCORE</span>
+                <span style={{ color: "#FFF", fontWeight: 800 }}>{((user.score ?? user.xp) || 0).toLocaleString()} PTS</span>
               </div>
               <div className="progress-bar-bg">
                 <div
                   className="progress-bar-fill-cobalt"
-                  style={{ width: `${levelInfo.progressPercent}%` }}
+                  style={{ width: `${Math.min(100, Math.round(((user.totalSolved || 0) / 191) * 100))}%` }}
                 />
               </div>
             </div>
@@ -158,6 +158,24 @@ export function ProfileClient({
 
           {/* Oversized Stat Blocks */}
           <div style={{ display: "flex", gap: "1.5rem", flexWrap: "wrap" }}>
+            <div
+              style={{
+                border: "1px solid var(--border-editorial)",
+                background: "var(--bg-primary)",
+                padding: "1.25rem 1.5rem",
+                borderRadius: "2px",
+                textAlign: "center",
+                minWidth: "120px",
+              }}
+            >
+              <div className="font-serif" style={{ fontSize: "2.4rem", color: "var(--accent-cobalt)", lineHeight: 1 }}>
+                {((user.score ?? user.xp) || 0).toLocaleString()}
+              </div>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "var(--text-muted)", textTransform: "uppercase", marginTop: "0.2rem" }}>
+                Score
+              </div>
+            </div>
+
             <div
               style={{
                 border: "1px solid var(--border-editorial)",
@@ -186,7 +204,7 @@ export function ProfileClient({
                 minWidth: "120px",
               }}
             >
-              <div className="font-serif" style={{ fontSize: "2.4rem", color: "var(--accent-cobalt)", lineHeight: 1 }}>
+              <div className="font-serif" style={{ fontSize: "2.4rem", color: "var(--accent-acid)", lineHeight: 1 }}>
                 {user.totalSolved}
               </div>
               <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "var(--text-muted)", textTransform: "uppercase", marginTop: "0.2rem" }}>
@@ -204,7 +222,7 @@ export function ProfileClient({
                 minWidth: "120px",
               }}
             >
-              <div className="font-serif" style={{ fontSize: "2.4rem", color: "var(--accent-acid)", lineHeight: 1 }}>
+              <div className="font-serif" style={{ fontSize: "2.4rem", color: "var(--text-primary)", lineHeight: 1 }}>
                 {user.streakShields} / 3
               </div>
               <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "var(--text-muted)", textTransform: "uppercase", marginTop: "0.2rem" }}>

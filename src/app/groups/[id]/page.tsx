@@ -2,7 +2,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { notFound, redirect } from "next/navigation";
 import { GroupDashboardClient } from "@/components/group/GroupDashboardClient";
-import { getGlobalDailyProblemBatch } from "@/lib/daily-challenge";
+import { getTeamDailyProblemBatch, calculateTeamPhaseInfo, calculatePhaseWinners } from "@/lib/team-phase";
 
 interface GroupPageProps {
   params: Promise<{ id: string }>;
@@ -30,19 +30,21 @@ export default async function GroupPage({ params }: GroupPageProps) {
     notFound();
   }
 
-  // Fast parallel fetch for global daily challenge and member progress
   const todayStr = new Date().toISOString().split("T")[0];
-  const globalBatch = await getGlobalDailyProblemBatch(todayStr);
-  const globalDailyProblemIds = (globalBatch.problems || []).map((p: any) => p.id);
+  const teamBatch = await getTeamDailyProblemBatch(group, todayStr);
+  const phaseInfo = calculateTeamPhaseInfo(group.phase1StartDate, todayStr);
+  const winners = calculatePhaseWinners(group.members || []);
+
+  const teamDailyProblemIds = (teamBatch.problems || []).map((p: any) => p.id);
   const memberIds = (group.members || []).map((m: any) => m.userId);
 
-  // Single batch query for all member solved statuses on today's global challenge
+  // Single batch query for all member solved statuses on today's team challenge
   let solvedMap = new Set<string>();
-  if (globalDailyProblemIds.length > 0 && memberIds.length > 0) {
+  if (teamDailyProblemIds.length > 0 && memberIds.length > 0) {
     const solvedStatuses = await db.userProblemStatus.findMany({
       where: {
         userId: { in: memberIds },
-        problemId: { in: globalDailyProblemIds },
+        problemId: { in: teamDailyProblemIds },
         status: { in: ["SOLVED", "OPTIMAL"] },
       },
       select: { userId: true, problemId: true },
@@ -52,13 +54,14 @@ export default async function GroupPage({ params }: GroupPageProps) {
 
   const memberDailyStatus = (group.members || []).map((m: any) => {
     let count = 0;
-    globalDailyProblemIds.forEach((pid: number) => {
+    teamDailyProblemIds.forEach((pid: number) => {
       if (solvedMap.has(`${m.userId}_${pid}`)) count++;
     });
     return {
       userId: m.userId,
       username: m.user?.username || "Warrior",
       solvedCount: count,
+      totalBatchCount: teamDailyProblemIds.length,
     };
   });
 
@@ -72,6 +75,9 @@ export default async function GroupPage({ params }: GroupPageProps) {
       currentUserId={user.id}
       isLeader={isLeader}
       memberDailyStatus={memberDailyStatus}
+      phaseInfo={phaseInfo}
+      teamBatch={teamBatch}
+      winners={winners}
     />
   );
 }

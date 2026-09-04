@@ -4,6 +4,7 @@ import { useState } from "react";
 import { getAvatar } from "@/data/avatars";
 import Link from "next/link";
 import { Users, Globe, ArrowUp, ArrowDown, Minus, Flame, Trophy } from "lucide-react";
+import { compareLeaderboardRank } from "@/lib/scoring";
 
 interface LeaderboardClientProps {
   myGroupMembers: any[];
@@ -25,7 +26,7 @@ export function LeaderboardClient({
       ? myGroupMembers.map((m) => m.user)
       : globalUsers;
 
-  const sortedList = [...displayList].sort((a, b) => b.xp - a.xp);
+  const sortedList = [...displayList].sort((a, b) => compareLeaderboardRank(a, b));
 
   const top1 = sortedList[0];
   const top2 = sortedList[1];
@@ -48,7 +49,7 @@ export function LeaderboardClient({
       >
         <div>
           <span className="editorial-stamp" style={{ borderColor: "var(--accent-cobalt)", color: "#FFF", marginBottom: "0.5rem" }}>
-            WARRIOR RANKINGS // SEASON 01
+            WARRIOR RANKINGS // ARENA STANDINGS
           </span>
           <h1
             className="font-grotesk"
@@ -166,7 +167,7 @@ export function LeaderboardClient({
                     {top1.username}
                   </h3>
                   <div className="font-mono" style={{ fontSize: "1.6rem", fontWeight: 800, color: "var(--accent-cobalt)", marginBottom: "1rem" }}>
-                    {top1.xp.toLocaleString()} XP
+                    {((top1.score ?? top1.xp) || 0).toLocaleString()} SCORE
                   </div>
                   <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem", color: "var(--text-muted)" }}>
                     LVL {top1.level} • {top1.totalSolved} / 191 Solved • 🔥 {top1.currentStreak}D Streak
@@ -190,7 +191,7 @@ export function LeaderboardClient({
                     {top2.username}
                   </h3>
                   <div className="font-mono" style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: "1rem" }}>
-                    {top2.xp.toLocaleString()} XP
+                    {((top2.score ?? top2.xp) || 0).toLocaleString()} SCORE
                   </div>
                   <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem", color: "var(--text-muted)" }}>
                     LVL {top2.level} • {top2.totalSolved} Solved • 🔥 {top2.currentStreak}D Streak
@@ -214,7 +215,7 @@ export function LeaderboardClient({
                     {top3.username}
                   </h3>
                   <div className="font-mono" style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: "1rem" }}>
-                    {top3.xp.toLocaleString()} XP
+                    {((top3.score ?? top3.xp) || 0).toLocaleString()} SCORE
                   </div>
                   <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem", color: "var(--text-muted)" }}>
                     LVL {top3.level} • {top3.totalSolved} Solved • 🔥 {top3.currentStreak}D Streak
@@ -299,7 +300,7 @@ export function LeaderboardClient({
                       </div>
 
                       <div style={{ fontFamily: "var(--font-mono)", fontWeight: 900, fontSize: "1.25rem", color: "#FFF", minWidth: "110px", textAlign: "right" }}>
-                        {u.xp.toLocaleString()} XP
+                        {((u.score ?? u.xp) || 0).toLocaleString()} SCORE
                       </div>
                     </div>
                   </div>

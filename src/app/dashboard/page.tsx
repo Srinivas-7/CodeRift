@@ -1,8 +1,10 @@
 import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getOrCreateDailyChallenge } from "@/lib/daily-challenge";
+import { compareLeaderboardRank } from "@/lib/scoring";
 import { db } from "@/lib/db";
 import Link from "next/link";
+import { DailyResetCountdown } from "@/components/dashboard/DailyResetCountdown";
 import {
   Flame,
   Shield,
@@ -84,7 +86,7 @@ export default async function DashboardPage() {
 
   if (primaryMembership) {
     const allMembers = primaryMembership.group.members;
-    groupLeaderboard = [...allMembers].sort((a, b) => b.user.xp - a.user.xp);
+    groupLeaderboard = [...allMembers].sort((a, b) => compareLeaderboardRank(a.user, b.user));
     userRankInGroup = groupLeaderboard.findIndex((m) => m.userId === user.id) + 1;
   }
 
@@ -219,7 +221,7 @@ export default async function DashboardPage() {
         >
           <div>
             <span className="editorial-stamp" style={{ borderColor: "var(--accent-cobalt)", color: "#FFF", marginBottom: "0.5rem" }}>
-              SDE SHEET DAY {dailyData.dayNumber ? dailyData.dayNumber.toString().padStart(2, "0") : "01"} // EXACT SEQUENCE
+              {dailyData.phase ? `PHASE ${dailyData.phase} // DAY ${(dailyData.phaseDay || 1).toString().padStart(2, "0")} OF 32` : `SDE SHEET DAY ${(dailyData.dayNumber || 1).toString().padStart(2, "0")}`} // EXACT SEQUENCE
             </span>
             <h2
               className="font-grotesk"
@@ -246,6 +248,15 @@ export default async function DashboardPage() {
           </div>
         </div>
 
+        {/* Live Daily Reset Timer & Status Banner */}
+        <DailyResetCountdown
+          nextResetIso={dailyData.nextResetIso}
+          isComplete={dailyData.isComplete}
+          dayNumber={dailyData.dayNumber || 1}
+          solvedCount={dailyData.solvedCount || 0}
+          totalCount={dailyData.totalCount || 3}
+        />
+
         {/* 3 Problems Cards Grid */}
         <div
           style={{
@@ -265,20 +276,20 @@ export default async function DashboardPage() {
               }}
             >
               <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.9rem", color: "var(--accent-acid)", fontWeight: 800, marginBottom: "0.5rem" }}>
-                SEASON 01 CONCLUDED // ALL 191 SDE SHEET PROBLEMS DISPATCHED
+                COMPETITION CONCLUDED // ALL 191 SDE SHEET PROBLEMS DISPATCHED
               </div>
               <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", maxWidth: "600px", margin: "0 auto" }}>
-                You have reached the end of the Season 01 Roadmap. Practice existing problems or check the global leaderboard.
+                You have completed the 64-day competition roadmap. Practice existing problems or check the squad leaderboard.
               </p>
             </div>
           ) : dailyData.problems.map((prob, idx) => {
             const isDone = prob.isSolved;
-            const xpReward =
+            const pointReward =
               prob.difficulty === "Easy"
-                ? 100
+                ? 10
                 : prob.difficulty === "Hard"
-                ? 300
-                : 200;
+                ? 30
+                : 20;
 
             return (
               <div
@@ -323,7 +334,7 @@ export default async function DashboardPage() {
                           : "badge-diff-medium"
                       }
                     >
-                      {prob.difficulty} (+{xpReward} XP)
+                      {prob.difficulty} (+{pointReward} PTS)
                     </span>
                   </div>
 
@@ -452,7 +463,7 @@ export default async function DashboardPage() {
                   </div>
                 </div>
                 <div style={{ fontFamily: "var(--font-mono)", fontWeight: 800, fontSize: "1.2rem", color: "var(--text-primary)" }}>
-                  {user.xp.toLocaleString()} XP
+                  {((user.score ?? user.xp) || 0).toLocaleString()} SCORE
                 </div>
               </div>
 
@@ -480,7 +491,7 @@ export default async function DashboardPage() {
                       </span>
                     </div>
                     <span style={{ fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>
-                      {m.user.xp.toLocaleString()} XP
+                      {((m.user?.score ?? m.user?.xp) || 0).toLocaleString()} SCORE
                     </span>
                   </div>
                 ))}
@@ -540,7 +551,7 @@ export default async function DashboardPage() {
                 Yesterday
               </div>
               <div style={{ fontFamily: "var(--font-mono)", fontSize: "1.4rem", fontWeight: 800, color: "#FFF", margin: "0.3rem 0" }}>
-                {yesterdayXpGained} XP
+                {yesterdayXpGained} PTS
               </div>
               <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
                 Streak: {Math.max(0, user.currentStreak - 1)}D
@@ -560,7 +571,7 @@ export default async function DashboardPage() {
                 Today
               </div>
               <div style={{ fontFamily: "var(--font-mono)", fontSize: "1.4rem", fontWeight: 800, color: "#FFF", margin: "0.3rem 0" }}>
-                {todayXpGained} XP
+                {todayXpGained} PTS
               </div>
               <div style={{ fontSize: "0.75rem", color: "var(--accent-acid)", fontWeight: 700 }}>
                 {dailyData.solvedCount} / {dailyData.totalCount ?? 3} Solved

@@ -1,3 +1,5 @@
+import { getProblemScore, DAILY_COMPLETION_BONUS } from "./scoring";
+
 export interface XpBreakdown {
   baseXp: number;
   attemptXp?: number;
@@ -20,32 +22,18 @@ export function calculateProblemXp(params: {
 
   let baseXp = 0;
   const reasons: string[] = [];
-  let attemptXp = 0;
-  let firstSolveBonus = 0;
 
-  if (status === "ATTEMPTED") {
-    attemptXp = 25;
-    reasons.push("+25 XP — Valid Learning Attempt & Code Effort");
-  } else {
-    // Solved
-    if (difficulty === "Easy") baseXp = 100;
-    else if (difficulty === "Hard") baseXp = 300;
-    else baseXp = 200; // Medium
-
-    reasons.push(`+${baseXp} XP — ${difficulty} Problem Solved`);
-
-    if (isFirst) {
-      firstSolveBonus = 50;
-      reasons.push("+50 XP — First Solve Bonus on this Sheet Problem");
-    }
+  if (status === "SOLVED" && isFirst) {
+    baseXp = getProblemScore(difficulty);
+    reasons.push(`+${baseXp} PTS — ${difficulty} Problem Solved`);
+  } else if (status === "SOLVED" && !isFirst) {
+    reasons.push("0 PTS — Previously Solved (No Duplicate Points)");
   }
 
-  const totalXp = baseXp + attemptXp + firstSolveBonus;
+  const totalXp = baseXp;
 
   return {
     baseXp,
-    attemptXp: attemptXp > 0 ? attemptXp : undefined,
-    firstSolveBonus: firstSolveBonus > 0 ? firstSolveBonus : undefined,
     totalXp,
     reasons,
   };

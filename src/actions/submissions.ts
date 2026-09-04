@@ -2,16 +2,18 @@
 
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { calculateXpGain, calculateLevel } from "@/lib/xp";
+import { calculateXpGain, calculateLevel, XpBreakdown } from "@/lib/xp";
+import { getProblemScore, DAILY_COMPLETION_BONUS, compareLeaderboardRank, getProblemPhase } from "@/lib/scoring";
 import { updateStreakOnProblemSolved } from "@/lib/streaks";
 import { checkAndAwardAchievements } from "@/lib/achievements";
 import { verifyLeetCodeSubmission } from "@/lib/leetcode";
 import { revalidatePath } from "next/cache";
-import { getGlobalDailyProblemBatch } from "@/lib/daily-challenge";
+import { getOrCreateDailyChallenge } from "@/lib/team-phase";
 
 interface VerifySubmissionInput {
   problemId: number;
   leetcodeUsername?: string;
+  groupId?: string;
 }
 
 export async function verifyAndCompleteLeetCodeSubmission(input: VerifySubmissionInput) {
@@ -75,16 +77,21 @@ export async function verifyAndCompleteLeetCodeSubmission(input: VerifySubmissio
     },
   });
 
-  const isFirstSolve = !previousStatus || previousStatus.status !== "SOLVED";
+  const isFirstSolve = !previousStatus || (previousStatus.status !== "SOLVED" && previousStatus.status !== "OPTIMAL");
   const solveStatus = "SOLVED";
 
-  // 5. Calculate Server-Verified XP
-  const xpBreakdown = calculateXpGain({
-    difficulty: problem.difficulty,
-    status: solveStatus,
-    isFirstTime: isFirstSolve,
-    isDailyChallengeProblem: true,
-  });
+  // 5. Calculate Server-Verified Points (10 Easy, 20 Medium, 30 Hard; exactly once on first solve)
+  const problemPoints = isFirstSolve ? getProblemScore(problem.difficulty) : 0;
+  const xpBreakdown: XpBreakdown = {
+    baseXp: problemPoints,
+    totalXp: problemPoints,
+    firstSolveBonus: 0,
+    dailyCompleteBonus: 0,
+    challengeWinBonus: 0,
+    reasons: isFirstSolve
+      ? [`+${problemPoints} PTS — ${problem.difficulty} Problem Solved`]
+      : ["0 PTS — Previously Solved (No Duplicate Points)"],
+  };
 
   // 6. Record Submission
   const submission = await db.submission.create({
@@ -92,7 +99,8 @@ export async function verifyAndCompleteLeetCodeSubmission(input: VerifySubmissio
       userId: user.id,
       problemId: problem.id,
       status: solveStatus,
-      xpEarned: xpBreakdown.totalXp,
+      xpEarned: problemPoints,
+      pointsEarned: problemPoints,
       source: "LEETCODE",
       leetcodeSubmissionId: verification.submissionId || `LC-${Date.now()}`,
     },
@@ -124,110 +132,118 @@ export async function verifyAndCompleteLeetCodeSubmission(input: VerifySubmissio
     },
   });
 
-  // 8. Record XP Transaction
-  await db.xpTransaction.create({
-    data: {
-      userId: user.id,
-      amount: xpBreakdown.totalXp,
-      reason: isFirstSolve ? "BASE_SOLVE" : "PRACTICE_SOLVE",
-    },
-  });
+  // 8. Record Points Transaction (Only if points were earned on first solve)
+  if (isFirstSolve && problemPoints > 0) {
+    await db.xpTransaction.create({
+      data: {
+        userId: user.id,
+        amount: problemPoints,
+        reason: "PROBLEM_SOLVE",
+      },
+    });
+  }
 
-  // 9. Update Streak & Total Solved
+  // 9. Update Streak & Total Solved & Phase Scores
   const streakRes = await updateStreakOnProblemSolved(user.id);
+  const problemPhase = getProblemPhase(problem.orderInSheet);
+
+  let updatedPhase1Solved = user.phase1Solved || 0;
+  let updatedPhase2Solved = user.phase2Solved || 0;
+  let updatedPhase1Score = user.phase1Score || 0;
+  let updatedPhase2Score = user.phase2Score || 0;
+
+  if (isFirstSolve) {
+    if (problemPhase === 1) {
+      updatedPhase1Solved += 1;
+      updatedPhase1Score += problemPoints;
+    } else {
+      updatedPhase2Solved += 1;
+      updatedPhase2Score += problemPoints;
+    }
+  }
 
   const updatedTotalSolved = isFirstSolve
-    ? user.totalSolved + 1
-    : user.totalSolved;
+    ? (user.totalSolved || 0) + 1
+    : (user.totalSolved || 0);
 
-  let runningTotalXp = user.xp + xpBreakdown.totalXp;
-  let currentLevel = calculateLevel(runningTotalXp);
+  const currentScore = typeof user.score === "number" ? user.score : (user.xp || 0);
+  let runningTotalScore = currentScore + problemPoints;
+  let currentLevel = calculateLevel(runningTotalScore);
 
   await db.user.update({
     where: { id: user.id },
     data: {
-      xp: runningTotalXp,
+      score: runningTotalScore,
+      xp: runningTotalScore,
       level: currentLevel,
       totalSolved: updatedTotalSolved,
+      phase1Score: updatedPhase1Score,
+      phase2Score: updatedPhase2Score,
+      phase1Solved: updatedPhase1Solved,
+      phase2Solved: updatedPhase2Solved,
     },
   });
 
-  // 10. Check if this completes today's daily mission
-  const todayStr = new Date().toISOString().split("T")[0];
-  const globalBatch = await getGlobalDailyProblemBatch(todayStr);
-  const dailyProblemIds = (globalBatch.problems || []).map((p: any) => p.id);
+  // 10. Check and evaluate daily mission completion across all squads the user belongs to
+  let userMemberships = await db.groupMember.findMany({
+    where: { userId: user.id },
+    include: { group: true },
+  });
+
+  // If specific groupId was provided, evaluate that specific squad; otherwise evaluate all user squads (or solo fallback)
+  let targetGroups: any[] = [];
+  if (input.groupId) {
+    const specificGroup = await db.group.findUnique({ where: { id: input.groupId } });
+    if (specificGroup) {
+      targetGroups = [specificGroup];
+    }
+  }
+
+  if (targetGroups.length === 0) {
+    targetGroups = userMemberships.length > 0
+      ? userMemberships.map((m: any) => m.group).filter(Boolean)
+      : [null]; // solo user fallback
+  }
 
   let isMissionComplete = false;
-  if (dailyProblemIds.length > 0 && dailyProblemIds.includes(problem.id)) {
-    let dailyChallenge = await db.dailyChallenge.findUnique({
-      where: {
-        userId_date: {
-          userId: user.id,
-          date: todayStr,
-        },
-      },
-    });
+  let totalDailyBonusAwarded = 0;
 
-    if (!dailyChallenge) {
-      dailyChallenge = await db.dailyChallenge.upsert({
-        where: {
-          userId_date: {
-            userId: user.id,
-            date: todayStr,
-          },
-        },
-        update: {
-          problem1Id: dailyProblemIds[0] ?? null,
-          problem2Id: dailyProblemIds[1] ?? null,
-          problem3Id: dailyProblemIds[2] ?? null,
-        },
-        create: {
-          userId: user.id,
-          date: todayStr,
-          problem1Id: dailyProblemIds[0] ?? null,
-          problem2Id: dailyProblemIds[1] ?? null,
-          problem3Id: dailyProblemIds[2] ?? null,
-          completed: false,
-        },
-      });
-    }
+  for (const grp of targetGroups) {
+    const dailyData = await getOrCreateDailyChallenge(user.id, grp?.id || null);
+    const dailyProblemIds = (dailyData.problems || []).map((p: any) => p.id);
 
-    if (dailyChallenge && !dailyChallenge.completed) {
-      const solvedDailyCount = await db.userProblemStatus.count({
-        where: {
-          userId: user.id,
-          problemId: { in: dailyProblemIds },
-          status: { in: ["SOLVED", "OPTIMAL"] },
-        },
-      });
+    // Only process this squad if the solved problem is part of this squad's daily 3
+    if (dailyData.daily && dailyProblemIds.length > 0 && dailyProblemIds.includes(problem.id)) {
+      const isAllDailySolved = dailyData.solvedCount >= dailyData.totalCount && dailyData.totalCount > 0;
 
-      if (solvedDailyCount >= dailyProblemIds.length) {
+      // Check if this squad's daily challenge for today has not yet been marked completed
+      if (isAllDailySolved && !dailyData.daily.completed) {
+        const bonusRes = await db.dailyChallenge.awardDailyBonusAtomic({
+          userId: user.id,
+          groupId: grp?.id || null,
+          date: dailyData.daily.date,
+          problemPhase,
+          bonusAmount: DAILY_COMPLETION_BONUS,
+          bonusReason: grp ? `DAILY_COMPLETION_BONUS_${grp.id}` : "DAILY_COMPLETION_BONUS",
+        });
+
+        if (bonusRes.awarded) {
+          isMissionComplete = true;
+          totalDailyBonusAwarded += DAILY_COMPLETION_BONUS;
+          runningTotalScore = bonusRes.newScore;
+          currentLevel = bonusRes.newLevel;
+          updatedPhase1Score = bonusRes.newPhase1Score;
+          updatedPhase2Score = bonusRes.newPhase2Score;
+
+          xpBreakdown.totalXp += DAILY_COMPLETION_BONUS;
+          xpBreakdown.dailyCompleteBonus = (xpBreakdown.dailyCompleteBonus ?? 0) + DAILY_COMPLETION_BONUS;
+          const squadLabel = grp?.name ? `"${grp.name}"` : "DAILY";
+          xpBreakdown.reasons.push(`🎉 ${squadLabel} MISSION COMPLETE BONUS (+20 PTS)`);
+        } else if (bonusRes.alreadyCompleted || dailyData.daily.completed) {
+          isMissionComplete = true;
+        }
+      } else if (dailyData.daily.completed) {
         isMissionComplete = true;
-        await db.dailyChallenge.update({
-          where: { id: dailyChallenge.id },
-          data: { completed: true, completedAt: new Date() },
-        });
-
-        // Award 3/3 (or full daily) Mission Bonus (+100 XP)
-        const MISSION_BONUS = 100;
-        await db.xpTransaction.create({
-          data: {
-            userId: user.id,
-            amount: MISSION_BONUS,
-            reason: "DAILY_3_OF_3",
-          },
-        });
-
-        runningTotalXp += MISSION_BONUS;
-        currentLevel = calculateLevel(runningTotalXp);
-
-        await db.user.update({
-          where: { id: user.id },
-          data: { xp: runningTotalXp, level: currentLevel },
-        });
-
-        xpBreakdown.totalXp += MISSION_BONUS;
-        xpBreakdown.reasons.push("🎉 3/3 DAILY MISSION COMPLETE BONUS (+100 XP)");
       }
     }
   }
@@ -261,12 +277,16 @@ export async function verifyAndCompleteLeetCodeSubmission(input: VerifySubmissio
         },
       });
 
-      runningTotalXp += duelXp;
-      currentLevel = calculateLevel(runningTotalXp);
+      runningTotalScore += duelXp;
+      currentLevel = calculateLevel(runningTotalScore);
 
       await db.user.update({
         where: { id: user.id },
-        data: { xp: runningTotalXp, level: currentLevel },
+        data: {
+          score: runningTotalScore,
+          xp: runningTotalScore,
+          level: currentLevel,
+        },
       });
 
       xpBreakdown.totalXp += duelXp;
@@ -296,7 +316,7 @@ export async function verifyAndCompleteLeetCodeSubmission(input: VerifySubmissio
   const newAchievements = await checkAndAwardAchievements(user.id);
 
   // 12. Check Squad Rivalries (if user overtook another member in their squads)
-  const userMemberships = await db.groupMember.findMany({
+  const rivalMemberships = await db.groupMember.findMany({
     where: { userId: user.id },
     include: {
       group: {
@@ -309,22 +329,21 @@ export async function verifyAndCompleteLeetCodeSubmission(input: VerifySubmissio
     },
   });
 
-  for (const gm of userMemberships) {
-    const sortedMembers = [...gm.group.members].sort(
-      (a, b) => b.user.xp - a.user.xp
-    );
+  for (const gm of rivalMemberships) {
+    const sortedMembers = [...gm.group.members].sort((a, b) => compareLeaderboardRank(a.user, b.user));
     const newRank = sortedMembers.findIndex((m) => m.userId === user.id) + 1;
 
     // If overtook someone immediately below, notify them
     if (newRank > 0 && newRank < sortedMembers.length) {
       const overtakenMember = sortedMembers[newRank]; // member who dropped
       if (overtakenMember && overtakenMember.userId !== user.id) {
-        const gap = runningTotalXp - overtakenMember.user.xp;
+        const overtakenScore = overtakenMember.user?.score ?? overtakenMember.user?.xp ?? 0;
+        const gap = runningTotalScore - overtakenScore;
         await db.notification.create({
           data: {
             userId: overtakenMember.userId,
             title: `⚔️ ${user.username} just passed you!`,
-            message: `${user.username} just passed you in "${gm.group.name}". You are now #${newRank + 1}. Need ${gap + 10} XP to take back #${newRank}!`,
+            message: `${user.username} just passed you in "${gm.group.name}". You are now #${newRank + 1}. Need ${gap + 10} PTS to take back #${newRank}!`,
             type: "OVERTAKEN",
             link: `/groups/${gm.groupId}`,
           },

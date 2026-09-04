@@ -8,6 +8,7 @@ import {
   regenerateGroupInviteCode,
   deleteGroup,
 } from "@/actions/groups";
+import { comparePhaseRank } from "@/lib/scoring";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -24,6 +25,7 @@ import {
   Trash2,
   X,
   Shield,
+  Trophy,
 } from "lucide-react";
 
 interface GroupDashboardClientProps {
@@ -31,6 +33,9 @@ interface GroupDashboardClientProps {
   currentUserId: string;
   isLeader: boolean;
   memberDailyStatus: any[];
+  phaseInfo?: any;
+  teamBatch?: any;
+  winners?: any;
 }
 
 export function GroupDashboardClient({
@@ -38,6 +43,9 @@ export function GroupDashboardClient({
   currentUserId,
   isLeader,
   memberDailyStatus,
+  phaseInfo,
+  teamBatch,
+  winners,
 }: GroupDashboardClientProps) {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
@@ -45,6 +53,7 @@ export function GroupDashboardClient({
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [memberToRemove, setMemberToRemove] = useState<any>(null);
   const [showDisbandModal, setShowDisbandModal] = useState(false);
+  const [phaseTab, setPhaseTab] = useState<"overall" | "phase1" | "phase2">("overall");
 
   // Settings form state
   const [squadName, setSquadName] = useState(group.name);
@@ -166,8 +175,10 @@ export function GroupDashboardClient({
     }
   };
 
-  // Sort members by XP descending
-  const sortedMembers = [...group.members].sort((a, b) => (b.user?.xp || 0) - (a.user?.xp || 0));
+  // Sort members based on the active tab's criteria
+  const sortedMembers = [...group.members].sort((a, b) =>
+    comparePhaseRank(a.user, b.user, phaseTab)
+  );
 
   return (
     <div className="app-container" style={{ padding: "3rem 1.5rem 6rem" }}>
@@ -181,7 +192,7 @@ export function GroupDashboardClient({
           gap: "1.5rem",
           paddingBottom: "1.5rem",
           borderBottom: "1px solid var(--border-editorial)",
-          marginBottom: "3rem",
+          marginBottom: "2.5rem",
         }}
       >
         <div>
@@ -219,6 +230,43 @@ export function GroupDashboardClient({
           <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.85rem", color: "var(--text-muted)", marginTop: "0.4rem" }}>
             {group.members.length} {group.members.length === 1 ? "WARRIOR" : "WARRIORS"} IN ROSTER • {group.description || "A fierce DSA consistency squad."}
           </div>
+
+          {/* Phase Timeline Badge */}
+          {phaseInfo && (
+            <div style={{ display: "flex", gap: "0.75rem", alignItems: "center", marginTop: "0.85rem", flexWrap: "wrap" }}>
+              <span
+                className="editorial-stamp"
+                style={{
+                  borderColor:
+                    phaseInfo.status === "COMPLETED"
+                      ? "var(--accent-acid)"
+                      : phaseInfo.status === "PHASE_2_ACTIVE"
+                      ? "var(--accent-amber)"
+                      : "var(--accent-cobalt)",
+                  color:
+                    phaseInfo.status === "COMPLETED"
+                      ? "var(--accent-acid)"
+                      : phaseInfo.status === "PHASE_2_ACTIVE"
+                      ? "var(--accent-amber)"
+                      : "var(--accent-cobalt)",
+                  background: "rgba(33, 72, 255, 0.08)",
+                  fontSize: "0.75rem",
+                  padding: "0.25rem 0.6rem",
+                }}
+              >
+                {phaseInfo.status === "NOT_STARTED" && `STARTS IN ${phaseInfo.daysUntilStart} DAYS (PHASE 1)`}
+                {phaseInfo.status === "PHASE_1_ACTIVE" && `PHASE 1 // DAY ${phaseInfo.phaseDay} OF 32 (DAY ${phaseInfo.overallDay} / 64)`}
+                {phaseInfo.status === "PHASE_2_ACTIVE" && `PHASE 2 // DAY ${phaseInfo.phaseDay} OF 32 (DAY ${phaseInfo.overallDay} / 64)`}
+                {phaseInfo.status === "COMPLETED" && `COMPETITION COMPLETED (64/64 DAYS)`}
+              </span>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                {phaseInfo.status === "PHASE_1_ACTIVE" && `Problems 1–96 Active • Phase 1 ends ${phaseInfo.phase1EndDate}`}
+                {phaseInfo.status === "PHASE_2_ACTIVE" && `Problems 97–191 Active • Phase 2 ends ${phaseInfo.phase2EndDate}`}
+                {phaseInfo.status === "NOT_STARTED" && `Starts on ${phaseInfo.phase1StartDate}`}
+                {phaseInfo.status === "COMPLETED" && `All 191 Problems Covered`}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Invite Code & Action Controls */}
@@ -292,6 +340,90 @@ export function GroupDashboardClient({
         </div>
       </div>
 
+      {/* 1.5 PHASE CHAMPIONS BANNERS (IF APPLICABLE) */}
+      {winners && (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            gap: "1rem",
+            marginBottom: "2.5rem",
+          }}
+        >
+          {phaseInfo?.isPhase1Complete && winners.phase1Winner && (
+            <div
+              className="editorial-card"
+              style={{
+                padding: "1.25rem",
+                border: "1px solid rgba(245, 158, 11, 0.5)",
+                background: "rgba(245, 158, 11, 0.05)",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--accent-amber)", marginBottom: "0.4rem" }}>
+                <Trophy size={16} />
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem", fontWeight: 800, textTransform: "uppercase" }}>
+                  PHASE 1 WINNER (PROBLEMS 1–96)
+                </span>
+              </div>
+              <div style={{ fontSize: "1.25rem", fontWeight: 800, color: "#FFF" }}>
+                @{winners.phase1Winner.username || "Warrior"}
+              </div>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "0.2rem" }}>
+                {winners.phase1Winner.phase1Score || 0} PTS • {winners.phase1Winner.phase1Solved || 0} Solved
+              </div>
+            </div>
+          )}
+
+          {phaseInfo?.isPhase2Complete && winners.phase2Winner && (
+            <div
+              className="editorial-card"
+              style={{
+                padding: "1.25rem",
+                border: "1px solid rgba(33, 72, 255, 0.5)",
+                background: "rgba(33, 72, 255, 0.05)",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--accent-cobalt)", marginBottom: "0.4rem" }}>
+                <Trophy size={16} />
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem", fontWeight: 800, textTransform: "uppercase" }}>
+                  PHASE 2 WINNER (PROBLEMS 97–191)
+                </span>
+              </div>
+              <div style={{ fontSize: "1.25rem", fontWeight: 800, color: "#FFF" }}>
+                @{winners.phase2Winner.username || "Warrior"}
+              </div>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "0.2rem" }}>
+                {winners.phase2Winner.phase2Score || 0} PTS • {winners.phase2Winner.phase2Solved || 0} Solved
+              </div>
+            </div>
+          )}
+
+          {phaseInfo?.isCompetitionComplete && winners.overallWinner && (
+            <div
+              className="editorial-card"
+              style={{
+                padding: "1.25rem",
+                border: "1px solid var(--accent-acid)",
+                background: "rgba(16, 185, 129, 0.08)",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--accent-acid)", marginBottom: "0.4rem" }}>
+                <Crown size={16} />
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem", fontWeight: 800, textTransform: "uppercase" }}>
+                  OVERALL SQUAD CHAMPION
+                </span>
+              </div>
+              <div style={{ fontSize: "1.25rem", fontWeight: 800, color: "#FFF" }}>
+                @{winners.overallWinner.username || "Warrior"}
+              </div>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "0.2rem" }}>
+                {((winners.overallWinner.score ?? winners.overallWinner.xp) || 0).toLocaleString()} TOTAL PTS • {winners.overallWinner.totalSolved || 0} Solved
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* 2. TODAY'S SQUAD 3-PROBLEM COMPLETION TRACKER */}
       <div style={{ marginBottom: "3.5rem" }}>
         <h2 className="font-grotesk" style={{ fontSize: "1.3rem", textTransform: "uppercase", color: "#FFF", marginBottom: "1rem" }}>
@@ -307,7 +439,8 @@ export function GroupDashboardClient({
         >
           {memberDailyStatus.map((ms) => {
             const isMe = ms.userId === currentUserId;
-            const isFinished = ms.solvedCount >= 3;
+            const targetCount = ms.totalBatchCount || 3;
+            const isFinished = ms.solvedCount >= targetCount;
 
             return (
               <div
@@ -337,14 +470,14 @@ export function GroupDashboardClient({
                       color: isFinished ? "var(--accent-acid)" : "var(--accent-cobalt)",
                     }}
                   >
-                    {ms.solvedCount} / 3 SOLVED
+                    {ms.solvedCount} / {targetCount} SOLVED
                   </span>
                 </div>
 
                 <div className="progress-bar-bg" style={{ height: "4px" }}>
                   <div
                     className={isFinished ? "progress-bar-fill-vermillion" : "progress-bar-fill-cobalt"}
-                    style={{ width: `${Math.round((ms.solvedCount / 3) * 100)}%` }}
+                    style={{ width: `${Math.round((ms.solvedCount / (targetCount || 1)) * 100)}%` }}
                   />
                 </div>
               </div>
@@ -353,17 +486,74 @@ export function GroupDashboardClient({
         </div>
       </div>
 
-      {/* 3. SQUAD LEADERBOARD TABLE & MEMBER MANAGEMENT */}
+      {/* 3. SQUAD LEADERBOARD TABLE & PHASE TABS */}
       <div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap", gap: "1rem" }}>
-          <h2 className="font-grotesk" style={{ fontSize: "1.3rem", textTransform: "uppercase", color: "#FFF" }}>
-            SQUAD ROSTER & LEADERBOARD
-          </h2>
-          {isLeader && (
-            <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>
-              Admin Mode: You can manage or remove squad members
-            </span>
-          )}
+          <div>
+            <h2 className="font-grotesk" style={{ fontSize: "1.3rem", textTransform: "uppercase", color: "#FFF" }}>
+              SQUAD ROSTER & LEADERBOARD
+            </h2>
+            {isLeader && (
+              <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>
+                Admin Mode: You can manage or remove squad members
+              </span>
+            )}
+          </div>
+
+          {/* Phase Filter Tabs */}
+          <div style={{ display: "flex", gap: "0.4rem", background: "var(--bg-surface)", padding: "0.25rem", borderRadius: "2px", border: "1px solid var(--border-editorial)" }}>
+            <button
+              onClick={() => setPhaseTab("overall")}
+              style={{
+                background: phaseTab === "overall" ? "var(--accent-cobalt)" : "transparent",
+                color: phaseTab === "overall" ? "#FFF" : "var(--text-muted)",
+                border: "none",
+                padding: "0.45rem 0.9rem",
+                borderRadius: "2px",
+                fontFamily: "var(--font-mono)",
+                fontSize: "0.75rem",
+                fontWeight: 700,
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+            >
+              OVERALL
+            </button>
+            <button
+              onClick={() => setPhaseTab("phase1")}
+              style={{
+                background: phaseTab === "phase1" ? "var(--accent-cobalt)" : "transparent",
+                color: phaseTab === "phase1" ? "#FFF" : "var(--text-muted)",
+                border: "none",
+                padding: "0.45rem 0.9rem",
+                borderRadius: "2px",
+                fontFamily: "var(--font-mono)",
+                fontSize: "0.75rem",
+                fontWeight: 700,
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+            >
+              PHASE 1 (1–96)
+            </button>
+            <button
+              onClick={() => setPhaseTab("phase2")}
+              style={{
+                background: phaseTab === "phase2" ? "var(--accent-cobalt)" : "transparent",
+                color: phaseTab === "phase2" ? "#FFF" : "var(--text-muted)",
+                border: "none",
+                padding: "0.45rem 0.9rem",
+                borderRadius: "2px",
+                fontFamily: "var(--font-mono)",
+                fontSize: "0.75rem",
+                fontWeight: 700,
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+            >
+              PHASE 2 (97–191)
+            </button>
+          </div>
         </div>
 
         <div className="editorial-card" style={{ padding: "1.5rem" }}>
@@ -372,6 +562,18 @@ export function GroupDashboardClient({
               const rank = idx + 1;
               const isMe = m.userId === currentUserId;
               const isMemberLeader = m.role === "LEADER" || m.userId === group.createdById;
+
+              // Display phase-specific score and solved counts
+              let displayScore = (m.user?.score ?? m.user?.xp) || 0;
+              let displaySolved = m.user?.totalSolved || 0;
+
+              if (phaseTab === "phase1") {
+                displayScore = m.user?.phase1Score || 0;
+                displaySolved = m.user?.phase1Solved || 0;
+              } else if (phaseTab === "phase2") {
+                displayScore = m.user?.phase2Score || 0;
+                displaySolved = m.user?.phase2Solved || 0;
+              }
 
               return (
                 <div
@@ -427,7 +629,7 @@ export function GroupDashboardClient({
                         )}
                       </div>
                       <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                        LVL {m.user?.level || 1} • {m.user?.totalSolved || 0} Solved
+                        LVL {m.user?.level || 1} • {displaySolved} Solved {phaseTab !== "overall" ? `in ${phaseTab === "phase1" ? "Phase 1" : "Phase 2"}` : ""}
                       </div>
                     </div>
                   </div>
@@ -437,7 +639,7 @@ export function GroupDashboardClient({
                       🔥 {m.user?.currentStreak || 0}D
                     </div>
                     <div style={{ fontFamily: "var(--font-mono)", fontWeight: 900, fontSize: "1.2rem", color: "#FFF", minWidth: "90px", textAlign: "right" }}>
-                      {(m.user?.xp || 0).toLocaleString()} XP
+                      {displayScore.toLocaleString()} PTS
                     </div>
 
                     {/* Admin Kick Member Button */}

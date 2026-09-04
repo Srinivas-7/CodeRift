@@ -476,7 +476,7 @@ export function ProblemDetailClient({
             </div>
 
             <div className="font-serif" style={{ fontSize: "3.8rem", lineHeight: 0.95, color: "#FFFFFF", marginBottom: "0.5rem" }}>
-              +{verifyResult.xpBreakdown?.totalXp || verifyResult.xpGained || (verifyResult.xpBreakdown?.baseXp ? (verifyResult.xpBreakdown.baseXp + (verifyResult.xpBreakdown.firstSolveBonus || 0)) : 150)} XP
+              +{verifyResult.xpBreakdown?.totalXp ?? verifyResult.xpGained ?? (problem.difficulty === "Easy" ? 10 : problem.difficulty === "Hard" ? 30 : 20)} PTS
             </div>
 
             <h2 className="font-grotesk" style={{ fontSize: "1.4rem", textTransform: "uppercase", color: "var(--accent-acid)", marginBottom: "1.5rem" }}>
@@ -496,15 +496,11 @@ export function ProblemDetailClient({
               }}
             >
               <div style={{ color: "var(--text-muted)", marginBottom: "0.5rem", fontWeight: 700 }}>REWARD BREAKDOWN:</div>
-              <div style={{ color: "#FFF", marginBottom: "0.25rem" }}>• Base Problem XP: +{verifyResult.xpBreakdown?.baseXp ?? 100} XP</div>
-              {verifyResult.xpBreakdown?.firstSolveBonus ? (
-                <div style={{ color: "var(--accent-amber)", marginBottom: "0.25rem" }}>• First Solve Bonus: +{verifyResult.xpBreakdown.firstSolveBonus} XP</div>
-              ) : null}
-              {verifyResult.xpBreakdown?.streakBonus ? (
-                <div style={{ color: "var(--accent-acid)", marginBottom: "0.25rem" }}>• Streak Milestone Bonus: +{verifyResult.xpBreakdown.streakBonus} XP 🔥</div>
-              ) : null}
+              <div style={{ color: "#FFF", marginBottom: "0.25rem" }}>
+                • Base Problem Points: +{verifyResult.xpBreakdown?.baseXp ?? (problem.difficulty === "Easy" ? 10 : problem.difficulty === "Hard" ? 30 : 20)} PTS
+              </div>
               {verifyResult.isMissionComplete || verifyResult.dailyMissionComplete ? (
-                <div style={{ color: "var(--accent-acid)", fontWeight: 700, marginTop: "0.4rem" }}>• DAILY MISSION COMPLETE BONUS: +100 XP 🎉</div>
+                <div style={{ color: "var(--accent-acid)", fontWeight: 700, marginTop: "0.4rem" }}>• DAILY MISSION COMPLETE BONUS: +20 PTS 🎉</div>
               ) : null}
             </div>
 

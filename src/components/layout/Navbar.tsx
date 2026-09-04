@@ -25,6 +25,7 @@ interface NavbarProps {
     username: string;
     email: string;
     avatar: string;
+    score?: number;
     xp: number;
     level: number;
     currentStreak: number;
@@ -45,7 +46,6 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
     { label: "SQUADS", href: "/groups" },
     { label: "ROADMAP (191)", href: "/problems" },
     { label: "LEADERBOARD", href: "/leaderboard" },
-    { label: "SEASONS", href: "/seasons" },
   ];
 
   return (
@@ -193,7 +193,7 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
                 <span>{user.currentStreak}D</span>
               </div>
 
-              {/* XP Counter */}
+              {/* SCORE Counter */}
               <div
                 style={{
                   fontFamily: "var(--font-mono)",
@@ -201,7 +201,7 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
                   color: "var(--text-secondary)",
                 }}
               >
-                <strong style={{ color: "var(--text-primary)" }}>{user.xp.toLocaleString()}</strong> XP
+                <strong style={{ color: "var(--text-primary)" }}>{((user.score ?? user.xp) || 0).toLocaleString()}</strong> SCORE
               </div>
 
               {/* User Dropdown (Opens on Hover & Click) */}

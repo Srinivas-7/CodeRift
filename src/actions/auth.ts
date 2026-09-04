@@ -215,6 +215,7 @@ export async function resetUserProgress() {
       db.user.update({
         where: { id: currentUser.id },
         data: {
+          score: 0,
           xp: 0,
           level: 1,
           currentStreak: 0,

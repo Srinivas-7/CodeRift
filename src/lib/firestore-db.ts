@@ -273,17 +273,49 @@ const userProblemStatusService = {
 
   async findMany(args?: { where?: { userId?: string | { in: string[] }; status?: string | { in: string[] }; problemId?: number | { in: number[] } }; select?: any }) {
     const ref = collection(firestore, "user_problem_statuses");
-    let q = query(ref);
 
-    if (args?.where?.userId && typeof args.where.userId === "string") {
-      q = query(ref, where("userId", "==", args.where.userId));
-    }
+    // Optimization 1: When user IDs and problem IDs are provided (e.g. squad dashboard checks)
+    const userIds = args?.where?.userId
+      ? typeof args.where.userId === "string"
+        ? [args.where.userId]
+        : Array.isArray((args.where.userId as any).in)
+        ? ((args.where.userId as any).in as string[])
+        : null
+      : null;
 
-    const snap = await getDocs(q);
-    let list: any[] = snap.docs.map((d) => formatDoc({ id: d.id, ...d.data() }));
+    const problemIds = args?.where?.problemId
+      ? typeof args.where.problemId === "number"
+        ? [args.where.problemId]
+        : Array.isArray((args.where.problemId as any).in)
+        ? ((args.where.problemId as any).in as number[])
+        : null
+      : null;
 
-    if (args?.where?.userId && typeof args.where.userId === "object" && Array.isArray((args.where.userId as any).in)) {
-      list = list.filter((s) => (args?.where?.userId as any).in.includes(s.userId));
+    let list: any[] = [];
+
+    if (userIds && problemIds && userIds.length > 0 && problemIds.length > 0) {
+      const docIds: string[] = [];
+      for (const uId of userIds) {
+        for (const pId of problemIds) {
+          docIds.push(`${uId}_${pId}`);
+        }
+      }
+      const snaps = await Promise.all(
+        docIds.map((docId) => getDoc(doc(firestore, "user_problem_statuses", docId)))
+      );
+      list = snaps
+        .filter((s) => s.exists())
+        .map((s) => formatDoc({ id: s.id, ...s.data() }));
+    } else if (userIds && userIds.length > 0) {
+      const snaps = await Promise.all(
+        userIds.map((uId) => getDocs(query(ref, where("userId", "==", uId))))
+      );
+      for (const snap of snaps) {
+        list.push(...snap.docs.map((d) => formatDoc({ id: d.id, ...d.data() })));
+      }
+    } else {
+      const snap = await getDocs(query(ref));
+      list = snap.docs.map((d) => formatDoc({ id: d.id, ...d.data() }));
     }
 
     if (args?.where?.status) {
@@ -294,7 +326,7 @@ const userProblemStatusService = {
       }
     }
 
-    if (args?.where?.problemId) {
+    if (args?.where?.problemId && !problemIds) {
       if (typeof args.where.problemId === "number") {
         list = list.filter((s) => s.problemId === args.where?.problemId);
       } else if (args.where.problemId.in && Array.isArray(args.where.problemId.in)) {
@@ -638,13 +670,19 @@ const groupMemberService = {
     const snap = await getDocs(q);
     let list: any[] = snap.docs.map((d) => formatDoc({ id: d.id, ...d.data() }));
 
-    for (const member of list) {
-      if (args?.include?.user) {
-        member.user = await userService.findUnique({ where: { id: member.userId } });
-      }
-      if (args?.include?.group) {
-        member.group = await groupService.findUnique({ where: { id: member.groupId } });
-      }
+    if (args?.include?.user || args?.include?.group) {
+      await Promise.all(
+        list.map(async (member) => {
+          if (args?.include?.user) {
+            const uSnap = await getDoc(doc(firestore, "users", member.userId));
+            member.user = uSnap.exists() ? formatDoc({ id: uSnap.id, ...uSnap.data() }) : null;
+          }
+          if (args?.include?.group) {
+            const gSnap = await getDoc(doc(firestore, "groups", member.groupId));
+            member.group = gSnap.exists() ? formatDoc({ id: gSnap.id, ...gSnap.data() }) : null;
+          }
+        })
+      );
     }
 
     return list;

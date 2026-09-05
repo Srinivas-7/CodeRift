@@ -26,6 +26,7 @@ export function GroupHubClient({ userGroups }: GroupHubClientProps) {
   const [phase1StartDate, setPhase1StartDate] = useState(new Date().toISOString().split("T")[0]);
   const [inviteCodeInput, setInviteCodeInput] = useState("");
 
+  const [enteringSquadId, setEnteringSquadId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -223,10 +224,36 @@ export function GroupHubClient({ userGroups }: GroupHubClientProps) {
                   <div style={{ borderTop: "1px solid var(--border-editorial)", paddingTop: "1.25rem" }}>
                     <Link
                       href={`/groups/${group.id}`}
+                      prefetch={true}
+                      onClick={() => setEnteringSquadId(group.id)}
                       className="btn-editorial-primary"
-                      style={{ width: "100%", textAlign: "center" }}
+                      style={{
+                        width: "100%",
+                        textAlign: "center",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "0.5rem",
+                      }}
                     >
-                      ENTER SQUAD →
+                      {enteringSquadId === group.id ? (
+                        <>
+                          <span
+                            style={{
+                              width: "14px",
+                              height: "14px",
+                              border: "2px solid #FFF",
+                              borderTopColor: "transparent",
+                              borderRadius: "50%",
+                              display: "inline-block",
+                              animation: "spin 0.6s linear infinite",
+                            }}
+                          />
+                          ENTERING SQUAD...
+                        </>
+                      ) : (
+                        "ENTER SQUAD →"
+                      )}
                     </Link>
                   </div>
                 </div>

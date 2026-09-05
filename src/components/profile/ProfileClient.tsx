@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { AVATAR_OPTIONS, getAvatar } from "@/data/avatars";
 import { updateProfile } from "@/actions/auth";
 import { getLevelInfo } from "@/lib/xp";
@@ -459,9 +460,9 @@ export function ProfileClient({
             <h2 className="font-grotesk" style={{ fontSize: "1.3rem", textTransform: "uppercase", color: "#FFF" }}>
               MY SQUADS ({groupMemberships.length})
             </h2>
-            <a href="/groups" className="btn-editorial-outline" style={{ fontSize: "0.8rem", padding: "0.4rem 0.8rem" }}>
+            <Link href="/groups" prefetch={true} className="btn-editorial-outline" style={{ fontSize: "0.8rem", padding: "0.4rem 0.8rem" }}>
               Squad Hub →
-            </a>
+            </Link>
           </div>
 
           {groupMemberships.length === 0 ? (
@@ -469,9 +470,9 @@ export function ProfileClient({
               <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>🛡️</div>
               No squads joined yet. Create or join a 5-person competitive squad to compete on daily mission leaderboards.
               <div style={{ marginTop: "1rem" }}>
-                <a href="/groups" className="btn-editorial-primary" style={{ fontSize: "0.8rem", padding: "0.6rem 1.2rem" }}>
+                <Link href="/groups" prefetch={true} className="btn-editorial-primary" style={{ fontSize: "0.8rem", padding: "0.6rem 1.2rem" }}>
                   Join a Squad
-                </a>
+                </Link>
               </div>
             </div>
           ) : (
@@ -504,13 +505,14 @@ export function ProfileClient({
                         #{gm.currentRank || 1}
                       </div>
                     </div>
-                    <a
+                    <Link
                       href={`/groups/${gm.groupId}`}
+                      prefetch={true}
                       className="btn-editorial-outline"
                       style={{ padding: "0.4rem 0.8rem", fontSize: "0.75rem" }}
                     >
                       View Arena
-                    </a>
+                    </Link>
                   </div>
                 </div>
               ))}

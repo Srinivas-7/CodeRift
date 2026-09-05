@@ -30,12 +30,30 @@ export default async function ProfilePage() {
     },
   });
 
-  // Fetch XP history
+  // Fetch XP history (all transactions)
   const xpTransactions = await db.xpTransaction.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: "desc" },
-    take: 10,
   });
+
+  // Fetch all problem statuses for user
+  const userProblemStatuses = await db.userProblemStatus.findMany({
+    where: { userId: user.id },
+  });
+
+  // Fetch all SDE Sheet problems definition
+  const allProblems = await db.problem.findMany();
+
+  // Fetch completed daily challenges
+  const completedDailies = await db.dailyChallenge.findMany({
+    where: { userId: user.id, completed: true },
+  });
+
+  // Fetch completed duels where user won
+  const allDuels = await db.friendChallenge.findMany();
+  const wonDuels = (allDuels || []).filter(
+    (c: any) => c.status === "COMPLETED" && c.winnerId === user.id
+  );
 
   return (
     <div className="app-container" style={{ padding: "2.5rem 1.25rem 4rem" }}>
@@ -44,6 +62,10 @@ export default async function ProfilePage() {
         userAchievements={userAchievements}
         groupMemberships={groupMemberships}
         xpTransactions={xpTransactions}
+        userProblemStatuses={userProblemStatuses}
+        allProblems={allProblems}
+        completedDailies={completedDailies}
+        wonDuels={wonDuels}
       />
     </div>
   );

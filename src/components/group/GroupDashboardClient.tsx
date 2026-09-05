@@ -175,9 +175,10 @@ export function GroupDashboardClient({
     }
   };
 
+  const members = group?.members || [];
   // Sort members based on the active tab's criteria
-  const sortedMembers = [...group.members].sort((a, b) =>
-    comparePhaseRank(a.user, b.user, phaseTab)
+  const sortedMembers = [...members].sort((a, b) =>
+    comparePhaseRank(a?.user, b?.user, phaseTab)
   );
 
   return (
@@ -219,7 +220,7 @@ export function GroupDashboardClient({
                 letterSpacing: "-0.03em",
               }}
             >
-              {group.name}
+              {group?.name || "Squad"}
             </h1>
             {isLeader && (
               <span className="editorial-stamp" style={{ borderColor: "var(--accent-amber)", color: "var(--accent-amber)" }}>
@@ -228,7 +229,7 @@ export function GroupDashboardClient({
             )}
           </div>
           <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.85rem", color: "var(--text-muted)", marginTop: "0.4rem" }}>
-            {group.members.length} {group.members.length === 1 ? "WARRIOR" : "WARRIORS"} IN ROSTER • {group.description || "A fierce DSA consistency squad."}
+            {members.length} {members.length === 1 ? "WARRIOR" : "WARRIORS"} IN ROSTER • {group?.description || "A fierce DSA consistency squad."}
           </div>
 
           {/* Phase Timeline Badge */}

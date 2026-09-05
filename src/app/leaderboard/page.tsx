@@ -37,9 +37,9 @@ export default async function LeaderboardPage() {
         },
       });
 
-      if (primaryMembership) {
-        myGroupMembers = primaryMembership.group.members;
-        myGroupName = primaryMembership.group.name;
+      if (primaryMembership?.group) {
+        myGroupMembers = primaryMembership.group.members || [];
+        myGroupName = primaryMembership.group.name || "DSA Warriors";
       }
     } catch (err) {
       console.error("Group leaderboard fetch error:", err);

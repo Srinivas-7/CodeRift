@@ -679,7 +679,24 @@ const groupMemberService = {
           }
           if (args?.include?.group) {
             const gSnap = await getDoc(doc(firestore, "groups", member.groupId));
-            member.group = gSnap.exists() ? formatDoc({ id: gSnap.id, ...gSnap.data() }) : null;
+            if (gSnap.exists()) {
+              const grpData = formatDoc({ id: gSnap.id, ...gSnap.data() });
+              // Populate members of this group
+              const gmSnaps = await getDocs(query(collection(firestore, "group_members"), where("groupId", "==", member.groupId)));
+              const gMembers = gmSnaps.docs.map((d) => formatDoc({ id: d.id, ...d.data() }));
+              if (args?.include?.group?.include?.members?.include?.user) {
+                await Promise.all(
+                  gMembers.map(async (gm) => {
+                    const uSnap = await getDoc(doc(firestore, "users", gm.userId));
+                    gm.user = uSnap.exists() ? formatDoc({ id: uSnap.id, ...uSnap.data() }) : null;
+                  })
+                );
+              }
+              grpData.members = gMembers;
+              member.group = grpData;
+            } else {
+              member.group = null;
+            }
           }
         })
       );

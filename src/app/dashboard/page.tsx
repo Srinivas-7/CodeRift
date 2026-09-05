@@ -84,9 +84,9 @@ export default async function DashboardPage() {
   let groupLeaderboard: any[] = [];
   let userRankInGroup = 1;
 
-  if (primaryMembership) {
-    const allMembers = primaryMembership.group.members;
-    groupLeaderboard = [...allMembers].sort((a, b) => compareLeaderboardRank(a.user, b.user));
+  if (primaryMembership?.group?.members) {
+    const allMembers = primaryMembership.group.members || [];
+    groupLeaderboard = [...allMembers].sort((a, b) => compareLeaderboardRank(a?.user, b?.user));
     userRankInGroup = groupLeaderboard.findIndex((m) => m.userId === user.id) + 1;
   }
 

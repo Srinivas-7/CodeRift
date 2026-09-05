@@ -177,8 +177,9 @@ export function GroupHubClient({ userGroups }: GroupHubClientProps) {
             }}
           >
             {userGroups.map((gm) => {
-              const group = gm.group;
-              const membersCount = group.members.length;
+              const group = gm?.group;
+              if (!group) return null;
+              const membersCount = group.members ? group.members.length : 1;
 
               return (
                 <div

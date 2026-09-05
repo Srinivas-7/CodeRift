@@ -491,9 +491,9 @@ export function ProfileClient({
                   }}
                 >
                   <div>
-                    <div style={{ fontWeight: 700, color: "#FFF", fontSize: "1rem" }}>{gm.group.name}</div>
+                    <div style={{ fontWeight: 700, color: "#FFF", fontSize: "1rem" }}>{gm.group?.name || "Squad"}</div>
                     <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "0.2rem" }}>
-                      {gm.group.members.length} Members • Role: {gm.role || "MEMBER"}
+                      {gm.group?.members ? gm.group.members.length : 1} Members • Role: {gm.role || "MEMBER"}
                     </div>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>

@@ -144,6 +144,41 @@ export async function connectLeetCodeAccount(leetcodeUsername: string) {
 }
 
 /**
+ * Disconnect LeetCode Account
+ */
+export async function disconnectLeetCodeAccount() {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) {
+    return { success: false, error: "Authentication required." };
+  }
+
+  const updated = await db.user.update({
+    where: { id: currentUser.id },
+    data: {
+      leetcodeUsername: null,
+      leetcodeConnected: false,
+    },
+  });
+
+  revalidatePath("/profile");
+  revalidatePath("/dashboard");
+
+  return {
+    success: true,
+    leetcodeUsername: null,
+    leetcodeConnected: false,
+  };
+}
+
+/**
+ * Check if a LeetCode handle exists and fetch profile statistics
+ */
+export async function checkLeetCodeAccount(username: string) {
+  const { fetchLeetCodeProfile } = await import("@/lib/leetcode");
+  return fetchLeetCodeProfile(username);
+}
+
+/**
  * Update Profile details (Username, Avatar, LeetCode)
  */
 export async function updateProfile(data: {

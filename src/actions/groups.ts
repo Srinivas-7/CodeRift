@@ -214,7 +214,10 @@ export async function removeMemberFromGroup(groupId: string, targetUserId: strin
   return { success: true, message: "Member removed from squad." };
 }
 
-export async function updateGroupDetails(groupId: string, data: { name?: string; description?: string }) {
+export async function updateGroupDetails(
+  groupId: string,
+  data: { name?: string; description?: string; phase1StartDate?: string }
+) {
   const currentUser = await getCurrentUser();
   if (!currentUser) {
     return { success: false, error: "Authentication required." };
@@ -250,6 +253,14 @@ export async function updateGroupDetails(groupId: string, data: { name?: string;
     updateData.description = data.description.trim();
   }
 
+  if (data.phase1StartDate && data.phase1StartDate.trim()) {
+    const raw = data.phase1StartDate.trim();
+    const parsed = new Date(raw + "T00:00:00.000Z");
+    if (!isNaN(parsed.getTime())) {
+      updateData.phase1StartDate = parsed.toISOString().split("T")[0];
+    }
+  }
+
   const updated = await db.group.update({
     where: { id: groupId },
     data: updateData,
@@ -257,6 +268,8 @@ export async function updateGroupDetails(groupId: string, data: { name?: string;
 
   revalidatePath(`/groups/${groupId}`);
   revalidatePath("/groups");
+  revalidatePath("/dashboard");
+  revalidatePath("/daily");
 
   return { success: true, group: updated };
 }

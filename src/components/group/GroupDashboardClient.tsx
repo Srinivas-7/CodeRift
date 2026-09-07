@@ -26,6 +26,7 @@ import {
   X,
   Shield,
   Trophy,
+  RotateCcw,
 } from "lucide-react";
 
 interface GroupDashboardClientProps {
@@ -59,6 +60,12 @@ export function GroupDashboardClient({
   const [squadName, setSquadName] = useState(group.name);
   const [squadDesc, setSquadDesc] = useState(group.description || "");
   const [inviteCode, setInviteCode] = useState(group.inviteCode);
+  const initialPhase1Date = group.phase1StartDate
+    ? (typeof group.phase1StartDate === "string"
+        ? group.phase1StartDate.split("T")[0]
+        : new Date(group.phase1StartDate).toISOString().split("T")[0])
+    : new Date().toISOString().split("T")[0];
+  const [phase1StartDate, setPhase1StartDate] = useState(initialPhase1Date);
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -119,6 +126,7 @@ export function GroupDashboardClient({
       const res = await updateGroupDetails(group.id, {
         name: squadName,
         description: squadDesc,
+        phase1StartDate,
       });
 
       if (res.success) {
@@ -741,6 +749,52 @@ export function GroupDashboardClient({
                     resize: "none",
                   }}
                 />
+              </div>
+
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
+                  <label style={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem", color: "var(--text-muted)", textTransform: "uppercase" }}>
+                    Phase 1 Start Date (Timeline Anchor)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setPhase1StartDate(new Date().toISOString().split("T")[0])}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "var(--accent-acid)",
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "0.7rem",
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "0.25rem",
+                      padding: 0,
+                    }}
+                  >
+                    <RotateCcw size={11} /> Reset to Today (Day 1)
+                  </button>
+                </div>
+                <input
+                  type="date"
+                  value={phase1StartDate}
+                  onChange={(e) => setPhase1StartDate(e.target.value)}
+                  required
+                  style={{
+                    width: "100%",
+                    background: "var(--bg-primary)",
+                    border: "1px solid var(--border-editorial)",
+                    padding: "0.65rem 0.85rem",
+                    color: "#FFF",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "0.9rem",
+                    borderRadius: "2px",
+                    outline: "none",
+                  }}
+                />
+                <span style={{ display: "block", fontSize: "0.7rem", color: "var(--accent-cobalt)", marginTop: "0.35rem", fontFamily: "var(--font-mono)" }}>
+                  Phase 1: Problems 1–96 (Days 1–32) → Phase 2: Problems 97–191 (Days 33–64). Setting this to today resets your squad's Daily 3 challenge to Day 1 (Problems 1–3).
+                </span>
               </div>
 
               {/* Regenerate Code Section */}

@@ -155,6 +155,14 @@ export async function leaveGroup(groupId: string) {
     where: { id: membership.id },
   });
 
+  // Clean up user's notifications for this squad
+  await db.notification.deleteMany({
+    where: {
+      userId: currentUser.id,
+      link: { startsWith: `/groups/${groupId}` },
+    },
+  });
+
   revalidatePath("/groups");
   revalidatePath("/dashboard");
 
@@ -194,6 +202,14 @@ export async function removeMemberFromGroup(groupId: string, targetUserId: strin
         userId: targetUserId,
         groupId,
       },
+    },
+  });
+
+  // Clean up removed user's notifications for this squad
+  await db.notification.deleteMany({
+    where: {
+      userId: targetUserId,
+      link: { startsWith: `/groups/${groupId}` },
     },
   });
 
@@ -328,7 +344,7 @@ export async function deleteGroup(groupId: string) {
   }
 
   if (group.createdById !== currentUser.id) {
-    return { success: false, error: "Only the Squad Creator can disband the group." };
+    return { success: false, error: "Only the Squad Leader can disband the group." };
   }
 
   // Remove all members
@@ -339,6 +355,13 @@ export async function deleteGroup(groupId: string) {
   // Delete group
   await db.group.delete({
     where: { id: groupId },
+  });
+
+  // Clean up all notifications for this disbanded squad
+  await db.notification.deleteMany({
+    where: {
+      link: { startsWith: `/groups/${groupId}` },
+    },
   });
 
   revalidatePath("/groups");

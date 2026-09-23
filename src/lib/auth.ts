@@ -72,6 +72,8 @@ export const getSession = cache(async (): Promise<SessionPayload | null> => {
   }
 });
 
+import { syncUserStreak } from "./streaks";
+
 export const getCurrentUser = cache(async () => {
   const session = await getSession();
   if (!session?.userId) return null;
@@ -86,6 +88,17 @@ export const getCurrentUser = cache(async () => {
       },
     },
   });
+
+  if (user) {
+    try {
+      const streakInfo = await syncUserStreak(user.id);
+      user.currentStreak = streakInfo.currentStreak;
+      user.longestStreak = streakInfo.longestStreak;
+      user.streakShields = streakInfo.streakShields;
+    } catch (err) {
+      console.error("Error syncing streak in getCurrentUser:", err);
+    }
+  }
 
   return user;
 });

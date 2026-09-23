@@ -2,6 +2,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getOrCreateDailyChallenge } from "@/lib/daily-challenge";
 import { compareLeaderboardRank } from "@/lib/scoring";
+import { getUtcDateStr, getPastDateStr } from "@/lib/streaks";
 import { db } from "@/lib/db";
 import Link from "next/link";
 import { DailyResetCountdown } from "@/components/dashboard/DailyResetCountdown";
@@ -26,6 +27,9 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
+  const todayStr = getUtcDateStr();
+  const yesterdayStr = getPastDateStr(todayStr, 1);
+
   const todayMidnight = new Date(new Date().setHours(0, 0, 0, 0));
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
@@ -39,6 +43,8 @@ export default async function DashboardPage() {
     yesterdayTransactions,
     totalSolvedCount,
     notifications,
+    yesterdayRecord,
+    todayRecord,
   ] = await Promise.all([
     getOrCreateDailyChallenge(user.id),
     db.groupMember.findFirst({
@@ -79,6 +85,22 @@ export default async function DashboardPage() {
       orderBy: { createdAt: "desc" },
       take: 2,
     }),
+    db.streakRecord.findUnique({
+      where: {
+        userId_date: {
+          userId: user.id,
+          date: yesterdayStr,
+        },
+      },
+    }),
+    db.streakRecord.findUnique({
+      where: {
+        userId_date: {
+          userId: user.id,
+          date: todayStr,
+        },
+      },
+    }),
   ]);
 
   let groupLeaderboard: any[] = [];
@@ -88,6 +110,38 @@ export default async function DashboardPage() {
     const allMembers = primaryMembership.group.members || [];
     groupLeaderboard = [...allMembers].sort((a, b) => compareLeaderboardRank(a?.user, b?.user));
     userRankInGroup = groupLeaderboard.findIndex((m) => m.userId === user.id) + 1;
+  }
+
+  // Validate rivalry notifications against active squad memberships
+  let validOvertakenNotification: any = null;
+  for (const notif of notifications) {
+    if (notif.type === "OVERTAKEN") {
+      const groupId = notif.link?.replace("/groups/", "")?.trim();
+      if (groupId) {
+        let isMember = false;
+        if (primaryMembership?.groupId === groupId && primaryMembership?.group) {
+          isMember = true;
+        } else {
+          const gm = await db.groupMember.findFirst({
+            where: { userId: user.id, groupId },
+            include: { group: true },
+          });
+          if (gm?.group) {
+            isMember = true;
+          }
+        }
+
+        if (isMember) {
+          validOvertakenNotification = notif;
+          break;
+        } else {
+          // Group is disbanded or user is no longer a member - purge stale notification
+          try {
+            await db.notification.delete({ where: { id: notif.id } });
+          } catch {}
+        }
+      }
+    }
   }
 
   const todayXpGained = todayTransactions.reduce((acc: number, t: any) => acc + (t.amount || 0), 0);
@@ -173,7 +227,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* 2. RIVALRY NOTIFICATION BANNER (if any) */}
-      {notifications.length > 0 && notifications[0].type === "OVERTAKEN" && (
+      {validOvertakenNotification && (
         <div
           style={{
             background: "var(--bg-surface)",
@@ -190,14 +244,14 @@ export default async function DashboardPage() {
         >
           <div>
             <div style={{ fontFamily: "var(--font-grotesk)", fontWeight: 800, color: "#FFF", fontSize: "1.1rem" }}>
-              {notifications[0].message}
+              {validOvertakenNotification.message}
             </div>
             <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginTop: "0.2rem" }}>
               Solve today's 3 on LeetCode to take back your standing!
             </div>
           </div>
           <Link
-            href={notifications[0].link || "/groups"}
+            href={validOvertakenNotification.link || "/groups"}
             className="btn-editorial-vermillion"
             style={{ fontSize: "0.85rem", padding: "0.6rem 1.25rem" }}
           >
@@ -554,7 +608,7 @@ export default async function DashboardPage() {
                 {yesterdayXpGained} PTS
               </div>
               <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                Streak: {Math.max(0, user.currentStreak - 1)}D
+                {yesterdayRecord?.solvedCount ? `🔥 ${yesterdayRecord.solvedCount} Solved` : (yesterdayRecord?.shieldUsed ? `🛡️ Shield Used` : `0 Solved`)}
               </div>
             </div>
 
@@ -574,7 +628,7 @@ export default async function DashboardPage() {
                 {todayXpGained} PTS
               </div>
               <div style={{ fontSize: "0.75rem", color: "var(--accent-acid)", fontWeight: 700 }}>
-                {dailyData.solvedCount} / {dailyData.totalCount ?? 3} Solved
+                {todayRecord?.solvedCount ? `🔥 ${todayRecord.solvedCount} Solved` : `${dailyData.solvedCount} / ${dailyData.totalCount ?? 3} Solved`}
               </div>
             </div>
           </div>

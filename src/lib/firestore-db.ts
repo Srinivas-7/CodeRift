@@ -936,8 +936,19 @@ const streakRecordService = {
     const snap = await getDoc(doc(firestore, "streak_records", docId));
 
     if (snap.exists()) {
-      await updateDoc(doc(firestore, "streak_records", docId), args.update);
-      return formatDoc({ id: docId, ...snap.data(), ...args.update });
+      const existingData = snap.data() || {};
+      const updateData = { ...args.update, updatedAt: new Date() };
+      for (const k of Object.keys(updateData)) {
+        if (updateData[k] && typeof updateData[k] === "object" && "increment" in updateData[k]) {
+          const currentVal = existingData[k] || 0;
+          updateData[k] = currentVal + updateData[k].increment;
+        } else if (updateData[k] && typeof updateData[k] === "object" && "decrement" in updateData[k]) {
+          const currentVal = existingData[k] || 0;
+          updateData[k] = Math.max(0, currentVal - updateData[k].decrement);
+        }
+      }
+      await updateDoc(doc(firestore, "streak_records", docId), updateData);
+      return formatDoc({ id: docId, ...existingData, ...updateData });
     }
 
     const createData = {
@@ -957,9 +968,29 @@ const streakRecordService = {
       ? `${args.where.userId_date.userId}_${args.where.userId_date.date}`
       : args.where.id;
     if (!docId) return null;
-    await updateDoc(doc(firestore, "streak_records", docId), args.data);
     const snap = await getDoc(doc(firestore, "streak_records", docId));
-    return formatDoc({ id: snap.id, ...snap.data() });
+    if (!snap.exists()) return null;
+    const existingData = snap.data() || {};
+    const updateData = { ...args.data, updatedAt: new Date() };
+    for (const k of Object.keys(updateData)) {
+      if (updateData[k] && typeof updateData[k] === "object" && "increment" in updateData[k]) {
+        const currentVal = existingData[k] || 0;
+        updateData[k] = currentVal + updateData[k].increment;
+      } else if (updateData[k] && typeof updateData[k] === "object" && "decrement" in updateData[k]) {
+        const currentVal = existingData[k] || 0;
+        updateData[k] = Math.max(0, currentVal - updateData[k].decrement);
+      }
+    }
+    await updateDoc(doc(firestore, "streak_records", docId), updateData);
+    return formatDoc({ id: snap.id, ...existingData, ...updateData });
+  },
+
+  async findMany(args?: { where?: { userId?: string; date?: any } }) {
+    const ref = collection(firestore, "streak_records");
+    let q = query(ref);
+    if (args?.where?.userId) q = query(ref, where("userId", "==", args.where.userId));
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => formatDoc({ id: d.id, ...d.data() }));
   },
 
   async deleteMany(args?: { where?: { userId?: string } }) {
@@ -1030,7 +1061,7 @@ const notificationService = {
     return record;
   },
 
-  async findMany(args?: { where?: { userId?: string; read?: boolean }; orderBy?: any; take?: number }) {
+  async findMany(args?: { where?: { userId?: string; read?: boolean; type?: string }; orderBy?: any; take?: number }) {
     const ref = collection(firestore, "notifications");
     let q = query(ref);
     if (args?.where?.userId) q = query(ref, where("userId", "==", args.where.userId));
@@ -1039,23 +1070,52 @@ const notificationService = {
     if (args?.where?.read !== undefined) {
       list = list.filter((n) => n.read === args.where?.read);
     }
+    if (args?.where?.type !== undefined) {
+      list = list.filter((n) => n.type === args.where?.type);
+    }
     list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     if (args?.take) list = list.slice(0, args.take);
     return list;
   },
 
-  async count(args?: { where?: { userId?: string; read?: boolean } }) {
+  async count(args?: { where?: { userId?: string; read?: boolean; type?: string } }) {
     const list = await notificationService.findMany(args);
     return list.length;
   },
 
-  async deleteMany(args?: { where?: { userId?: string } }) {
+  async delete(args: { where: { id: string } }) {
+    if (!args?.where?.id) return { id: null };
+    await deleteDoc(doc(firestore, "notifications", args.where.id));
+    return { id: args.where.id };
+  },
+
+  async deleteMany(args?: { where?: { userId?: string; link?: string | { startsWith?: string }; type?: string } }) {
     const ref = collection(firestore, "notifications");
     let q = query(ref);
     if (args?.where?.userId) q = query(ref, where("userId", "==", args.where.userId));
     const snap = await getDocs(q);
-    for (const d of snap.docs) await deleteDoc(d.ref);
-    return { count: snap.size };
+    let count = 0;
+    for (const d of snap.docs) {
+      const data = d.data();
+      let shouldDelete = true;
+      if (args?.where?.type && data.type !== args.where.type) {
+        shouldDelete = false;
+      }
+      if (args?.where?.link) {
+        if (typeof args.where.link === "string" && data.link !== args.where.link) {
+          shouldDelete = false;
+        } else if (typeof args.where.link === "object" && args.where.link.startsWith) {
+          if (typeof data.link !== "string" || !data.link.startsWith(args.where.link.startsWith)) {
+            shouldDelete = false;
+          }
+        }
+      }
+      if (shouldDelete) {
+        await deleteDoc(d.ref);
+        count++;
+      }
+    }
+    return { count };
   },
 };
 

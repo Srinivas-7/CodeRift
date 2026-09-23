@@ -330,6 +330,9 @@ export async function verifyAndCompleteLeetCodeSubmission(input: VerifySubmissio
   });
 
   for (const gm of rivalMemberships) {
+    if (!gm.group || !Array.isArray(gm.group.members) || gm.group.members.length <= 1) {
+      continue;
+    }
     const sortedMembers = [...gm.group.members].sort((a, b) => compareLeaderboardRank(a.user, b.user));
     const newRank = sortedMembers.findIndex((m) => m.userId === user.id) + 1;
 

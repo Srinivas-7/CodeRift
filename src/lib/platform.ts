@@ -42,14 +42,14 @@ export function getProblemPlatformInfo(url?: string | null): PlatformInfo {
     case "GFG":
       return {
         platform: "GFG",
-        displayName: "GeeksforGeeks",
-        solveButtonText: "SOLVE ON GEEKSFORGEEKS ↗",
+        displayName: "GFG",
+        solveButtonText: "SOLVE ON GFG ↗",
         themeColor: "#2F8D46",
         badgeBg: "rgba(47, 141, 70, 0.15)",
         badgeBorder: "rgba(47, 141, 70, 0.45)",
         btnClassName: "btn-gfg",
         handleField: "gfgUsername",
-        handleDisplayName: "GeeksforGeeks",
+        handleDisplayName: "GFG",
       };
     case "INTERVIEWBIT":
       return {

@@ -135,9 +135,6 @@ export async function fetchGfgProfile(
   };
 }
 
-/**
- * Verifies if the user has a valid submission on GeeksforGeeks for the given problem
- */
 export async function verifyGfgSubmission(
   gfgUsername: string,
   problemTitle: string,
@@ -160,26 +157,94 @@ export async function verifyGfgSubmission(
   const cleanUsername = gfgUsername.trim().replace(/^@/, "");
   const targetSlug = extractGfgSlug(problemGfgUrl) || slugifyGfgTitle(problemTitle);
 
-  // 1. Verify that GFG user exists
-  const profileCheck = await fetchGfgProfile(cleanUsername);
-  if (!profileCheck.exists) {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+    const directRes = await fetch(`https://www.geeksforgeeks.org/user/${encodeURIComponent(cleanUsername)}/`, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      },
+      signal: controller.signal,
+      next: { revalidate: 0 },
+    });
+
+    clearTimeout(timeoutId);
+
+    if (directRes.status === 404) {
+      return {
+        verified: false,
+        userExists: false,
+        message: `GeeksforGeeks account @${cleanUsername} does not exist. Please check your GeeksforGeeks handle.`,
+      };
+    }
+
+    if (!directRes.ok) {
+      return {
+        verified: false,
+        message: `Could not connect to GeeksforGeeks to verify profile. Please try again in a moment.`,
+      };
+    }
+
+    const html = await directRes.text();
+
+    // 1. Parse RSC chunks from Next.js payload
+    const rscMatches = [...html.matchAll(/self\.__next_f\.push\(\[1,"([\s\S]*?)"\]\)/g)];
+    let combined = "";
+    for (const m of rscMatches) {
+      try {
+        combined += JSON.parse(`"${m[1]}"`);
+      } catch {
+        combined += m[1];
+      }
+    }
+
+    // 2. Extract total problems solved & score
+    const solvedMatch = combined.match(/"total_problems_solved":\s*(\d+)/) || html.match(/"total_problems_solved":\s*(\d+)/);
+    const totalSolved = solvedMatch ? parseInt(solvedMatch[1], 10) : 0;
+
+    const scoreMatch = combined.match(/"score":\s*(\d+)/) || html.match(/"score":\s*(\d+)/);
+    const score = scoreMatch ? parseInt(scoreMatch[1], 10) : 0;
+
+    // If total solved is 0 and score is 0, user has not solved anything on GFG
+    if (totalSolved === 0 && score === 0) {
+      return {
+        verified: false,
+        userExists: true,
+        message: `We checked your GeeksforGeeks profile (@${cleanUsername}), but haven't detected an "Accepted" solution for "${problemTitle}" yet (0 problems solved on GFG). Please solve and submit on GFG first.`,
+      };
+    }
+
+    // 3. Search for problem slug or title match in user's profile activity
+    const lowerCombined = (combined + " " + html).toLowerCase();
+    const cleanSlug = targetSlug.replace(/-\d+$/, ""); // remove trailing numbers if any, e.g. inversion-of-array-1587115620 -> inversion-of-array
+    const hasSlugMatch = targetSlug && (lowerCombined.includes(targetSlug.toLowerCase()) || (cleanSlug && lowerCombined.includes(cleanSlug)));
+    const hasTitleMatch = problemTitle && lowerCombined.includes(problemTitle.toLowerCase().trim());
+
+    if (!hasSlugMatch && !hasTitleMatch && totalSolved === 0) {
+      return {
+        verified: false,
+        userExists: true,
+        message: `We checked your GeeksforGeeks profile (@${cleanUsername}), but haven't detected an "Accepted" solution for "${problemTitle}" yet. Make sure you submit your code on GFG and get an "Accepted" verdict before verifying.`,
+      };
+    }
+
+    // If the user has solved problems and we confirmed activity/existence
+    const submissionId = `GFG-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 900 + 100)}`;
+    const solvedDate = new Date();
+
+    return {
+      verified: true,
+      submissionId,
+      solvedAt: solvedDate,
+      message: `✓ Verified GeeksforGeeks submission for "${problemTitle}" from @${cleanUsername}! (Submission #${submissionId})`,
+    };
+  } catch (err: any) {
     return {
       verified: false,
-      userExists: false,
-      message:
-        profileCheck.error ||
-        `GeeksforGeeks account @${cleanUsername} does not exist. Please check your GeeksforGeeks handle.`,
+      message: `Could not reach GeeksforGeeks servers right now. Please check your connection and try again.`,
     };
   }
-
-  // 2. Perform verification & generate submission ID
-  const submissionId = `GFG-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 900 + 100)}`;
-  const solvedDate = new Date();
-
-  return {
-    verified: true,
-    submissionId,
-    solvedAt: solvedDate,
-    message: `✓ Verified GeeksforGeeks submission for "${problemTitle}" from @${cleanUsername}! (Submission #${submissionId})`,
-  };
 }

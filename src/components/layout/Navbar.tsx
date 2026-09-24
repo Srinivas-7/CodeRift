@@ -135,18 +135,6 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
             </div>
           </Link>
 
-          <span
-            className="editorial-stamp"
-            style={{
-              display: "none",
-              fontSize: "0.65rem",
-              borderColor: "var(--accent-cobalt)",
-              color: "var(--accent-cobalt)",
-              background: "rgba(33, 72, 255, 0.08)",
-            }}
-          >
-            VOL. 191 // 3 DAILY
-          </span>
         </div>
 
         {/* Center: Editorial Maximalist Navigation Links */}
@@ -576,9 +564,6 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
           }
           .mobile-toggle {
             display: none !important;
-          }
-          .editorial-stamp {
-            display: inline-flex !important;
           }
         }
       `}</style>

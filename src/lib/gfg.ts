@@ -223,7 +223,7 @@ export async function verifyGfgSubmission(
     const hasSlugMatch = targetSlug && (lowerCombined.includes(targetSlug.toLowerCase()) || (cleanSlug && lowerCombined.includes(cleanSlug)));
     const hasTitleMatch = problemTitle && lowerCombined.includes(problemTitle.toLowerCase().trim());
 
-    if (!hasSlugMatch && !hasTitleMatch && totalSolved === 0) {
+    if (!hasSlugMatch && !hasTitleMatch) {
       return {
         verified: false,
         userExists: true,

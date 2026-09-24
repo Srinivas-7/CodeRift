@@ -33,6 +33,7 @@ interface NavbarProps {
     streakShields: number;
     role: string;
     leetcodeUsername?: string | null;
+    gfgUsername?: string | null;
   } | null;
   unreadCount?: number;
 }
@@ -305,7 +306,12 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
                         </div>
                         {user.leetcodeUsername && (
                           <div style={{ fontSize: "0.75rem", color: "#FFA116", fontFamily: "var(--font-mono)", marginTop: "0.2rem" }}>
-                            @{user.leetcodeUsername}
+                            LC: @{user.leetcodeUsername}
+                          </div>
+                        )}
+                        {user.gfgUsername && (
+                          <div style={{ fontSize: "0.75rem", color: "#2ecc71", fontFamily: "var(--font-mono)", marginTop: "0.1rem" }}>
+                            GFG: @{user.gfgUsername}
                           </div>
                         )}
                       </div>

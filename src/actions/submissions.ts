@@ -7,16 +7,23 @@ import { getProblemScore, DAILY_COMPLETION_BONUS, compareLeaderboardRank, getPro
 import { updateStreakOnProblemSolved } from "@/lib/streaks";
 import { checkAndAwardAchievements } from "@/lib/achievements";
 import { verifyLeetCodeSubmission } from "@/lib/leetcode";
+import { verifyGfgSubmission } from "@/lib/gfg";
+import { detectProblemPlatform } from "@/lib/platform";
 import { revalidatePath } from "next/cache";
 import { getOrCreateDailyChallenge } from "@/lib/team-phase";
 
-interface VerifySubmissionInput {
+export interface VerifySubmissionInput {
   problemId: number;
   leetcodeUsername?: string;
+  gfgUsername?: string;
   groupId?: string;
 }
 
 export async function verifyAndCompleteLeetCodeSubmission(input: VerifySubmissionInput) {
+  return verifyAndCompleteProblemSubmission(input);
+}
+
+export async function verifyAndCompleteProblemSubmission(input: VerifySubmissionInput) {
   const user = await getCurrentUser();
   if (!user) {
     return { success: false, error: "Authentication required to record progress." };
@@ -31,40 +38,91 @@ export async function verifyAndCompleteLeetCodeSubmission(input: VerifySubmissio
     return { success: false, error: "Problem does not exist in the 191 SDE Sheet." };
   }
 
-  const effectiveUsername =
-    input.leetcodeUsername?.trim().replace(/^@/, "") ||
-    user.leetcodeUsername?.trim().replace(/^@/, "");
+  const platform = detectProblemPlatform(problem.leetcodeUrl);
+  let verification: {
+    verified: boolean;
+    submissionId?: string;
+    solvedAt?: Date;
+    lang?: string;
+    userExists?: boolean;
+    message: string;
+  };
+  let sourcePlatform = "LEETCODE";
 
-  if (!effectiveUsername) {
-    return {
-      success: false,
-      error: "Please link your LeetCode username in your Profile before verifying submissions.",
-    };
-  }
+  if (platform === "GFG") {
+    sourcePlatform = "GFG";
+    const effectiveGfgUsername =
+      input.gfgUsername?.trim().replace(/^@/, "") ||
+      user.gfgUsername?.trim().replace(/^@/, "");
 
-  // 2. Perform LeetCode Verification
-  const verification = await verifyLeetCodeSubmission(
-    effectiveUsername,
-    problem.title,
-    problem.leetcodeUrl
-  );
+    if (!effectiveGfgUsername) {
+      return {
+        success: false,
+        error: "Please link your GeeksforGeeks handle in your Profile before verifying submissions.",
+      };
+    }
 
-  if (!verification.verified) {
-    return {
-      success: false,
-      error: verification.message || "Could not verify submission on LeetCode.",
-    };
-  }
+    verification = await verifyGfgSubmission(
+      effectiveGfgUsername,
+      problem.title,
+      problem.leetcodeUrl
+    );
 
-  // 3. Save connected LeetCode username if provided
-  if (input.leetcodeUsername && !user.leetcodeConnected) {
-    await db.user.update({
-      where: { id: user.id },
-      data: {
-        leetcodeUsername: input.leetcodeUsername.trim().replace(/^@/, ""),
-        leetcodeConnected: true,
-      },
-    });
+    if (!verification.verified) {
+      return {
+        success: false,
+        error: verification.message || "Could not verify submission on GeeksforGeeks.",
+      };
+    }
+
+    // Save connected GFG handle if provided
+    if (input.gfgUsername && !user.gfgConnected) {
+      await db.user.update({
+        where: { id: user.id },
+        data: {
+          gfgUsername: input.gfgUsername.trim().replace(/^@/, ""),
+          gfgConnected: true,
+        },
+      });
+    }
+  } else {
+    // LeetCode verification
+    sourcePlatform = "LEETCODE";
+    const effectiveUsername =
+      input.leetcodeUsername?.trim().replace(/^@/, "") ||
+      user.leetcodeUsername?.trim().replace(/^@/, "");
+
+    if (!effectiveUsername) {
+      return {
+        success: false,
+        error: "Please link your LeetCode username in your Profile before verifying submissions.",
+      };
+    }
+
+    // Perform LeetCode Verification
+    verification = await verifyLeetCodeSubmission(
+      effectiveUsername,
+      problem.title,
+      problem.leetcodeUrl
+    );
+
+    if (!verification.verified) {
+      return {
+        success: false,
+        error: verification.message || "Could not verify submission on LeetCode.",
+      };
+    }
+
+    // Save connected LeetCode username if provided
+    if (input.leetcodeUsername && !user.leetcodeConnected) {
+      await db.user.update({
+        where: { id: user.id },
+        data: {
+          leetcodeUsername: input.leetcodeUsername.trim().replace(/^@/, ""),
+          leetcodeConnected: true,
+        },
+      });
+    }
   }
 
   // 4. Check if previously solved
@@ -101,8 +159,8 @@ export async function verifyAndCompleteLeetCodeSubmission(input: VerifySubmissio
       status: solveStatus,
       xpEarned: problemPoints,
       pointsEarned: problemPoints,
-      source: "LEETCODE",
-      leetcodeSubmissionId: verification.submissionId || `LC-${Date.now()}`,
+      source: sourcePlatform,
+      leetcodeSubmissionId: verification.submissionId || `${sourcePlatform}-${Date.now()}`,
     },
   });
 

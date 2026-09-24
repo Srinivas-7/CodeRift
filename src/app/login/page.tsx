@@ -16,6 +16,7 @@ export default function LoginPage() {
   const [onboardingUsername, setOnboardingUsername] = useState("");
   const [selectedAvatar, setSelectedAvatar] = useState("cyber_ninja");
   const [leetcodeUsername, setLeetcodeUsername] = useState("");
+  const [gfgUsername, setGfgUsername] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
   const handleGoogleSignIn = async () => {
@@ -76,6 +77,7 @@ export default function LoginPage() {
       username: onboardingUsername,
       avatar: selectedAvatar,
       leetcodeUsername: leetcodeUsername.trim() || undefined,
+      gfgUsername: gfgUsername.trim() || undefined,
     });
 
     if (res.success) {
@@ -359,7 +361,7 @@ export default function LoginPage() {
               </div>
 
               {/* LeetCode Handle */}
-              <div style={{ marginBottom: "1.5rem" }}>
+              <div style={{ marginBottom: "1.25rem" }}>
                 <label
                   style={{
                     display: "block",
@@ -389,6 +391,39 @@ export default function LoginPage() {
                     outline: "none",
                   }}
                 />
+              </div>
+
+              {/* GeeksforGeeks Handle */}
+              <div style={{ marginBottom: "1.5rem" }}>
+                <label
+                  style={{
+                    display: "block",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "0.8rem",
+                    color: "#2ecc71",
+                    textTransform: "uppercase",
+                    marginBottom: "0.4rem",
+                  }}
+                >
+                  GeeksforGeeks Handle (@username):
+                </label>
+                <input
+                  type="text"
+                  value={gfgUsername}
+                  onChange={(e) => setGfgUsername(e.target.value)}
+                  placeholder="e.g. sandeepprasad"
+                  style={{
+                    width: "100%",
+                    background: "var(--bg-primary)",
+                    border: "1px solid rgba(47, 141, 70, 0.45)",
+                    borderRadius: "2px",
+                    padding: "0.85rem 1rem",
+                    color: "#FFFFFF",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "1rem",
+                    outline: "none",
+                  }}
+                />
                 <div
                   style={{
                     fontSize: "0.75rem",
@@ -396,7 +431,7 @@ export default function LoginPage() {
                     marginTop: "0.3rem",
                   }}
                 >
-                  Allows our backend to verify your accepted submissions automatically.
+                  Allows our backend to verify your LeetCode and GeeksforGeeks submissions automatically.
                 </div>
               </div>
 

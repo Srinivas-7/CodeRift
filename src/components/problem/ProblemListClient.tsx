@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { SdeProblem, SDE_CATEGORIES } from "@/data/sdeSheetProblems";
 import { resetUserProgress } from "@/actions/auth";
+import { getProblemPlatformInfo } from "@/lib/platform";
 import Link from "next/link";
 import {
   Search,
@@ -422,20 +423,23 @@ export function ProblemListClient({
 
                       {/* Right: Actions */}
                       <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                        {prob.leetcodeUrl && (
-                          <a
-                            href={prob.leetcodeUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="btn-leetcode"
-                            style={{
-                              fontSize: "0.75rem",
-                              padding: "0.4rem 0.8rem",
-                            }}
-                          >
-                            SOLVE ON LEETCODE ↗
-                          </a>
-                        )}
+                        {prob.leetcodeUrl && (() => {
+                          const platformInfo = getProblemPlatformInfo(prob.leetcodeUrl);
+                          return (
+                            <a
+                              href={prob.leetcodeUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={platformInfo.btnClassName}
+                              style={{
+                                fontSize: "0.75rem",
+                                padding: "0.4rem 0.8rem",
+                              }}
+                            >
+                              {platformInfo.solveButtonText}
+                            </a>
+                          );
+                        })()}
 
                         <Link
                           href={`/problems/${prob.id}`}

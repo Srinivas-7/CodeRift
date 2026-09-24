@@ -4,6 +4,7 @@ import { getOrCreateDailyChallenge } from "@/lib/daily-challenge";
 import { compareLeaderboardRank } from "@/lib/scoring";
 import { getUtcDateStr, getPastDateStr } from "@/lib/streaks";
 import { db } from "@/lib/db";
+import { getProblemPlatformInfo } from "@/lib/platform";
 import Link from "next/link";
 import { DailyResetCountdown } from "@/components/dashboard/DailyResetCountdown";
 import {
@@ -417,7 +418,7 @@ export default async function DashboardPage() {
                   </div>
                 </div>
 
-                {/* Actions: Solve on LeetCode & Verify */}
+                {/* Actions: Solve on LeetCode / GFG & Verify */}
                 <div
                   style={{
                     display: "flex",
@@ -427,28 +428,37 @@ export default async function DashboardPage() {
                     paddingTop: "1.25rem",
                   }}
                 >
-                  <div style={{ display: "flex", gap: "0.6rem" }}>
-                    <a
-                      href={prob.leetcodeUrl || `https://leetcode.com/problemset/all/?search=${encodeURIComponent(prob.title)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-leetcode"
-                      style={{ flex: 1, textAlign: "center" }}
-                    >
-                      SOLVE ON LEETCODE ↗
-                    </a>
+                  {(() => {
+                    const platformInfo = getProblemPlatformInfo(prob.leetcodeUrl);
+                    const defaultUrl =
+                      platformInfo.platform === "GFG"
+                        ? `https://www.geeksforgeeks.org/problems/${encodeURIComponent(prob.title.toLowerCase().replace(/[^a-z0-9]+/g, "-"))}/1`
+                        : `https://leetcode.com/problemset/all/?search=${encodeURIComponent(prob.title)}`;
+                    return (
+                      <div style={{ display: "flex", gap: "0.6rem" }}>
+                        <a
+                          href={prob.leetcodeUrl || defaultUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={platformInfo.btnClassName}
+                          style={{ flex: 1, textAlign: "center" }}
+                        >
+                          {platformInfo.solveButtonText}
+                        </a>
 
-                    <Link
-                      href={`/problems/${prob.id}`}
-                      className="btn-editorial-outline"
-                      style={{
-                        padding: "0.6rem 0.9rem",
-                        color: isDone ? "var(--accent-acid)" : "var(--text-primary)",
-                      }}
-                    >
-                      {isDone ? "✓ Cleared" : "Verify →"}
-                    </Link>
-                  </div>
+                        <Link
+                          href={`/problems/${prob.id}`}
+                          className="btn-editorial-outline"
+                          style={{
+                            padding: "0.6rem 0.9rem",
+                            color: isDone ? "var(--accent-acid)" : "var(--text-primary)",
+                          }}
+                        >
+                          {isDone ? "✓ Cleared" : "Verify →"}
+                        </Link>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             );

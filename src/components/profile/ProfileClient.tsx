@@ -7,6 +7,7 @@ import { updateProfile } from "@/actions/auth";
 import { getLevelInfo } from "@/lib/xp";
 import { ProfileProgressSection } from "./ProfileProgressSection";
 import { LeetCodeConnectModal } from "./LeetCodeConnectModal";
+import { GfgConnectModal } from "./GfgConnectModal";
 import {
   Flame,
   Shield,
@@ -49,10 +50,13 @@ export function ProfileClient({
   const [activeTab, setActiveTab] = useState<"PROGRESS" | "SQUADS" | "ACHIEVEMENTS" | "SETTINGS">("PROGRESS");
   const [isEditing, setIsEditing] = useState(false);
   const [showLeetCodeModal, setShowLeetCodeModal] = useState(false);
+  const [showGfgModal, setShowGfgModal] = useState(false);
   const [currentLcHandle, setCurrentLcHandle] = useState<string | null>(user.leetcodeUsername || null);
+  const [currentGfgHandle, setCurrentGfgHandle] = useState<string | null>(user.gfgUsername || null);
   const [username, setUsername] = useState(user.username);
   const [avatar, setAvatar] = useState(user.avatar);
   const [leetcodeUsername, setLeetcodeUsername] = useState(user.leetcodeUsername || "");
+  const [gfgUsername, setGfgUsername] = useState(user.gfgUsername || "");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
@@ -68,11 +72,13 @@ export function ProfileClient({
       username,
       avatar,
       leetcodeUsername: leetcodeUsername.trim() || undefined,
+      gfgUsername: gfgUsername.trim() || undefined,
     });
 
     if (res.success) {
-      setSuccessMsg("Warrior Profile & LeetCode account saved!");
+      setSuccessMsg("Warrior Profile, LeetCode & GeeksforGeeks handles saved!");
       setCurrentLcHandle(leetcodeUsername.trim() || null);
+      setCurrentGfgHandle(gfgUsername.trim() || null);
       setIsEditing(false);
     } else {
       setErrorMsg(res.error || "Failed to update profile.");
@@ -121,8 +127,9 @@ export function ProfileClient({
               {user.username}
             </h1>
 
-            {/* LeetCode Handle & Quick Connect Window Trigger */}
+            {/* LeetCode & GeeksforGeeks Handles & Quick Connect Window Triggers */}
             <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "0.75rem", marginBottom: "1.5rem" }}>
+              {/* LeetCode Handle */}
               {currentLcHandle ? (
                 <>
                   <a
@@ -145,7 +152,7 @@ export function ProfileClient({
                     }}
                     title="Open your public LeetCode profile"
                   >
-                    <span>@{currentLcHandle}</span>
+                    <span>LC: @{currentLcHandle}</span>
                     <ExternalLink size={13} />
                   </a>
 
@@ -161,7 +168,7 @@ export function ProfileClient({
                     }}
                     title="Configure or change your LeetCode handle in connection window"
                   >
-                    <Edit2 size={12} /> Edit Handle
+                    <Edit2 size={12} /> Edit LC
                   </button>
                 </>
               ) : (
@@ -185,6 +192,74 @@ export function ProfileClient({
                   title="Open window to connect your LeetCode account"
                 >
                   <Sparkles size={14} /> + Add LeetCode Handle
+                </button>
+              )}
+
+              {/* GeeksforGeeks Handle */}
+              {currentGfgHandle ? (
+                <>
+                  <a
+                    href={`https://www.geeksforgeeks.org/user/${currentGfgHandle}/`}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "0.4rem",
+                      background: "rgba(47, 141, 70, 0.15)",
+                      border: "1px solid rgba(47, 141, 70, 0.45)",
+                      color: "#2ecc71",
+                      padding: "0.35rem 0.75rem",
+                      borderRadius: "2px",
+                      fontSize: "0.85rem",
+                      fontFamily: "var(--font-mono)",
+                      fontWeight: 700,
+                      textDecoration: "none",
+                    }}
+                    title="Open your public GeeksforGeeks profile"
+                  >
+                    <span>GFG: @{currentGfgHandle}</span>
+                    <ExternalLink size={13} />
+                  </a>
+
+                  <button
+                    onClick={() => setShowGfgModal(true)}
+                    className="btn-editorial-outline"
+                    style={{
+                      fontSize: "0.75rem",
+                      padding: "0.35rem 0.65rem",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "0.35rem",
+                      borderColor: "rgba(47, 141, 70, 0.45)",
+                      color: "#2ecc71",
+                    }}
+                    title="Configure or change your GeeksforGeeks handle in connection window"
+                  >
+                    <Edit2 size={12} /> Edit GFG
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setShowGfgModal(true)}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    background: "rgba(47, 141, 70, 0.15)",
+                    border: "1px solid #2F8D46",
+                    color: "#2ecc71",
+                    padding: "0.4rem 0.85rem",
+                    borderRadius: "3px",
+                    fontSize: "0.85rem",
+                    fontFamily: "var(--font-mono)",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                  }}
+                  title="Open window to connect your GeeksforGeeks account"
+                >
+                  <Sparkles size={14} /> + Add GFG Handle
                 </button>
               )}
             </div>
@@ -622,6 +697,27 @@ export function ProfileClient({
                     }}
                   />
                 </div>
+
+                <div>
+                  <label style={{ display: "block", fontFamily: "var(--font-mono)", fontSize: "0.75rem", color: "#2ecc71", marginBottom: "0.3rem", textTransform: "uppercase" }}>
+                    GeeksforGeeks Handle (@username):
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. sandeepprasad"
+                    value={gfgUsername}
+                    onChange={(e) => setGfgUsername(e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: "0.75rem",
+                      background: "var(--bg-primary)",
+                      border: "1px solid rgba(47, 141, 70, 0.45)",
+                      borderRadius: "2px",
+                      color: "#FFF",
+                      fontFamily: "var(--font-mono)",
+                    }}
+                  />
+                </div>
               </div>
 
               {errorMsg && <div style={{ color: "var(--accent-vermillion)", fontSize: "0.85rem", marginBottom: "1rem" }}>⚠️ {errorMsg}</div>}
@@ -774,6 +870,17 @@ export function ProfileClient({
         onHandleUpdated={(newHandle) => {
           setCurrentLcHandle(newHandle);
           setLeetcodeUsername(newHandle || "");
+        }}
+      />
+
+      {/* 5. GEEKSFORGEEKS HANDLE CONNECTION MODAL */}
+      <GfgConnectModal
+        isOpen={showGfgModal}
+        onClose={() => setShowGfgModal(false)}
+        currentHandle={currentGfgHandle}
+        onHandleUpdated={(newHandle) => {
+          setCurrentGfgHandle(newHandle);
+          setGfgUsername(newHandle || "");
         }}
       />
     </div>

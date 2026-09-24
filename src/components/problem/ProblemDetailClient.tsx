@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { SdeProblem } from "@/data/sdeSheetProblems";
 import { verifyAndCompleteLeetCodeSubmission } from "@/actions/submissions";
+import { getProblemPlatformInfo } from "@/lib/platform";
 import Link from "next/link";
 import {
   ExternalLink,
@@ -40,9 +41,23 @@ export function ProblemDetailClient({
   const [verifyResult, setVerifyResult] = useState<any>(null);
   const [showCelebration, setShowCelebration] = useState(false);
 
-  const leetcodeLink =
+  const platformInfo = getProblemPlatformInfo(problem.leetcodeUrl);
+
+  const solveLink =
     problem.leetcodeUrl ||
-    `https://leetcode.com/problemset/all/?search=${encodeURIComponent(problem.title)}`;
+    (platformInfo.platform === "GFG"
+      ? `https://www.geeksforgeeks.org/problems/${encodeURIComponent(problem.title.toLowerCase().replace(/[^a-z0-9]+/g, "-"))}/1`
+      : `https://leetcode.com/problemset/all/?search=${encodeURIComponent(problem.title)}`);
+
+  const activeHandle =
+    platformInfo.platform === "GFG"
+      ? user?.gfgUsername
+      : user?.leetcodeUsername;
+
+  const activeProfileUrl =
+    platformInfo.platform === "GFG"
+      ? (activeHandle ? `https://www.geeksforgeeks.org/user/${activeHandle}/` : undefined)
+      : (activeHandle ? `https://leetcode.com/${activeHandle}/` : undefined);
 
   const handleVerifySubmission = async () => {
     setVerifying(true);
@@ -52,6 +67,7 @@ export function ProblemDetailClient({
       const res = await verifyAndCompleteLeetCodeSubmission({
         problemId: problem.id,
         leetcodeUsername: user?.leetcodeUsername || undefined,
+        gfgUsername: user?.gfgUsername || undefined,
       });
 
       setVerifying(false);
@@ -160,7 +176,7 @@ export function ProblemDetailClient({
         </div>
       </div>
 
-      {/* 3. PRIMARY ACTION: SOLVE ON LEETCODE BUTTON */}
+      {/* 3. PRIMARY ACTION: SOLVE BUTTON */}
       <div
         className="editorial-card"
         style={{
@@ -168,7 +184,7 @@ export function ProblemDetailClient({
           background: "var(--bg-surface)",
           border: "2px solid var(--text-primary)",
           borderRadius: "4px",
-          boxShadow: "12px 12px 0px rgba(33, 72, 255, 0.25)",
+          boxShadow: `12px 12px 0px ${platformInfo.platform === "GFG" ? "rgba(47, 141, 70, 0.3)" : "rgba(33, 72, 255, 0.25)"}`,
           marginBottom: "3rem",
         }}
       >
@@ -183,32 +199,32 @@ export function ProblemDetailClient({
         >
           <div>
             <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "0.3rem" }}>
-              EXTERNAL JUDGE & CODING PLATFORM
+              EXTERNAL JUDGE // {platformInfo.displayName.toUpperCase()}
             </div>
             <h2 className="font-grotesk" style={{ fontSize: "1.4rem", textTransform: "uppercase", color: "#FFF" }}>
               OFFICIAL PROBLEM ENVIRONMENT
             </h2>
             <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", marginTop: "0.25rem" }}>
-              Solve the problem directly on LeetCode. Once submitted and accepted, verify below to earn your XP.
+              Solve the problem directly on {platformInfo.displayName}. Once submitted and accepted, verify below to earn your XP.
             </p>
           </div>
 
           <a
-            href={leetcodeLink}
+            href={solveLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="btn-leetcode"
+            className={platformInfo.btnClassName}
             style={{
               padding: "1rem 2rem",
               fontSize: "1rem",
             }}
           >
-            SOLVE ON LEETCODE ↗
+            {platformInfo.solveButtonText}
           </a>
         </div>
       </div>
 
-      {/* 4. LEETCODE SUBMISSION VERIFICATION HUD */}
+      {/* 4. SUBMISSION VERIFICATION HUD */}
       <div
         className="editorial-card"
         style={{
@@ -221,33 +237,33 @@ export function ProblemDetailClient({
       >
         <div style={{ marginBottom: "1.25rem" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.3rem" }}>
-            <Zap size={18} style={{ color: "var(--accent-cobalt)" }} />
+            <Zap size={18} style={{ color: platformInfo.platform === "GFG" ? "#2ecc71" : "var(--accent-cobalt)" }} />
             <h3 className="font-grotesk" style={{ fontSize: "1.2rem", textTransform: "uppercase", color: "#FFF" }}>
-              LEETCODE SUBMISSION VERIFIER & XP CLAIM
+              {platformInfo.displayName.toUpperCase()} SUBMISSION VERIFIER & XP CLAIM
             </h3>
           </div>
           <div style={{ color: "var(--text-muted)", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap", marginTop: "0.4rem" }}>
-            <span>Target Handle:</span>
-            {user?.leetcodeUsername ? (
+            <span>Target {platformInfo.displayName} Handle:</span>
+            {activeHandle ? (
               <a
-                href={`https://leetcode.com/${user.leetcodeUsername}/`}
+                href={activeProfileUrl || "#"}
                 target="_blank"
                 rel="noreferrer"
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "0.3rem",
-                  color: "#FFA116",
+                  color: platformInfo.platform === "GFG" ? "#2ecc71" : "#FFA116",
                   fontFamily: "var(--font-mono)",
                   fontWeight: 700,
                   textDecoration: "underline",
                 }}
               >
-                @{user.leetcodeUsername} <ExternalLink size={12} />
+                @{activeHandle} <ExternalLink size={12} />
               </a>
             ) : (
               <span style={{ color: "var(--accent-vermillion)" }}>
-                No handle linked. Link your handle in{" "}
+                No {platformInfo.displayName} handle linked. Link your handle in{" "}
                 <Link href="/profile" style={{ color: "var(--accent-cobalt)", textDecoration: "underline" }}>
                   Profile Settings
                 </Link>{" "}
@@ -268,15 +284,17 @@ export function ProblemDetailClient({
               display: "inline-flex",
               alignItems: "center",
               gap: "0.5rem",
+              background: platformInfo.platform === "GFG" ? "#2F8D46" : undefined,
+              borderColor: platformInfo.platform === "GFG" ? "#2F8D46" : undefined,
             }}
           >
             {verifying ? (
               <>
                 <span className="spinner" style={{ display: "inline-block", width: "14px", height: "14px", border: "2px solid #FFF", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-                QUERYING LEETCODE SUBMISSIONS...
+                QUERYING {platformInfo.displayName.toUpperCase()} SUBMISSIONS...
               </>
             ) : (
-              "VERIFY LEETCODE SUBMISSION & CLAIM XP"
+              `VERIFY ${platformInfo.displayName.toUpperCase()} SUBMISSION & CLAIM XP`
             )}
           </button>
 
@@ -289,7 +307,7 @@ export function ProblemDetailClient({
 
         {verifying && (
           <div style={{ marginTop: "1rem", color: "var(--accent-cobalt)", fontFamily: "var(--font-mono)", fontSize: "0.8rem" }}>
-            ⚡ Connecting to LeetCode Public GraphQL API and checking recent submissions for @{user?.leetcodeUsername || "user"}...
+            ⚡ Connecting to {platformInfo.displayName} and checking recent submissions for @{activeHandle || "user"}...
           </div>
         )}
 
@@ -333,27 +351,27 @@ export function ProblemDetailClient({
               }}
             >
               <div style={{ color: "#FFF", fontWeight: 700, marginBottom: "0.3rem" }}>HOW TO EARN YOUR XP:</div>
-              <div>1. Click <strong style={{ color: "#FFA116" }}>"Solve on LeetCode"</strong> and submit your solution.</div>
-              <div>2. Ensure LeetCode gives you a green <strong style={{ color: "var(--accent-acid)" }}>"Accepted"</strong> verdict.</div>
-              <div>3. Return here and click <strong style={{ color: "var(--accent-cobalt)" }}>"Verify LeetCode Submission"</strong> to claim your XP!</div>
+              <div>1. Click <strong style={{ color: platformInfo.platform === "GFG" ? "#2ecc71" : "#FFA116" }}>&quot;{platformInfo.solveButtonText.replace(" ↗", "")}&quot;</strong> and submit your solution.</div>
+              <div>2. Ensure {platformInfo.displayName} gives you an <strong style={{ color: "var(--accent-acid)" }}>&quot;Accepted&quot;</strong> verdict.</div>
+              <div>3. Return here and click <strong style={{ color: "var(--accent-cobalt)" }}>&quot;Verify {platformInfo.displayName} Submission&quot;</strong> to claim your XP!</div>
             </div>
 
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
               <a
-                href={leetcodeLink}
+                href={solveLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn-leetcode"
+                className={platformInfo.btnClassName}
                 style={{ fontSize: "0.8rem", padding: "0.5rem 1rem" }}
               >
-                SOLVE ON LEETCODE ↗
+                {platformInfo.solveButtonText}
               </a>
               <Link
                 href="/profile"
                 className="btn-editorial-outline"
                 style={{ fontSize: "0.8rem", padding: "0.5rem 1rem", color: "var(--text-secondary)" }}
               >
-                Change LeetCode Handle
+                Change {platformInfo.displayName} Handle
               </Link>
             </div>
           </div>

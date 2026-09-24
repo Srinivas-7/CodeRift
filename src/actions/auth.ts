@@ -179,12 +179,82 @@ export async function checkLeetCodeAccount(username: string) {
 }
 
 /**
- * Update Profile details (Username, Avatar, LeetCode)
+ * Connect or update GeeksforGeeks Account
+ */
+export async function connectGfgAccount(gfgUsername: string) {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) {
+    return { success: false, error: "Authentication required." };
+  }
+
+  const clean = gfgUsername.trim().replace(/^@/, "");
+  if (!clean) {
+    return { success: false, error: "Please provide a valid GeeksforGeeks username." };
+  }
+
+  const updated = await db.user.update({
+    where: { id: currentUser.id },
+    data: {
+      gfgUsername: clean,
+      gfgConnected: true,
+    },
+  });
+
+  revalidatePath("/profile");
+  revalidatePath("/dashboard");
+  revalidatePath("/problems");
+
+  return {
+    success: true,
+    gfgUsername: updated.gfgUsername,
+    gfgConnected: updated.gfgConnected,
+  };
+}
+
+/**
+ * Disconnect GeeksforGeeks Account
+ */
+export async function disconnectGfgAccount() {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) {
+    return { success: false, error: "Authentication required." };
+  }
+
+  const updated = await db.user.update({
+    where: { id: currentUser.id },
+    data: {
+      gfgUsername: null,
+      gfgConnected: false,
+    },
+  });
+
+  revalidatePath("/profile");
+  revalidatePath("/dashboard");
+  revalidatePath("/problems");
+
+  return {
+    success: true,
+    gfgUsername: null,
+    gfgConnected: false,
+  };
+}
+
+/**
+ * Check if a GeeksforGeeks handle exists and fetch profile statistics
+ */
+export async function checkGfgAccount(username: string) {
+  const { fetchGfgProfile } = await import("@/lib/gfg");
+  return fetchGfgProfile(username);
+}
+
+/**
+ * Update Profile details (Username, Avatar, LeetCode, GeeksforGeeks)
  */
 export async function updateProfile(data: {
   username?: string;
   avatar?: string;
   leetcodeUsername?: string;
+  gfgUsername?: string;
 }) {
   const currentUser = await getCurrentUser();
   if (!currentUser) {
@@ -214,6 +284,12 @@ export async function updateProfile(data: {
     const cleanLc = data.leetcodeUsername.trim().replace(/^@/, "");
     updates.leetcodeUsername = cleanLc || null;
     updates.leetcodeConnected = !!cleanLc;
+  }
+
+  if (data.gfgUsername !== undefined) {
+    const cleanGfg = data.gfgUsername.trim().replace(/^@/, "");
+    updates.gfgUsername = cleanGfg || null;
+    updates.gfgConnected = !!cleanGfg;
   }
 
   const updated = await db.user.update({

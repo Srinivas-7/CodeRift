@@ -429,3 +429,98 @@ export async function verifyAndCompleteProblemSubmission(input: VerifySubmission
     newAchievements,
   };
 }
+
+export async function clearProblemSubmission(input: { problemId: number }) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return { success: false, error: "Authentication required to clear problem status." };
+  }
+
+  const problem = await db.problem.findUnique({
+    where: { id: input.problemId },
+  });
+
+  if (!problem) {
+    return { success: false, error: "Problem does not exist." };
+  }
+
+  // 1. Check existing solve status
+  const previousStatus = await db.userProblemStatus.findUnique({
+    where: {
+      userId_problemId: {
+        userId: user.id,
+        problemId: problem.id,
+      },
+    },
+  });
+
+  const wasSolved = previousStatus && (previousStatus.status === "SOLVED" || previousStatus.status === "OPTIMAL");
+
+  // 2. Delete user problem status
+  await db.userProblemStatus.delete({
+    where: {
+      userId_problemId: {
+        userId: user.id,
+        problemId: problem.id,
+      },
+    },
+  });
+
+  // 3. Delete any submissions recorded for this problem
+  await db.submission.deleteMany({
+    where: {
+      userId: user.id,
+      problemId: problem.id,
+    },
+  });
+
+  // 4. If problem was previously solved, adjust score, counts, and level
+  if (wasSolved) {
+    const problemPoints = getProblemScore(problem.difficulty);
+    const problemPhase = getProblemPhase(problem.orderInSheet);
+
+    const currentScore = typeof user.score === "number" ? user.score : (user.xp || 0);
+    const updatedScore = Math.max(0, currentScore - problemPoints);
+    const updatedLevel = calculateLevel(updatedScore);
+    const updatedTotalSolved = Math.max(0, (user.totalSolved || 0) - 1);
+
+    let updatedPhase1Solved = user.phase1Solved || 0;
+    let updatedPhase2Solved = user.phase2Solved || 0;
+    let updatedPhase1Score = user.phase1Score || 0;
+    let updatedPhase2Score = user.phase2Score || 0;
+
+    if (problemPhase === 1) {
+      updatedPhase1Solved = Math.max(0, updatedPhase1Solved - 1);
+      updatedPhase1Score = Math.max(0, updatedPhase1Score - problemPoints);
+    } else {
+      updatedPhase2Solved = Math.max(0, updatedPhase2Solved - 1);
+      updatedPhase2Score = Math.max(0, updatedPhase2Score - problemPoints);
+    }
+
+    await db.user.update({
+      where: { id: user.id },
+      data: {
+        score: updatedScore,
+        xp: updatedScore,
+        level: updatedLevel,
+        totalSolved: updatedTotalSolved,
+        phase1Score: updatedPhase1Score,
+        phase2Score: updatedPhase2Score,
+        phase1Solved: updatedPhase1Solved,
+        phase2Solved: updatedPhase2Solved,
+      },
+    });
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/problems");
+  revalidatePath(`/problems/${input.problemId}`);
+  revalidatePath("/groups");
+  revalidatePath("/leaderboard");
+  revalidatePath("/profile");
+
+  return {
+    success: true,
+    message: `Verification cleared for "${problem.title}".`,
+  };
+}

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { SdeProblem } from "@/data/sdeSheetProblems";
-import { verifyAndCompleteLeetCodeSubmission } from "@/actions/submissions";
+import { verifyAndCompleteLeetCodeSubmission, clearProblemSubmission } from "@/actions/submissions";
 import { getProblemPlatformInfo } from "@/lib/platform";
 import Link from "next/link";
 import {
@@ -16,6 +16,7 @@ import {
   Sparkles,
   ChevronDown,
   ChevronUp,
+  RotateCcw,
 } from "lucide-react";
 
 interface ProblemDetailClientProps {
@@ -38,6 +39,8 @@ export function ProblemDetailClient({
   const [showOptimal, setShowOptimal] = useState(false);
 
   const [verifying, setVerifying] = useState(false);
+  const [clearing, setClearing] = useState(false);
+  const [clearMessage, setClearMessage] = useState<string | null>(null);
   const [verifyResult, setVerifyResult] = useState<any>(null);
   const [showCelebration, setShowCelebration] = useState(false);
 
@@ -83,6 +86,30 @@ export function ProblemDetailClient({
         success: false,
         error: err.message || "Failed to reach server. Please check your connection.",
       });
+    }
+  };
+
+  const handleClearSubmission = async () => {
+    if (!confirm(`Are you sure you want to clear the verification and solve status for "${problem.title}"? Points earned from this problem will be reverted.`)) {
+      return;
+    }
+    setClearing(true);
+    setClearMessage(null);
+    setVerifyResult(null);
+
+    try {
+      const res = await clearProblemSubmission({ problemId: problem.id });
+      setClearing(false);
+      if (res.success) {
+        setIsSolved(false);
+        setClearMessage(res.message || "Verification cleared successfully.");
+        setTimeout(() => setClearMessage(null), 5000);
+      } else {
+        alert(res.error || "Failed to clear verification.");
+      }
+    } catch (err: any) {
+      setClearing(false);
+      alert(err.message || "Failed to clear verification.");
     }
   };
 
@@ -276,11 +303,11 @@ export function ProblemDetailClient({
         <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "center" }}>
           <button
             onClick={handleVerifySubmission}
-            disabled={verifying}
+            disabled={verifying || clearing}
             className="btn-editorial-primary"
             style={{
               padding: "0.9rem 1.8rem",
-              cursor: verifying ? "wait" : "pointer",
+              cursor: verifying || clearing ? "wait" : "pointer",
               display: "inline-flex",
               alignItems: "center",
               gap: "0.5rem",
@@ -299,11 +326,41 @@ export function ProblemDetailClient({
           </button>
 
           {isSolved && (
+            <button
+              onClick={handleClearSubmission}
+              disabled={clearing || verifying}
+              className="btn-editorial-outline"
+              style={{
+                padding: "0.85rem 1.4rem",
+                cursor: clearing ? "wait" : "pointer",
+                color: "var(--accent-vermillion)",
+                borderColor: "rgba(255, 55, 20, 0.45)",
+                background: "rgba(255, 55, 20, 0.08)",
+                fontSize: "0.85rem",
+                fontWeight: 700,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.4rem",
+              }}
+              title="Clear solve verification and revert points for this problem"
+            >
+              <RotateCcw size={14} />
+              {clearing ? "CLEARING..." : "CLEAR VERIFICATION"}
+            </button>
+          )}
+
+          {isSolved && (
             <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.85rem", color: "var(--accent-acid)", fontWeight: 700 }}>
               ✓ Problem cleared in database
             </span>
           )}
         </div>
+
+        {clearMessage && (
+          <div style={{ marginTop: "1rem", color: "var(--accent-acid)", fontFamily: "var(--font-mono)", fontSize: "0.85rem" }}>
+            ✓ {clearMessage}
+          </div>
+        )}
 
         {verifying && (
           <div style={{ marginTop: "1rem", color: "var(--accent-cobalt)", fontFamily: "var(--font-mono)", fontSize: "0.8rem" }}>

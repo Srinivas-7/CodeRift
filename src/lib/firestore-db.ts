@@ -365,6 +365,15 @@ const userProblemStatusService = {
     return list.length;
   },
 
+  async delete(args: { where: { userId_problemId?: { userId: string; problemId: number }; id?: string } }) {
+    const docId = args.where.userId_problemId
+      ? `${args.where.userId_problemId.userId}_${args.where.userId_problemId.problemId}`
+      : args.where.id;
+    if (!docId) return null;
+    await deleteDoc(doc(firestore, "user_problem_statuses", docId));
+    return { success: true };
+  },
+
   async deleteMany(args?: { where?: { userId?: string } }) {
     const ref = collection(firestore, "user_problem_statuses");
     let q = query(ref);
@@ -628,15 +637,20 @@ const submissionService = {
     return snap.size;
   },
 
-  async deleteMany(args?: { where?: { userId?: string } }) {
+  async deleteMany(args?: { where?: { userId?: string; problemId?: number } }) {
     const ref = collection(firestore, "submissions");
     let q = query(ref);
     if (args?.where?.userId) q = query(ref, where("userId", "==", args.where.userId));
     const snap = await getDocs(q);
+    let count = 0;
     for (const d of snap.docs) {
-      await deleteDoc(d.ref);
+      const data = d.data();
+      if (!args?.where?.problemId || data.problemId === args.where.problemId) {
+        await deleteDoc(d.ref);
+        count++;
+      }
     }
-    return { count: snap.size };
+    return { count };
   },
 };
 

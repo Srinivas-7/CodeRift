@@ -17,6 +17,9 @@ import {
   Layers,
   RotateCcw,
   AlertTriangle,
+  ChevronDown,
+  ChevronsUpDown,
+  FolderOpen,
 } from "lucide-react";
 
 interface ProblemListClientProps {
@@ -34,6 +37,9 @@ export function ProblemListClient({
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
   const [highlightedId, setHighlightedId] = useState<number | null>(null);
 
+  // Set of expanded category names (initially empty so every dropdown starts closed)
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+
   // Restore scroll position only when returning from a specific problem via hash
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -43,6 +49,16 @@ export function ProblemListClient({
       const targetProblemId = hash.replace("#problem-", "");
       const numId = parseInt(targetProblemId, 10);
       setHighlightedId(numId);
+
+      // Find the problem and ensure its category is expanded
+      const targetProb = problems.find((p) => p.id === numId);
+      if (targetProb) {
+        setExpandedCategories((prev) => {
+          const next = new Set(prev);
+          next.add(targetProb.category);
+          return next;
+        });
+      }
 
       const timer = setTimeout(() => {
         const el = document.getElementById(`problem-${targetProblemId}`);
@@ -65,7 +81,7 @@ export function ProblemListClient({
       // Direct tab navigation -> Always start at top
       window.scrollTo({ top: 0, behavior: "instant" });
     }
-  }, []);
+  }, [problems]);
 
   // Reset Progress Modal State
   const [showResetModal, setShowResetModal] = useState(false);
@@ -131,31 +147,52 @@ export function ProblemListClient({
     return map;
   }, [filteredProblems]);
 
+  const toggleCategoryCollapse = (catName: string) => {
+    setExpandedCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(catName)) {
+        next.delete(catName);
+      } else {
+        next.add(catName);
+      }
+      return next;
+    });
+  };
+
+  const expandAllCategories = () => {
+    const allCatNames = Array.from(categorized.keys());
+    setExpandedCategories(new Set(allCatNames));
+  };
+
+  const collapseAllCategories = () => {
+    setExpandedCategories(new Set());
+  };
+
   const totalSolved = solvedSet.size;
   const progressPercent = Math.round((totalSolved / problems.length) * 100) || 0;
 
   return (
     <div className="app-container" style={{ padding: "3rem 1.5rem 6rem" }}>
-      {/* 1. TOP EDITORIAL MASTHEAD */}
+      {/* 1. TOP MASTHEAD */}
       <div
         style={{
           paddingBottom: "2rem",
-          borderBottom: "1px solid var(--border-editorial)",
-          marginBottom: "3rem",
+          borderBottom: "3px solid var(--border-neo-strong)",
+          marginBottom: "2.5rem",
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "1.5rem" }}>
           <div>
-            <span className="editorial-stamp" style={{ borderColor: "var(--accent-cobalt)", color: "#FFF", marginBottom: "0.5rem" }}>
-              CURATED INTERVIEW ARCHIVE
-            </span>
+            <div className="pixel-kicker" style={{ marginBottom: "0.4rem" }}>
+              // CURATED INTERVIEW ARCHIVE · STRIVER SDE 191
+            </div>
             <h1
-              className="font-grotesk"
+              className="font-pixel"
               style={{
                 fontSize: "clamp(2.5rem, 6vw, 4rem)",
                 textTransform: "uppercase",
                 lineHeight: 0.95,
-                letterSpacing: "-0.03em",
+                color: "var(--accent-purple)",
               }}
             >
               191 SDE ROADMAP.
@@ -164,10 +201,10 @@ export function ProblemListClient({
 
           <div style={{ textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.6rem" }}>
             <div>
-              <div className="font-serif" style={{ fontSize: "2.4rem", color: "#FFF", lineHeight: 1 }}>
+              <div className="font-pixel" style={{ fontSize: "2.4rem", color: "var(--text-primary)", lineHeight: 1 }}>
                 {totalSolved} <span style={{ fontSize: "1.2rem", color: "var(--text-muted)" }}>/ 191</span>
               </div>
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem", color: "var(--accent-cobalt)", fontWeight: 700 }}>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem", color: "var(--accent-purple)", fontWeight: 800 }}>
                 {progressPercent}% MASTERED
               </div>
             </div>
@@ -183,24 +220,24 @@ export function ProblemListClient({
                 alignItems: "center",
                 gap: "0.4rem",
                 background: "transparent",
-                border: "1px solid rgba(255, 55, 20, 0.4)",
+                border: "2px solid rgba(255, 71, 87, 0.5)",
                 color: "var(--accent-vermillion)",
                 fontFamily: "var(--font-mono)",
                 fontSize: "0.75rem",
-                fontWeight: 700,
+                fontWeight: 800,
                 padding: "0.35rem 0.75rem",
-                borderRadius: "2px",
+                borderRadius: "6px",
                 cursor: "pointer",
                 textTransform: "uppercase",
                 transition: "all 0.15s ease",
               }}
               onMouseOver={(e) => {
-                e.currentTarget.style.background = "rgba(255, 55, 20, 0.1)";
+                e.currentTarget.style.background = "rgba(255, 71, 87, 0.12)";
                 e.currentTarget.style.borderColor = "var(--accent-vermillion)";
               }}
               onMouseOut={(e) => {
                 e.currentTarget.style.background = "transparent";
-                e.currentTarget.style.borderColor = "rgba(255, 55, 20, 0.4)";
+                e.currentTarget.style.borderColor = "rgba(255, 71, 87, 0.5)";
               }}
             >
               <RotateCcw size={13} /> Reset Progress
@@ -209,7 +246,7 @@ export function ProblemListClient({
         </div>
 
         <div className="progress-bar-bg" style={{ marginTop: "1.5rem" }}>
-          <div className="progress-bar-fill-cobalt" style={{ width: `${progressPercent}%` }} />
+          <div className="progress-bar-fill-purple" style={{ width: `${progressPercent}%` }} />
         </div>
       </div>
 
@@ -219,7 +256,7 @@ export function ProblemListClient({
           display: "flex",
           flexDirection: "column",
           gap: "1.25rem",
-          marginBottom: "3.5rem",
+          marginBottom: "2.5rem",
         }}
       >
         <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
@@ -249,13 +286,14 @@ export function ProblemListClient({
               style={{
                 width: "100%",
                 background: "var(--bg-surface)",
-                border: "1px solid var(--border-editorial)",
-                borderRadius: "2px",
+                border: "2.5px solid var(--border-neo-strong)",
+                borderRadius: "6px",
                 padding: "0.85rem 1rem 0.85rem 2.8rem",
-                color: "#FFFFFF",
+                color: "var(--text-primary)",
                 fontFamily: "var(--font-mono)",
                 fontSize: "0.9rem",
                 outline: "none",
+                boxShadow: "3px 3px 0px var(--shadow-neo)",
               }}
             />
           </div>
@@ -268,14 +306,16 @@ export function ProblemListClient({
                 onClick={() => setSelectedDifficulty(diff)}
                 className="font-grotesk"
                 style={{
-                  background: selectedDifficulty === diff ? "var(--accent-cobalt)" : "var(--bg-surface)",
+                  background: selectedDifficulty === diff ? "var(--accent-purple)" : "var(--bg-surface)",
                   color: selectedDifficulty === diff ? "#FFF" : "var(--text-secondary)",
-                  border: "1px solid var(--border-editorial)",
+                  border: "2.5px solid var(--border-neo-strong)",
+                  boxShadow: "2px 2px 0px var(--shadow-neo)",
                   padding: "0.6rem 1rem",
-                  borderRadius: "2px",
+                  borderRadius: "6px",
                   fontSize: "0.8rem",
-                  fontWeight: 700,
+                  fontWeight: 800,
                   cursor: "pointer",
+                  transition: "all 0.15s ease",
                 }}
               >
                 {diff.toUpperCase()}
@@ -284,179 +324,287 @@ export function ProblemListClient({
           </div>
         </div>
 
-        {/* Categories horizontal bar */}
-        <div
-          style={{
-            display: "flex",
-            gap: "0.5rem",
-            overflowX: "auto",
-            paddingBottom: "0.5rem",
-          }}
-        >
-          <button
-            onClick={() => setSelectedCategory("ALL")}
-            className="font-mono"
+        {/* Categories horizontal bar + Expand/Collapse All Buttons */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.75rem" }}>
+          <div
             style={{
-              whiteSpace: "nowrap",
-              background: selectedCategory === "ALL" ? "var(--text-primary)" : "var(--bg-surface)",
-              color: selectedCategory === "ALL" ? "var(--text-dark)" : "var(--text-muted)",
-              border: "1px solid var(--border-editorial)",
-              padding: "0.4rem 0.8rem",
-              borderRadius: "2px",
-              fontSize: "0.75rem",
-              fontWeight: 700,
-              cursor: "pointer",
+              display: "flex",
+              gap: "0.5rem",
+              overflowX: "auto",
+              paddingBottom: "0.5rem",
+              flex: 1,
             }}
           >
-            ALL TOPICS ({problems.length})
-          </button>
-          {SDE_CATEGORIES.map((cat) => {
-            const isSel = selectedCategory === cat;
-            return (
-              <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className="font-mono"
-                style={{
-                  whiteSpace: "nowrap",
-                  background: isSel ? "var(--text-primary)" : "var(--bg-surface)",
-                  color: isSel ? "var(--text-dark)" : "var(--text-muted)",
-                  border: "1px solid var(--border-editorial)",
-                  padding: "0.4rem 0.8rem",
-                  borderRadius: "2px",
-                  fontSize: "0.75rem",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
-              >
-                {cat.toUpperCase()}
-              </button>
-            );
-          })}
+            <button
+              onClick={() => setSelectedCategory("ALL")}
+              className="font-mono"
+              style={{
+                whiteSpace: "nowrap",
+                background: selectedCategory === "ALL" ? "var(--accent-purple)" : "var(--bg-surface)",
+                color: selectedCategory === "ALL" ? "#FFF" : "var(--text-muted)",
+                border: "2px solid var(--border-neo-strong)",
+                boxShadow: "2px 2px 0px var(--shadow-neo)",
+                padding: "0.4rem 0.85rem",
+                borderRadius: "6px",
+                fontSize: "0.75rem",
+                fontWeight: 800,
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+            >
+              ALL TOPICS ({problems.length})
+            </button>
+            {SDE_CATEGORIES.map((cat) => {
+              const isSel = selectedCategory === cat;
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className="font-mono"
+                  style={{
+                    whiteSpace: "nowrap",
+                    background: isSel ? "var(--accent-purple)" : "var(--bg-surface)",
+                    color: isSel ? "#FFF" : "var(--text-muted)",
+                    border: "2px solid var(--border-neo-strong)",
+                    boxShadow: "2px 2px 0px var(--shadow-neo)",
+                    padding: "0.4rem 0.85rem",
+                    borderRadius: "6px",
+                    fontSize: "0.75rem",
+                    fontWeight: 800,
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  {cat.toUpperCase()}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Quick Accordion Utilities */}
+          <div style={{ display: "flex", gap: "0.4rem" }}>
+            <button
+              onClick={expandAllCategories}
+              className="font-mono"
+              style={{
+                background: "var(--bg-surface)",
+                color: "var(--text-primary)",
+                border: "2px solid var(--border-neo-strong)",
+                boxShadow: "2px 2px 0px var(--shadow-neo)",
+                padding: "0.4rem 0.75rem",
+                borderRadius: "4px",
+                fontSize: "0.75rem",
+                fontWeight: 800,
+                cursor: "pointer",
+              }}
+            >
+              EXPAND ALL
+            </button>
+            <button
+              onClick={collapseAllCategories}
+              className="font-mono"
+              style={{
+                background: "var(--bg-surface)",
+                color: "var(--text-primary)",
+                border: "2px solid var(--border-neo-strong)",
+                boxShadow: "2px 2px 0px var(--shadow-neo)",
+                padding: "0.4rem 0.75rem",
+                borderRadius: "4px",
+                fontSize: "0.75rem",
+                fontWeight: 800,
+                cursor: "pointer",
+              }}
+            >
+              COLLAPSE ALL
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* 3. SCROLLYTELLING CATEGORIES CATALOG */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "3.5rem" }}>
+      {/* 3. CATEGORIES DROPDOWN ACCORDION CATALOG */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
         {Array.from(categorized.entries()).map(([catName, probList]) => {
           const solvedInCat = probList.filter((p) => solvedSet.has(p.id)).length;
+          const isExpanded = expandedCategories.has(catName);
+          const isAllDone = solvedInCat === probList.length && probList.length > 0;
 
           return (
-            <div key={catName}>
-              {/* Category Header */}
-              <div
+            <div
+              key={catName}
+              style={{
+                border: "3px solid var(--border-neo-strong)",
+                borderRadius: "8px",
+                background: "var(--bg-surface)",
+                boxShadow: "5px 5px 0px var(--shadow-neo)",
+                overflow: "hidden",
+                transition: "all 0.15s ease",
+              }}
+            >
+              {/* Clickable Dropdown Header */}
+              <button
+                type="button"
+                onClick={() => toggleCategoryCollapse(catName)}
+                aria-expanded={isExpanded}
                 style={{
+                  width: "100%",
+                  textAlign: "left",
+                  background: isAllDone ? "rgba(0, 245, 155, 0.12)" : "var(--bg-card)",
+                  border: "none",
+                  borderBottom: isExpanded ? "2.5px solid var(--border-neo-strong)" : "none",
+                  padding: "1rem 1.4rem",
                   display: "flex",
+                  alignItems: "center",
                   justifyContent: "space-between",
-                  alignItems: "baseline",
-                  paddingBottom: "0.75rem",
-                  borderBottom: "1px solid var(--border-editorial-strong)",
-                  marginBottom: "1rem",
+                  flexWrap: "wrap",
+                  gap: "0.75rem",
+                  cursor: "pointer",
+                  transition: "background 0.15s ease",
                 }}
               >
-                <h2 className="font-grotesk" style={{ fontSize: "1.4rem", textTransform: "uppercase", color: "#FFF" }}>
-                  {catName}
-                </h2>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem", color: "var(--accent-cobalt)", fontWeight: 700 }}>
-                  {solvedInCat} / {probList.length} COMPLETED
-                </span>
-              </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                  <div
+                    style={{
+                      transform: isExpanded ? "rotate(0deg)" : "rotate(-90deg)",
+                      transition: "transform 0.2s ease",
+                      color: "var(--accent-purple)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <ChevronDown size={22} strokeWidth={3} />
+                  </div>
 
-              {/* Problem Rows */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.45rem" }}>
-                {probList.map((prob) => {
-                  const isDone = solvedSet.has(prob.id);
-                  const isTarget = highlightedId === prob.id;
+                  <h2
+                    className="font-grotesk"
+                    style={{
+                      fontSize: "1.25rem",
+                      textTransform: "uppercase",
+                      color: "var(--text-primary)",
+                      fontWeight: 900,
+                      margin: 0,
+                    }}
+                  >
+                    {catName}
+                  </h2>
+                </div>
 
-                  return (
-                    <div
-                      key={prob.id}
-                      id={`problem-${prob.id}`}
-                      className={`problem-row-item ${isDone ? "is-solved" : ""}`}
-                      style={{
-                        scrollMarginTop: "120px",
-                        border: isTarget ? "1px solid var(--accent-cobalt)" : undefined,
-                        boxShadow: isTarget ? "0 0 20px rgba(33, 72, 255, 0.45)" : undefined,
-                        transition: "all 0.3s ease",
-                      }}
-                    >
-                      {/* Left: Number & Title */}
-                      <div style={{ display: "flex", alignItems: "center", gap: "1rem", flex: 1, minWidth: "260px" }}>
-                        <span
-                          style={{
-                            fontFamily: "var(--font-mono)",
-                            fontSize: "0.85rem",
-                            fontWeight: 800,
-                            color: isDone ? "var(--accent-acid)" : "var(--text-muted)",
-                            width: "48px",
-                          }}
-                        >
-                          #{prob.orderInSheet.toString().padStart(3, "0")}
-                        </span>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                  <span
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "0.8rem",
+                      background: isAllDone ? "var(--accent-acid)" : "var(--accent-yellow)",
+                      color: "#000000",
+                      border: "2px solid #000000",
+                      boxShadow: "2px 2px 0px #000000",
+                      padding: "0.25rem 0.65rem",
+                      borderRadius: "4px",
+                      fontWeight: 900,
+                    }}
+                  >
+                    {solvedInCat} / {probList.length} SOLVED {isAllDone && "✓"}
+                  </span>
+                </div>
+              </button>
 
-                        <div>
-                          <Link
-                            href={`/problems/${prob.id}`}
+              {/* Accordion Body: Problem Rows */}
+              {isExpanded && (
+                <div style={{ padding: "1rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                  {probList.map((prob) => {
+                    const isDone = solvedSet.has(prob.id);
+                    const isTarget = highlightedId === prob.id;
+
+                    return (
+                      <div
+                        key={prob.id}
+                        id={`problem-${prob.id}`}
+                        className={`problem-row-item ${isDone ? "is-solved" : ""}`}
+                        style={{
+                          scrollMarginTop: "120px",
+                          border: isTarget ? "2.5px solid var(--accent-purple)" : undefined,
+                          boxShadow: isTarget ? "0 0 20px var(--accent-purple-glow)" : undefined,
+                          transition: "all 0.2s ease",
+                        }}
+                      >
+                        {/* Left: Number & Title */}
+                        <div style={{ display: "flex", alignItems: "center", gap: "1rem", flex: 1, minWidth: "260px" }}>
+                          <span
                             style={{
-                              color: isDone ? "var(--accent-acid)" : "#FFF",
-                              fontWeight: 600,
-                              fontSize: "1.05rem",
-                              textDecoration: "none",
+                              fontFamily: "var(--font-mono)",
+                              fontSize: "0.85rem",
+                              fontWeight: 900,
+                              color: isDone ? "var(--accent-acid)" : "var(--text-muted)",
+                              width: "48px",
                             }}
                           >
-                            {prob.title}
-                          </Link>
-                        </div>
+                            #{prob.orderInSheet.toString().padStart(3, "0")}
+                          </span>
 
-                        <span
-                          className={
-                            prob.difficulty === "Easy"
-                              ? "badge-diff-easy"
-                              : prob.difficulty === "Hard"
-                              ? "badge-diff-hard"
-                              : "badge-diff-medium"
-                          }
-                        >
-                          {prob.difficulty}
-                        </span>
-                      </div>
-
-                      {/* Right: Actions */}
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                        {prob.leetcodeUrl && (() => {
-                          const platformInfo = getProblemPlatformInfo(prob.leetcodeUrl);
-                          return (
-                            <a
-                              href={prob.leetcodeUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={platformInfo.btnClassName}
+                          <div>
+                            <Link
+                              href={`/problems/${prob.id}`}
                               style={{
-                                fontSize: "0.75rem",
-                                padding: "0.4rem 0.8rem",
+                                color: isDone ? "var(--accent-acid)" : "var(--text-primary)",
+                                fontWeight: 800,
+                                fontSize: "1.05rem",
+                                textDecoration: "none",
                               }}
                             >
-                              {platformInfo.solveButtonText}
-                            </a>
-                          );
-                        })()}
+                              {prob.title}
+                            </Link>
+                          </div>
 
-                        <Link
-                          href={`/problems/${prob.id}`}
-                          className="btn-editorial-outline"
-                          style={{
-                            fontSize: "0.75rem",
-                            padding: "0.4rem 0.8rem",
-                            color: isDone ? "var(--accent-acid)" : "var(--text-primary)",
-                          }}
-                        >
-                          {isDone ? "✓ Cleared" : "Verify →"}
-                        </Link>
+                          <span
+                            className={
+                              prob.difficulty === "Easy"
+                                ? "badge-diff-easy"
+                                : prob.difficulty === "Hard"
+                                ? "badge-diff-hard"
+                                : "badge-diff-medium"
+                            }
+                          >
+                            {prob.difficulty}
+                          </span>
+                        </div>
+
+                        {/* Right: Actions */}
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                          {prob.leetcodeUrl && (() => {
+                            const platformInfo = getProblemPlatformInfo(prob.leetcodeUrl);
+                            return (
+                              <a
+                                href={prob.leetcodeUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={platformInfo.btnClassName}
+                                style={{
+                                  fontSize: "0.75rem",
+                                  padding: "0.45rem 0.85rem",
+                                }}
+                              >
+                                {platformInfo.solveButtonText}
+                              </a>
+                            );
+                          })()}
+
+                          <Link
+                            href={`/problems/${prob.id}`}
+                            className="btn-editorial-outline"
+                            style={{
+                              fontSize: "0.75rem",
+                              padding: "0.45rem 0.85rem",
+                              color: isDone ? "var(--accent-acid)" : "var(--text-primary)",
+                            }}
+                          >
+                            {isDone ? "✓ Cleared" : "Verify →"}
+                          </Link>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           );
         })}
@@ -472,8 +620,8 @@ export function ProblemListClient({
               width: "100%",
               padding: "2.5rem 2rem",
               background: "var(--bg-surface)",
-              border: "2px solid var(--accent-vermillion)",
-              boxShadow: "16px 16px 0px rgba(255, 55, 20, 0.25)",
+              border: "3px solid var(--accent-vermillion)",
+              boxShadow: "8px 8px 0px var(--shadow-neo)",
               textAlign: "left",
             }}
             onClick={(e) => e.stopPropagation()}
@@ -502,12 +650,12 @@ export function ProblemListClient({
                 style={{
                   width: "100%",
                   background: "var(--bg-card)",
-                  border: "1px solid var(--border-editorial-strong)",
+                  border: "2px solid var(--border-neo-strong)",
                   padding: "0.75rem 1rem",
-                  color: "#FFF",
+                  color: "var(--text-primary)",
                   fontFamily: "var(--font-mono)",
                   fontSize: "0.9rem",
-                  borderRadius: "2px",
+                  borderRadius: "6px",
                   outline: "none",
                 }}
               />

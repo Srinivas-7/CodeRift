@@ -10,6 +10,10 @@ import {
   Target,
   Flame,
   Layers,
+  Terminal,
+  Zap,
+  Cpu,
+  Trophy,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -18,17 +22,16 @@ export default async function LandingPage() {
   const user = await getCurrentUser();
 
   return (
-    <div style={{ overflow: "hidden", minHeight: "100vh" }}>
-      {/* 1. HERO POSTER COMPOSITION */}
+    <div style={{ position: "relative", minHeight: "100vh", paddingBottom: "6rem" }}>
+      {/* 1. HERO NEO-BRUTALIST SECTION */}
       <section
         style={{
           position: "relative",
-          padding: "4.5rem 0 6rem",
-          borderBottom: "1px solid var(--border-editorial)",
+          padding: "3.5rem 0 4.5rem",
         }}
       >
         <div className="app-container">
-          {/* Masthead Metadata Strip */}
+          {/* Masthead Tag Strip */}
           <div
             style={{
               display: "flex",
@@ -36,89 +39,110 @@ export default async function LandingPage() {
               alignItems: "center",
               flexWrap: "wrap",
               gap: "1rem",
-              marginBottom: "3rem",
-              paddingBottom: "1rem",
-              borderBottom: "1px solid var(--border-editorial)",
+              marginBottom: "2rem",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-              <span className="editorial-stamp" style={{ borderColor: "var(--accent-cobalt)", color: "#FFF", background: "rgba(33, 72, 255, 0.15)" }}>
-                EDITORIAL DSA SYSTEM
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
+              <span className="editorial-stamp">
+                <Zap size={14} fill="#000000" />
+                GAMIFIED DSA ARENA
               </span>
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem", color: "var(--text-muted)" }}>
-                STRIVER SDE SHEET (EXACT 191)
+              <span
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "0.8rem",
+                  color: "var(--text-primary)",
+                  fontWeight: 800,
+                  background: "var(--bg-surface)",
+                  padding: "0.35rem 0.75rem",
+                  border: "2px solid var(--border-neo-strong)",
+                  borderRadius: "4px",
+                  boxShadow: "2px 2px 0px var(--shadow-neo)",
+                }}
+              >
+                191 SDE SHEET ROADMAP
               </span>
             </div>
 
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem", color: "var(--text-muted)" }}>
-              HABIT SPECIFICATION: <strong style={{ color: "var(--accent-vermillion)" }}>03 PROBLEMS / 24H</strong>
+            <div
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "0.8rem",
+                color: "var(--text-primary)",
+                fontWeight: 800,
+                background: "var(--bg-surface)",
+                padding: "0.35rem 0.75rem",
+                border: "2px solid var(--border-neo-strong)",
+                borderRadius: "4px",
+                boxShadow: "2px 2px 0px var(--shadow-neo)",
+              }}
+            >
+              DAILY CADENCE: <strong style={{ color: "var(--accent-vermillion)" }}>03 MISSIONS / 24H</strong>
             </div>
           </div>
 
-          {/* Editorial Dramatic Poster Typography */}
-          <div style={{ position: "relative", marginBottom: "4rem" }}>
-            <div
-              className="display-huge"
-              style={{
-                color: "var(--text-primary)",
-                userSelect: "none",
-                opacity: 0.95,
-              }}
-            >
-              191
+          {/* AUTHENTIC NEO-BRUTALIST HERO BANNER (Clean, Raw, High-Impact - No Fake OS Chrome) */}
+          <div className="neo-hero-card" style={{ marginBottom: "3rem" }}>
+            {/* Kicker */}
+            <div style={{ marginBottom: "1.25rem" }}>
+              <div className="pixel-kicker">
+                // CODERIFT DISCIPLINE · 3 QUESTIONS EVERY 24 HOURS
+              </div>
             </div>
 
+            {/* Pixel Headline */}
+            <div style={{ marginBottom: "2rem" }}>
+              <h1
+                className="display-pixel"
+                style={{
+                  marginBottom: "0.4rem",
+                }}
+              >
+                191 PROBLEMS.
+              </h1>
+              <div
+                className="font-pixel"
+                style={{
+                  fontSize: "clamp(1.8rem, 4.8vw, 3.8rem)",
+                  fontWeight: 700,
+                  color: "var(--text-primary)",
+                  letterSpacing: "0.02em",
+                  lineHeight: 1.1,
+                }}
+              >
+                THREE EVERY SINGLE DAY.
+              </div>
+            </div>
+
+            {/* Grid Split: Intro & Hardware Card */}
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-                alignItems: "baseline",
-                gap: "2rem",
-                marginTop: "-1rem",
+                gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))",
+                gap: "2.5rem",
+                alignItems: "center",
+                borderTop: "3px solid var(--border-neo-strong)",
+                paddingTop: "2rem",
               }}
             >
               <div>
-                <h1
-                  className="font-grotesk"
-                  style={{
-                    fontSize: "clamp(2.5rem, 7vw, 5.5rem)",
-                    fontWeight: 900,
-                    lineHeight: 0.9,
-                    letterSpacing: "-0.04em",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  PROBLEMS.
-                </h1>
-                <div
-                  className="font-serif serif-italic"
-                  style={{
-                    fontSize: "clamp(2rem, 5vw, 4rem)",
-                    color: "var(--accent-cobalt)",
-                    lineHeight: 1,
-                  }}
-                >
-                  Three Every Single Day.
-                </div>
-              </div>
-
-              <div style={{ maxWidth: "440px" }}>
                 <p
                   style={{
                     fontSize: "1.15rem",
                     color: "var(--text-secondary)",
-                    lineHeight: 1.6,
-                    marginBottom: "1.5rem",
+                    lineHeight: 1.65,
+                    marginBottom: "1.75rem",
+                    fontWeight: 500,
                   }}
                 >
-                  Stop staring at an overwhelming 191-problem mountain. Take three today. Solve on LeetCode. Beat your close friends.
+                  Stop staring at an intimidating 191-problem mountain. We break it down into 3 manageable challenges every 24 hours. Solve authentically on LeetCode & GFG, maintain daily streaks, and conquer private squad leaderboards with your friends.
                 </p>
 
                 <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
                   <Link
                     href={user ? "/dashboard" : "/login"}
                     className="btn-editorial-primary"
-                    style={{ fontSize: "1rem", padding: "1rem 2rem" }}
+                    style={{ fontSize: "1rem", padding: "0.95rem 2rem" }}
                   >
                     GET IN TO ARENA →
                   </Link>
@@ -126,10 +150,99 @@ export default async function LandingPage() {
                   <Link
                     href={user ? "/groups" : "/login"}
                     className="btn-editorial-outline"
-                    style={{ fontSize: "0.95rem", padding: "1rem 1.8rem" }}
+                    style={{ fontSize: "0.95rem", padding: "0.95rem 1.8rem" }}
                   >
                     JOIN A SQUAD
                   </Link>
+                </div>
+              </div>
+
+              {/* High-Voltage Neo-Brutalist Telemetry Box */}
+              <div
+                style={{
+                  background: "var(--bg-card)",
+                  border: "3px solid var(--border-neo-strong)",
+                  borderRadius: "6px",
+                  padding: "1.75rem",
+                  boxShadow: "5px 5px 0px var(--shadow-neo)",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: "1.25rem",
+                    borderBottom: "2px solid var(--border-neo-strong)",
+                    paddingBottom: "0.75rem",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <Cpu size={18} color="var(--accent-purple)" />
+                    <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem", fontWeight: 800, letterSpacing: "0.08em", color: "var(--text-primary)" }}>
+                      TELEMETRY ENGINE
+                    </span>
+                  </div>
+                  <span className="badge-diff-easy">
+                    ONLINE
+                  </span>
+                </div>
+
+                {/* Processing Unit Screen */}
+                <div
+                  style={{
+                    background: "var(--bg-paper)",
+                    border: "2px solid var(--border-neo-strong)",
+                    borderRadius: "4px",
+                    padding: "1rem",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "0.85rem",
+                    marginBottom: "1.25rem",
+                    boxShadow: "2px 2px 0px var(--shadow-neo)",
+                  }}
+                >
+                  <div style={{ color: "var(--accent-acid)", fontWeight: 800, marginBottom: "0.35rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <Check size={16} /> BATCH STATUS: 3/3 QUESTIONS READY
+                  </div>
+                  <div style={{ color: "var(--text-muted)", fontSize: "0.75rem" }}>
+                    GRAPHQL SYNC: LEETCODE + GFG VERIFIED
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", textAlign: "center" }}>
+                  <div
+                    style={{
+                      padding: "0.85rem",
+                      background: "var(--bg-surface)",
+                      border: "2px solid var(--border-neo-strong)",
+                      borderRadius: "4px",
+                      boxShadow: "3px 3px 0px var(--shadow-neo)",
+                    }}
+                  >
+                    <div className="font-pixel" style={{ fontSize: "1.8rem", color: "var(--accent-purple)", fontWeight: 700 }}>
+                      191
+                    </div>
+                    <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "var(--text-muted)", fontWeight: 800 }}>
+                      CURATED PROBLEMS
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      padding: "0.85rem",
+                      background: "var(--bg-surface)",
+                      border: "2px solid var(--border-neo-strong)",
+                      borderRadius: "4px",
+                      boxShadow: "3px 3px 0px var(--shadow-neo)",
+                    }}
+                  >
+                    <div className="font-pixel" style={{ fontSize: "1.8rem", color: "var(--accent-vermillion)", fontWeight: 700 }}>
+                      24H
+                    </div>
+                    <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "var(--text-muted)", fontWeight: 800 }}>
+                      RESET ROTATION
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -147,25 +260,21 @@ export default async function LandingPage() {
             <div
               className="editorial-card"
               style={{
-                padding: "2.75rem 2.25rem",
-                background: "var(--bg-surface)",
-                border: "1px solid var(--border-editorial)",
-                borderRadius: "6px",
+                padding: "2.25rem 2rem",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
-                transition: "all 0.2s ease",
               }}
             >
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
-                  <Flame size={16} style={{ color: "var(--accent-cobalt)" }} />
+                  <Flame size={20} style={{ color: "var(--accent-purple)" }} />
                   <span
                     style={{
                       fontFamily: "var(--font-mono)",
-                      fontSize: "0.75rem",
-                      color: "var(--accent-cobalt)",
-                      fontWeight: 800,
+                      fontSize: "0.8rem",
+                      color: "var(--accent-purple)",
+                      fontWeight: 900,
                       letterSpacing: "0.1em",
                       textTransform: "uppercase",
                     }}
@@ -178,8 +287,8 @@ export default async function LandingPage() {
                   className="font-grotesk"
                   style={{
                     fontSize: "1.65rem",
-                    fontWeight: 700,
-                    color: "#FFFFFF",
+                    fontWeight: 900,
+                    color: "var(--text-primary)",
                     marginBottom: "0.75rem",
                     letterSpacing: "-0.02em",
                     lineHeight: 1.15,
@@ -189,7 +298,7 @@ export default async function LandingPage() {
                 </h3>
 
                 <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", lineHeight: 1.65 }}>
-                  191 problems is overwhelming. 3 problems is manageable every single day. By focusing strictly on today's batch, you eliminate burnout and build compound consistency.
+                  191 problems is intimidating. 3 problems is achievable every single day. By focusing strictly on today's batch, you eliminate burnout and build compound consistency.
                 </p>
               </div>
             </div>
@@ -198,25 +307,21 @@ export default async function LandingPage() {
             <div
               className="editorial-card"
               style={{
-                padding: "2.75rem 2.25rem",
-                background: "var(--bg-surface)",
-                border: "1px solid var(--border-editorial)",
-                borderRadius: "6px",
+                padding: "2.25rem 2rem",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
-                transition: "all 0.2s ease",
               }}
             >
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
-                  <ExternalLink size={16} style={{ color: "var(--accent-vermillion)" }} />
+                  <ExternalLink size={20} style={{ color: "var(--accent-vermillion)" }} />
                   <span
                     style={{
                       fontFamily: "var(--font-mono)",
-                      fontSize: "0.75rem",
+                      fontSize: "0.8rem",
                       color: "var(--accent-vermillion)",
-                      fontWeight: 800,
+                      fontWeight: 900,
                       letterSpacing: "0.1em",
                       textTransform: "uppercase",
                     }}
@@ -229,18 +334,18 @@ export default async function LandingPage() {
                   className="font-grotesk"
                   style={{
                     fontSize: "1.65rem",
-                    fontWeight: 700,
-                    color: "#FFFFFF",
+                    fontWeight: 900,
+                    color: "var(--text-primary)",
                     marginBottom: "0.75rem",
                     letterSpacing: "-0.02em",
                     lineHeight: 1.15,
                   }}
                 >
-                  Solve on LeetCode.
+                  Solve on LeetCode & GFG.
                 </h3>
 
                 <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", lineHeight: 1.65 }}>
-                  No artificial in-browser code editor toys. Open the authentic LeetCode problem, submit your code, and click Verify. Our backend verifies your accepted submission via GraphQL.
+                  No artificial in-browser code editor toys. Open the authentic LeetCode problem, submit your solution, and verify seamlessly. Our backend verifies your accepted submission in real-time.
                 </p>
               </div>
             </div>
@@ -249,25 +354,21 @@ export default async function LandingPage() {
             <div
               className="editorial-card"
               style={{
-                padding: "2.75rem 2.25rem",
-                background: "var(--bg-surface)",
-                border: "1px solid var(--border-editorial)",
-                borderRadius: "6px",
+                padding: "2.25rem 2rem",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
-                transition: "all 0.2s ease",
               }}
             >
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
-                  <Users size={16} style={{ color: "var(--accent-acid)" }} />
+                  <Users size={20} style={{ color: "var(--accent-acid)" }} />
                   <span
                     style={{
                       fontFamily: "var(--font-mono)",
-                      fontSize: "0.75rem",
+                      fontSize: "0.8rem",
                       color: "var(--accent-acid)",
-                      fontWeight: 800,
+                      fontWeight: 900,
                       letterSpacing: "0.1em",
                       textTransform: "uppercase",
                     }}
@@ -280,8 +381,8 @@ export default async function LandingPage() {
                   className="font-grotesk"
                   style={{
                     fontSize: "1.65rem",
-                    fontWeight: 700,
-                    color: "#FFFFFF",
+                    fontWeight: 900,
+                    color: "var(--text-primary)",
                     marginBottom: "0.75rem",
                     letterSpacing: "-0.02em",
                     lineHeight: 1.15,
@@ -291,7 +392,7 @@ export default async function LandingPage() {
                 </h3>
 
                 <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", lineHeight: 1.65 }}>
-                  Compete strictly with friends you invite. Track who solved today's 3, battle for the weekly #1 crown, and receive live notifications when friends pass your rank.
+                  Compete strictly with friends you invite. Track who solved today's 3, battle for the weekly #1 crown, and receive live updates when squad members pass your rank.
                 </p>
               </div>
             </div>
@@ -300,27 +401,27 @@ export default async function LandingPage() {
       </section>
 
       {/* 2. THE 191 STRIVER SHEET DISCIPLINE SECTION */}
-      <section style={{ padding: "6rem 0", borderBottom: "1px solid var(--border-editorial)" }}>
+      <section style={{ padding: "3rem 0 4rem" }}>
         <div className="app-container">
           <div
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
-              gap: "4rem",
+              gap: "3rem",
               alignItems: "center",
             }}
           >
             <div>
-              <span className="editorial-stamp" style={{ borderColor: "var(--border-editorial)", color: "var(--text-secondary)", marginBottom: "1rem" }}>
+              <span className="editorial-stamp" style={{ marginBottom: "1.25rem" }}>
                 CURATED ARCHIVE SPECIFICATION
               </span>
 
               <h2
-                className="font-grotesk"
+                className="font-pixel"
                 style={{
-                  fontSize: "clamp(2rem, 5vw, 3.5rem)",
+                  fontSize: "clamp(2rem, 4.5vw, 3.2rem)",
                   lineHeight: 1.05,
-                  textTransform: "uppercase",
+                  color: "var(--text-primary)",
                   marginBottom: "1.5rem",
                 }}
               >
@@ -328,49 +429,48 @@ export default async function LandingPage() {
               </h2>
 
               <p style={{ color: "var(--text-secondary)", fontSize: "1.05rem", lineHeight: 1.7, marginBottom: "2rem" }}>
-                No randomly generated questions. No AI filler problems. Exactly the 191 high-impact interview problems across Arrays, Linked Lists, Trees, Dynamic Programming, and Graphs.
+                No randomly generated filler. Exactly the 191 battle-tested interview problems across Arrays, Linked Lists, Trees, Dynamic Programming, and Graphs.
               </p>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", fontFamily: "var(--font-mono)", fontSize: "0.9rem" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", color: "var(--text-primary)" }}>
-                  <Check size={16} style={{ color: "var(--accent-acid)" }} /> 27 Core SDE Sheet Interview Categories
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem", fontFamily: "var(--font-mono)", fontSize: "0.9rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", color: "var(--text-primary)", fontWeight: 700 }}>
+                  <Check size={18} style={{ color: "var(--accent-acid)" }} /> 27 Core SDE Sheet Interview Categories
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", color: "var(--text-primary)" }}>
-                  <Check size={16} style={{ color: "var(--accent-acid)" }} /> Streak Shields Protection against Burnout
+                <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", color: "var(--text-primary)", fontWeight: 700 }}>
+                  <Check size={18} style={{ color: "var(--accent-acid)" }} /> Streak Shields Protection against Burnout
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", color: "var(--text-primary)" }}>
-                  <Check size={16} style={{ color: "var(--accent-acid)" }} /> Automatic Telemetry & Server-Verified XP
+                <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", color: "var(--text-primary)", fontWeight: 700 }}>
+                  <Check size={18} style={{ color: "var(--accent-acid)" }} /> Automatic Telemetry & Server-Verified XP
                 </div>
               </div>
             </div>
 
-            {/* Visual Editorial Typography Box */}
+            {/* Visual Neo-Brutalist Telemetry Card */}
             <div
+              className="neo-card"
               style={{
                 background: "var(--bg-surface)",
-                border: "2px solid var(--text-primary)",
-                padding: "3rem 2.5rem",
-                borderRadius: "4px",
-                boxShadow: "16px 16px 0px var(--accent-cobalt)",
+                padding: "2.75rem 2.25rem",
+                boxShadow: "8px 8px 0px var(--shadow-neo)",
               }}
             >
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "1rem" }}>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "1rem", fontWeight: 800 }}>
                 ARENA HABIT TELEMETRY // 24H CYCLE
               </div>
 
               <div
-                className="font-serif"
+                className="font-pixel"
                 style={{
                   fontSize: "4.5rem",
                   lineHeight: 0.9,
-                  color: "#FFFFFF",
+                  color: "var(--accent-purple)",
                   marginBottom: "0.5rem",
                 }}
               >
                 03 / 03
               </div>
 
-              <div className="font-grotesk" style={{ fontSize: "1.4rem", fontWeight: 800, textTransform: "uppercase", color: "var(--accent-acid)", marginBottom: "1.5rem" }}>
+              <div className="font-grotesk" style={{ fontSize: "1.3rem", fontWeight: 900, textTransform: "uppercase", color: "var(--accent-acid)", marginBottom: "1.5rem" }}>
                 TODAY'S MISSION COMPLETE.
               </div>
 
@@ -378,7 +478,7 @@ export default async function LandingPage() {
 
               <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--font-mono)", fontSize: "0.85rem" }}>
                 <span style={{ color: "var(--text-muted)" }}>STREAK ENGINE:</span>
-                <span style={{ color: "var(--accent-vermillion)", fontWeight: 700 }}>ACTIVE • SHIELDED</span>
+                <span style={{ color: "var(--accent-vermillion)", fontWeight: 900 }}>ACTIVE • SHIELDED</span>
               </div>
             </div>
           </div>
@@ -386,14 +486,14 @@ export default async function LandingPage() {
       </section>
 
       {/* 3. FINAL CALL TO ACTION */}
-      <section style={{ padding: "6rem 0 8rem", textAlign: "center" }}>
+      <section style={{ padding: "4rem 0 5rem", textAlign: "center" }}>
         <div className="app-container" style={{ maxWidth: "780px" }}>
           <h2
-            className="font-grotesk"
+            className="font-pixel"
             style={{
-              fontSize: "clamp(2.4rem, 6vw, 4rem)",
-              lineHeight: 1,
-              textTransform: "uppercase",
+              fontSize: "clamp(2.4rem, 5vw, 3.8rem)",
+              lineHeight: 1.05,
+              color: "var(--accent-purple)",
               marginBottom: "1.25rem",
             }}
           >
@@ -406,7 +506,7 @@ export default async function LandingPage() {
           <Link
             href={user ? "/dashboard" : "/login"}
             className="btn-editorial-primary"
-            style={{ fontSize: "1.1rem", padding: "1.1rem 2.8rem" }}
+            style={{ fontSize: "1.05rem", padding: "1.1rem 2.8rem" }}
           >
             GET IN TO ARENA →
           </Link>

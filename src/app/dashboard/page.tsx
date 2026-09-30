@@ -152,7 +152,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="app-container" style={{ padding: "3rem 1.5rem 6rem" }}>
-      {/* 1. TOP EDITORIAL MASTHEAD STRIP */}
+      {/* 1. TOP MASTHEAD STRIP */}
       <div
         style={{
           display: "flex",
@@ -161,67 +161,60 @@ export default async function DashboardPage() {
           flexWrap: "wrap",
           gap: "1.5rem",
           paddingBottom: "1.5rem",
-          borderBottom: "1px solid var(--border-editorial)",
-          marginBottom: "3rem",
+          borderBottom: "2px solid var(--border-editorial)",
+          marginBottom: "2.5rem",
         }}
       >
         <div>
-          <div
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "0.8rem",
-              color: "var(--accent-cobalt)",
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              marginBottom: "0.3rem",
-            }}
-          >
-            DAILY ISSUE // 24-HOUR RUN
+          <div className="pixel-kicker" style={{ marginBottom: "0.4rem" }}>
+            // DAILY ISSUE · 24-HOUR ARENA RUN
           </div>
           <h1
-            className="font-grotesk"
+            className="font-pixel"
             style={{
               fontSize: "clamp(2rem, 5vw, 3.2rem)",
               textTransform: "uppercase",
               lineHeight: 1,
-              letterSpacing: "-0.03em",
+              color: "var(--text-primary)",
             }}
           >
             WELCOME, {user.username}.
           </h1>
         </div>
 
-        {/* Minimalist Stat Stamps */}
+        {/* Minimalist Neo-Brutalist Stat Stamps */}
         <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
           <div
             style={{
-              border: "1px solid var(--border-editorial)",
+              border: "2px solid var(--border-neo-strong)",
               padding: "0.65rem 1.25rem",
-              borderRadius: "2px",
+              borderRadius: "6px",
               background: "var(--bg-surface)",
+              boxShadow: "3px 3px 0px var(--shadow-neo)",
             }}
           >
             <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "var(--text-muted)", textTransform: "uppercase" }}>
               Current Streak
             </div>
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: "1.4rem", fontWeight: 800, color: "var(--accent-vermillion)" }}>
+            <div style={{ fontFamily: "var(--font-pixel)", fontSize: "1.3rem", fontWeight: 700, color: "var(--accent-vermillion)" }}>
               🔥 {user.currentStreak} DAYS
             </div>
           </div>
 
           <div
             style={{
-              border: "1px solid var(--border-editorial)",
+              border: "2px solid var(--border-neo-strong)",
               padding: "0.65rem 1.25rem",
-              borderRadius: "2px",
+              borderRadius: "6px",
               background: "var(--bg-surface)",
+              boxShadow: "3px 3px 0px var(--shadow-neo)",
             }}
           >
             <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "var(--text-muted)", textTransform: "uppercase" }}>
               Streak Shields
             </div>
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: "1.4rem", fontWeight: 800, color: "var(--accent-acid)" }}>
-              {user.streakShields} / 3
+            <div style={{ fontFamily: "var(--font-pixel)", fontSize: "1.3rem", fontWeight: 700, color: "var(--accent-acid)" }}>
+              🛡️ {user.streakShields} / 3
             </div>
           </div>
         </div>
@@ -232,19 +225,20 @@ export default async function DashboardPage() {
         <div
           style={{
             background: "var(--bg-surface)",
-            border: "1px solid var(--accent-vermillion)",
-            borderRadius: "4px",
+            border: "2px solid var(--accent-vermillion)",
+            borderRadius: "8px",
+            boxShadow: "4px 4px 0px var(--shadow-neo)",
             padding: "1.25rem 1.75rem",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
             flexWrap: "wrap",
             gap: "1rem",
-            marginBottom: "3rem",
+            marginBottom: "2.5rem",
           }}
         >
           <div>
-            <div style={{ fontFamily: "var(--font-grotesk)", fontWeight: 800, color: "#FFF", fontSize: "1.1rem" }}>
+            <div style={{ fontFamily: "var(--font-grotesk)", fontWeight: 800, color: "var(--text-primary)", fontSize: "1.1rem" }}>
               {validOvertakenNotification.message}
             </div>
             <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginTop: "0.2rem" }}>
@@ -261,8 +255,8 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* 3. TODAY'S 3 MISSION (DOMINANT EDITORIAL SECTION) */}
-      <div style={{ marginBottom: "4rem" }}>
+      {/* 3. TODAY'S 3 MISSION (DOMINANT SECTION) */}
+      <div style={{ marginBottom: "3.5rem" }}>
         {/* Section Header */}
         <div
           style={{
@@ -271,20 +265,20 @@ export default async function DashboardPage() {
             alignItems: "flex-end",
             flexWrap: "wrap",
             gap: "1rem",
-            marginBottom: "2rem",
+            marginBottom: "1.5rem",
           }}
         >
           <div>
-            <span className="editorial-stamp" style={{ borderColor: "var(--accent-cobalt)", color: "#FFF", marginBottom: "0.5rem" }}>
+            <span className="editorial-stamp" style={{ marginBottom: "0.6rem" }}>
               {dailyData.phase ? `PHASE ${dailyData.phase} // DAY ${(dailyData.phaseDay || 1).toString().padStart(2, "0")} OF 32` : `SDE SHEET DAY ${(dailyData.dayNumber || 1).toString().padStart(2, "0")}`} // EXACT SEQUENCE
             </span>
             <h2
-              className="font-grotesk"
+              className="font-pixel"
               style={{
-                fontSize: "clamp(2rem, 5vw, 3rem)",
+                fontSize: "clamp(2rem, 5vw, 2.8rem)",
                 textTransform: "uppercase",
-                letterSpacing: "-0.03em",
                 lineHeight: 1,
+                color: "var(--accent-purple)",
               }}
             >
               TODAY'S THREE.
@@ -293,10 +287,10 @@ export default async function DashboardPage() {
 
           <div
             style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "1.2rem",
-              fontWeight: 800,
-              color: dailyData.isComplete ? "var(--accent-acid)" : "var(--accent-cobalt)",
+              fontFamily: "var(--font-pixel)",
+              fontSize: "1.3rem",
+              fontWeight: 700,
+              color: dailyData.isComplete ? "var(--accent-acid)" : "var(--accent-purple)",
             }}
           >
             {dailyData.solvedCount} / {dailyData.totalCount ? dailyData.totalCount.toString().padStart(2, "0") : "03"} COMPLETED {dailyData.isComplete && "🎉"}
@@ -327,7 +321,6 @@ export default async function DashboardPage() {
                 gridColumn: "1 / -1",
                 padding: "2.5rem",
                 textAlign: "center",
-                border: "1px solid var(--border-editorial)",
               }}
             >
               <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.9rem", color: "var(--accent-acid)", fontWeight: 800, marginBottom: "0.5rem" }}>
@@ -351,11 +344,9 @@ export default async function DashboardPage() {
                 key={prob.id}
                 className="editorial-card"
                 style={{
-                  padding: "2rem",
-                  background: isDone ? "rgba(16, 185, 129, 0.04)" : "var(--bg-surface)",
-                  border: isDone
-                    ? "1px solid rgba(16, 185, 129, 0.4)"
-                    : "1px solid var(--border-editorial)",
+                  padding: "1.75rem",
+                  background: isDone ? "rgba(16, 185, 129, 0.08)" : "var(--bg-surface)",
+                  borderColor: isDone ? "rgba(16, 185, 129, 0.6)" : "var(--border-neo-strong)",
                   display: "flex",
                   flexDirection: "column",
                   justifyContent: "space-between",
@@ -373,7 +364,7 @@ export default async function DashboardPage() {
                     <span
                       style={{
                         fontFamily: "var(--font-mono)",
-                        fontSize: "0.85rem",
+                        fontSize: "0.8rem",
                         color: "var(--text-muted)",
                         fontWeight: 800,
                       }}
@@ -394,13 +385,13 @@ export default async function DashboardPage() {
                   </div>
 
                   <h3
-                    className="font-serif"
+                    className="font-grotesk"
                     style={{
-                      fontSize: "1.75rem",
-                      fontWeight: 400,
-                      color: isDone ? "var(--accent-acid)" : "#FFFFFF",
+                      fontSize: "1.45rem",
+                      fontWeight: 800,
+                      color: isDone ? "var(--accent-acid)" : "var(--text-primary)",
                       marginBottom: "0.4rem",
-                      lineHeight: 1.2,
+                      lineHeight: 1.25,
                     }}
                   >
                     {prob.title}
@@ -411,7 +402,7 @@ export default async function DashboardPage() {
                       fontFamily: "var(--font-mono)",
                       fontSize: "0.8rem",
                       color: "var(--text-muted)",
-                      marginBottom: "2rem",
+                      marginBottom: "1.75rem",
                     }}
                   >
                     CATEGORY: <strong style={{ color: "var(--text-secondary)" }}>{prob.category}</strong>
@@ -471,7 +462,7 @@ export default async function DashboardPage() {
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
-          gap: "2rem",
+          gap: "1.75rem",
         }}
       >
         {/* Col 1: Squad Standings */}
@@ -484,17 +475,17 @@ export default async function DashboardPage() {
               marginBottom: "1.5rem",
             }}
           >
-            <h3 className="font-grotesk" style={{ fontSize: "1.2rem", textTransform: "uppercase", color: "#FFF" }}>
+            <h3 className="font-grotesk" style={{ fontSize: "1.2rem", textTransform: "uppercase", color: "var(--text-primary)", fontWeight: 800 }}>
               {primaryMembership ? primaryMembership.group.name : "SQUAD STANDINGS"}
             </h3>
             <Link
               href="/groups"
               style={{
                 fontSize: "0.75rem",
-                color: "var(--accent-cobalt)",
+                color: "var(--accent-purple)",
                 textDecoration: "none",
                 fontFamily: "var(--font-mono)",
-                fontWeight: 700,
+                fontWeight: 800,
               }}
             >
               ALL SQUADS →
@@ -505,29 +496,30 @@ export default async function DashboardPage() {
             <div>
               <div
                 style={{
-                  border: "1px solid var(--border-editorial)",
+                  border: "2px solid var(--border-neo-strong)",
                   background: "var(--bg-card)",
                   padding: "1rem",
-                  borderRadius: "2px",
+                  borderRadius: "6px",
                   marginBottom: "1.25rem",
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
+                  boxShadow: "2px 2px 0px var(--shadow-neo)",
                 }}
               >
                 <div>
                   <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "var(--text-muted)", textTransform: "uppercase" }}>
                     Your Standing
                   </div>
-                  <div style={{ fontFamily: "var(--font-mono)", fontSize: "1.8rem", fontWeight: 900, color: userRankInGroup === 1 ? "var(--accent-amber)" : "#FFF" }}>
+                  <div style={{ fontFamily: "var(--font-mono)", fontSize: "1.8rem", fontWeight: 900, color: userRankInGroup === 1 ? "var(--accent-amber)" : "var(--text-primary)" }}>
                     #{userRankInGroup}{" "}
                     <span style={{ fontSize: "0.85rem", color: "var(--text-muted)", fontWeight: 500 }}>
                       of {primaryMembership.group.members.length} members
                     </span>
                   </div>
                 </div>
-                <div style={{ fontFamily: "var(--font-mono)", fontWeight: 800, fontSize: "1.2rem", color: "var(--text-primary)" }}>
-                  {((user.score ?? user.xp) || 0).toLocaleString()} SCORE
+                <div style={{ fontFamily: "var(--font-pixel)", fontWeight: 700, fontSize: "1.2rem", color: "var(--accent-purple)" }}>
+                  {((user.score ?? user.xp) || 0).toLocaleString()} PTS
                 </div>
               </div>
 
@@ -540,8 +532,9 @@ export default async function DashboardPage() {
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "space-between",
-                      padding: "0.5rem 0.75rem",
-                      background: m.userId === user.id ? "rgba(33, 72, 255, 0.15)" : "transparent",
+                      padding: "0.6rem 0.75rem",
+                      background: m.userId === user.id ? "var(--accent-purple-subtle)" : "transparent",
+                      borderRadius: "4px",
                       borderBottom: "1px solid var(--border-editorial)",
                       fontSize: "0.85rem",
                     }}
@@ -550,12 +543,12 @@ export default async function DashboardPage() {
                       <span style={{ fontFamily: "var(--font-mono)", fontWeight: 800, color: "var(--text-muted)" }}>
                         0{idx + 1}
                       </span>
-                      <span style={{ fontWeight: 700, color: m.userId === user.id ? "#FFF" : "var(--text-secondary)" }}>
+                      <span style={{ fontWeight: 700, color: m.userId === user.id ? "var(--accent-purple)" : "var(--text-primary)" }}>
                         {m.user.username} {m.userId === user.id && "(You)"}
                       </span>
                     </div>
-                    <span style={{ fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>
-                      {((m.user?.score ?? m.user?.xp) || 0).toLocaleString()} SCORE
+                    <span style={{ fontFamily: "var(--font-mono)", color: "var(--text-muted)", fontWeight: 700 }}>
+                      {((m.user?.score ?? m.user?.xp) || 0).toLocaleString()} PTS
                     </span>
                   </div>
                 ))}
@@ -563,7 +556,7 @@ export default async function DashboardPage() {
             </div>
           ) : (
             <div style={{ textAlign: "center", padding: "2rem 1rem" }}>
-              <h4 className="font-grotesk" style={{ fontSize: "1.2rem", textTransform: "uppercase", color: "#FFF", marginBottom: "0.4rem" }}>
+              <h4 className="font-grotesk" style={{ fontSize: "1.2rem", textTransform: "uppercase", color: "var(--text-primary)", fontWeight: 800, marginBottom: "0.4rem" }}>
                 YOU'RE SOLO.
               </h4>
               <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginBottom: "1.25rem" }}>
@@ -586,7 +579,7 @@ export default async function DashboardPage() {
               marginBottom: "1.5rem",
             }}
           >
-            <h3 className="font-grotesk" style={{ fontSize: "1.2rem", textTransform: "uppercase", color: "#FFF" }}>
+            <h3 className="font-grotesk" style={{ fontSize: "1.2rem", textTransform: "uppercase", color: "var(--text-primary)", fontWeight: 800 }}>
               YOU VS YESTERDAY
             </h3>
             <span className={isImproved ? "badge-rank-up" : "badge-rank-same"}>
@@ -604,17 +597,18 @@ export default async function DashboardPage() {
           >
             <div
               style={{
-                border: "1px solid var(--border-editorial)",
+                border: "2px solid var(--border-neo-strong)",
                 background: "var(--bg-card)",
                 padding: "1rem",
-                borderRadius: "2px",
+                borderRadius: "6px",
                 textAlign: "center",
+                boxShadow: "2px 2px 0px var(--shadow-neo)",
               }}
             >
               <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "var(--text-muted)", textTransform: "uppercase" }}>
                 Yesterday
               </div>
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: "1.4rem", fontWeight: 800, color: "#FFF", margin: "0.3rem 0" }}>
+              <div style={{ fontFamily: "var(--font-pixel)", fontSize: "1.3rem", fontWeight: 700, color: "var(--text-primary)", margin: "0.3rem 0" }}>
                 {yesterdayXpGained} PTS
               </div>
               <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
@@ -624,17 +618,18 @@ export default async function DashboardPage() {
 
             <div
               style={{
-                border: "1px solid var(--accent-cobalt)",
-                background: "rgba(33, 72, 255, 0.08)",
+                border: "2px solid var(--accent-purple)",
+                background: "var(--accent-purple-subtle)",
                 padding: "1rem",
-                borderRadius: "2px",
+                borderRadius: "6px",
                 textAlign: "center",
+                boxShadow: "2px 2px 0px var(--shadow-neo)",
               }}
             >
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "var(--accent-cobalt)", textTransform: "uppercase", fontWeight: 700 }}>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "var(--accent-purple)", textTransform: "uppercase", fontWeight: 800 }}>
                 Today
               </div>
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: "1.4rem", fontWeight: 800, color: "#FFF", margin: "0.3rem 0" }}>
+              <div style={{ fontFamily: "var(--font-pixel)", fontSize: "1.3rem", fontWeight: 700, color: "var(--accent-purple)", margin: "0.3rem 0" }}>
                 {todayXpGained} PTS
               </div>
               <div style={{ fontSize: "0.75rem", color: "var(--accent-acid)", fontWeight: 700 }}>
@@ -658,17 +653,17 @@ export default async function DashboardPage() {
               marginBottom: "1.5rem",
             }}
           >
-            <h3 className="font-grotesk" style={{ fontSize: "1.2rem", textTransform: "uppercase", color: "#FFF" }}>
+            <h3 className="font-grotesk" style={{ fontSize: "1.2rem", textTransform: "uppercase", color: "var(--text-primary)", fontWeight: 800 }}>
               191 SDE ROADMAP
             </h3>
             <Link
               href="/problems"
               style={{
                 fontSize: "0.75rem",
-                color: "var(--accent-cobalt)",
+                color: "var(--accent-purple)",
                 textDecoration: "none",
                 fontFamily: "var(--font-mono)",
-                fontWeight: 700,
+                fontWeight: 800,
               }}
             >
               CATALOG →
@@ -677,16 +672,16 @@ export default async function DashboardPage() {
 
           <div style={{ marginBottom: "1.5rem" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-              <span className="font-serif" style={{ fontSize: "2rem", lineHeight: 1, color: "#FFF" }}>
-                {totalSolvedCount} <span style={{ fontSize: "1.2rem", color: "var(--text-muted)" }}>/ 191</span>
+              <span className="font-pixel" style={{ fontSize: "1.8rem", lineHeight: 1, color: "var(--text-primary)" }}>
+                {totalSolvedCount} <span style={{ fontSize: "1.1rem", color: "var(--text-muted)" }}>/ 191</span>
               </span>
-              <span style={{ fontFamily: "var(--font-mono)", color: "var(--accent-cobalt)", fontWeight: 800 }}>
+              <span style={{ fontFamily: "var(--font-mono)", color: "var(--accent-purple)", fontWeight: 800 }}>
                 {roadmapPercent}%
               </span>
             </div>
 
             <div className="progress-bar-bg">
-              <div className="progress-bar-fill-cobalt" style={{ width: `${roadmapPercent}%` }} />
+              <div className="progress-bar-fill-purple" style={{ width: `${roadmapPercent}%` }} />
             </div>
           </div>
 

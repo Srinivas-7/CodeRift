@@ -221,7 +221,7 @@ export function GfgConnectModal({
                 {currentHandle ? "● CONNECTED" : "○ NOT LINKED"}
               </span>
             </div>
-            <h2 className="font-grotesk" style={{ fontSize: "1.45rem", textTransform: "uppercase", color: "#FFF", margin: 0 }}>
+            <h2 className="font-grotesk" style={{ fontSize: "1.45rem", textTransform: "uppercase", color: "var(--text-primary)", margin: 0 }}>
               CONNECT GEEKSFORGEEKS HANDLE
             </h2>
           </div>
@@ -300,14 +300,13 @@ export function GfgConnectModal({
                 style={{
                   width: "100%",
                   padding: "0.75rem 0.75rem 0.75rem 2.2rem",
-                  background: "var(--bg-primary)",
+                  background: "var(--bg-paper)",
                   border: "1px solid rgba(47, 141, 70, 0.4)",
                   borderRadius: "3px",
-                  color: "#FFF",
+                  color: "var(--text-primary)",
                   fontFamily: "var(--font-mono)",
                   fontSize: "0.95rem",
                   outline: "none",
-                  boxShadow: "inset 0 2px 4px rgba(0,0,0,0.5)",
                 }}
               />
             </div>
@@ -400,7 +399,7 @@ export function GfgConnectModal({
                   </div>
                 )}
                 <div>
-                  <div style={{ fontWeight: 700, color: "#FFF", fontSize: "0.9rem" }}>
+                  <div style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: "0.9rem" }}>
                     {verificationResult.profile.name || verificationResult.profile.username}
                   </div>
                   <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem", color: "#2F8D46" }}>
@@ -426,8 +425,8 @@ export function GfgConnectModal({
             {/* Solved stats pill grid */}
             {verificationResult.profile.totalSolved !== undefined && verificationResult.profile.totalSolved > 0 && (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0.5rem", textAlign: "center" }}>
-                <div style={{ background: "var(--bg-primary)", padding: "0.4rem", borderRadius: "2px" }}>
-                  <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.95rem", fontWeight: 800, color: "#FFF" }}>
+                <div style={{ background: "var(--bg-paper)", padding: "0.4rem", borderRadius: "2px" }}>
+                  <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.95rem", fontWeight: 800, color: "var(--text-primary)" }}>
                     {verificationResult.profile.totalSolved}
                   </div>
                   <div style={{ fontSize: "0.65rem", fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>SOLVED</div>

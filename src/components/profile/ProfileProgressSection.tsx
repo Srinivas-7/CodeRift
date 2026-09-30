@@ -339,7 +339,7 @@ export function ProfileProgressSection({
         <div className="editorial-card" style={{ padding: "2rem" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1.5rem" }}>
             <Layers size={18} color="var(--accent-cobalt)" />
-            <h3 className="font-grotesk" style={{ fontSize: "1.1rem", textTransform: "uppercase", color: "#FFF" }}>
+            <h3 className="font-grotesk" style={{ fontSize: "1.1rem", textTransform: "uppercase", color: "var(--text-primary)" }}>
               ROADMAP PHASES PROGRESS
             </h3>
           </div>
@@ -348,7 +348,7 @@ export function ProfileProgressSection({
           <div style={{ marginBottom: "1.5rem" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
               <div>
-                <span style={{ fontWeight: 700, color: "#FFF", fontSize: "0.95rem" }}>Phase 1 (Problems 1–96)</span>
+                <span style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: "0.95rem" }}>Phase 1 (Problems 1–96)</span>
                 <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem", color: "var(--text-muted)", marginLeft: "0.5rem" }}>
                   Core Foundations
                 </span>
@@ -373,7 +373,7 @@ export function ProfileProgressSection({
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
               <div>
-                <span style={{ fontWeight: 700, color: "#FFF", fontSize: "0.95rem" }}>Phase 2 (Problems 97–191)</span>
+                <span style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: "0.95rem" }}>Phase 2 (Problems 97–191)</span>
                 <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem", color: "var(--text-muted)", marginLeft: "0.5rem" }}>
                   Advanced Mastery
                 </span>
@@ -403,7 +403,7 @@ export function ProfileProgressSection({
         <div className="editorial-card" style={{ padding: "2rem" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1.5rem" }}>
             <TrendingUp size={18} color="var(--accent-amber)" />
-            <h3 className="font-grotesk" style={{ fontSize: "1.1rem", textTransform: "uppercase", color: "#FFF" }}>
+            <h3 className="font-grotesk" style={{ fontSize: "1.1rem", textTransform: "uppercase", color: "var(--text-primary)" }}>
               DIFFICULTY POINTS DISTRIBUTION
             </h3>
           </div>
@@ -473,7 +473,7 @@ export function ProfileProgressSection({
       <div className="editorial-card" style={{ padding: "2rem" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", marginBottom: "1.25rem" }}>
           <div>
-            <h3 className="font-grotesk" style={{ fontSize: "1.1rem", textTransform: "uppercase", color: "#FFF" }}>
+            <h3 className="font-grotesk" style={{ fontSize: "1.1rem", textTransform: "uppercase", color: "var(--text-primary)" }}>
               TOPIC MASTERY & POINTS
             </h3>
             <p style={{ color: "var(--text-muted)", fontSize: "0.8rem", marginTop: "0.2rem" }}>
@@ -507,7 +507,7 @@ export function ProfileProgressSection({
                 key={t.topic}
                 onClick={() => setSelectedTopic(isSelected ? null : t.topic)}
                 style={{
-                  background: isSelected ? "rgba(33, 72, 255, 0.15)" : "var(--bg-primary)",
+                  background: isSelected ? "rgba(33, 72, 255, 0.15)" : "var(--bg-paper)",
                   border: isSelected ? "1px solid var(--accent-cobalt)" : "1px solid var(--border-editorial)",
                   padding: "0.75rem 1rem",
                   borderRadius: "3px",
@@ -516,7 +516,7 @@ export function ProfileProgressSection({
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.3rem" }}>
-                  <span style={{ fontWeight: 700, fontSize: "0.85rem", color: isSelected ? "var(--accent-cobalt)" : "#FFF" }}>
+                  <span style={{ fontWeight: 700, fontSize: "0.85rem", color: isSelected ? "var(--accent-cobalt)" : "var(--text-primary)" }}>
                     {t.topic}
                   </span>
                   <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem", color: "var(--accent-cobalt)", fontWeight: 700 }}>
@@ -547,7 +547,7 @@ export function ProfileProgressSection({
             <span className="editorial-stamp" style={{ borderColor: "var(--accent-cobalt)", color: "var(--accent-cobalt)", marginBottom: "0.4rem" }}>
               DETAILED TRANSACTION LOG
             </span>
-            <h3 className="font-grotesk" style={{ fontSize: "1.3rem", textTransform: "uppercase", color: "#FFF", marginTop: "0.2rem" }}>
+            <h3 className="font-grotesk" style={{ fontSize: "1.3rem", textTransform: "uppercase", color: "var(--text-primary)", marginTop: "0.2rem" }}>
               ITEMIZED POINTS LEDGER ({filteredItems.length})
             </h3>
           </div>
@@ -561,8 +561,8 @@ export function ProfileProgressSection({
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
               style={{
-                background: "var(--bg-primary)",
-                color: "#FFF",
+                background: "var(--bg-paper)",
+                color: "var(--text-primary)",
                 border: "1px solid var(--border-editorial)",
                 borderRadius: "2px",
                 padding: "0.4rem 0.75rem",
@@ -603,10 +603,10 @@ export function ProfileProgressSection({
               style={{
                 width: "100%",
                 padding: "0.75rem 0.9rem 0.75rem 2.4rem",
-                background: "var(--bg-primary)",
+                background: "var(--bg-paper)",
                 border: "1px solid var(--border-editorial)",
                 borderRadius: "3px",
-                color: "#FFF",
+                color: "var(--text-primary)",
                 fontFamily: "var(--font-mono)",
                 fontSize: "0.85rem",
               }}
@@ -698,7 +698,7 @@ export function ProfileProgressSection({
                 onClick={() => setFilterDifficulty("ALL")}
                 style={{
                   background: filterDifficulty === "ALL" ? "rgba(245, 242, 235, 0.15)" : "transparent",
-                  color: filterDifficulty === "ALL" ? "#FFF" : "var(--text-muted)",
+                  color: filterDifficulty === "ALL" ? "var(--text-primary)" : "var(--text-muted)",
                   border: "1px solid var(--border-editorial)",
                   padding: "0.2rem 0.6rem",
                   borderRadius: "2px",
@@ -762,7 +762,7 @@ export function ProfileProgressSection({
         {filteredItems.length === 0 ? (
           <div style={{ textAlign: "center", padding: "3rem 1.5rem", color: "var(--text-muted)" }}>
             <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>⚔️</div>
-            <div style={{ fontWeight: 700, color: "#FFF", fontSize: "1.1rem", marginBottom: "0.4rem" }}>
+            <div style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: "1.1rem", marginBottom: "0.4rem" }}>
               No Achieved Points Found
             </div>
             <p style={{ fontSize: "0.85rem", maxWidth: "450px", margin: "0 auto" }}>
@@ -816,7 +816,7 @@ export function ProfileProgressSection({
                     justifyContent: "space-between",
                     padding: "1rem 1.25rem",
                     borderRadius: "4px",
-                    background: "var(--bg-primary)",
+                    background: "var(--bg-paper)",
                     border: "1px solid var(--border-editorial)",
                     transition: "all 0.15s ease",
                   }}
@@ -867,7 +867,7 @@ export function ProfileProgressSection({
                             href={`/problems/${item.problemId}`}
                             style={{
                               fontWeight: 700,
-                              color: "#FFF",
+                              color: "var(--text-primary)",
                               fontSize: "0.95rem",
                               textDecoration: "none",
                               display: "inline-flex",
@@ -879,7 +879,7 @@ export function ProfileProgressSection({
                             <ArrowUpRight size={13} color="var(--accent-cobalt)" />
                           </Link>
                         ) : (
-                          <span style={{ fontWeight: 700, color: "#FFF", fontSize: "0.95rem" }}>
+                          <span style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: "0.95rem" }}>
                             {item.title}
                           </span>
                         )}

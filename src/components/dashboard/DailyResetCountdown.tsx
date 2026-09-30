@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Clock, Sparkles, CheckCircle2, Flame, ArrowRight } from "lucide-react";
+import { Clock, CheckCircle2, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 interface DailyResetCountdownProps {
@@ -56,9 +56,9 @@ export function DailyResetCountdown({
   return (
     <div
       style={{
-        background: isComplete ? "rgba(16, 185, 129, 0.06)" : "var(--bg-surface)",
-        border: isComplete ? "1px solid rgba(16, 185, 129, 0.4)" : "1px solid var(--border-editorial)",
-        borderRadius: "4px",
+        background: isComplete ? "rgba(0, 245, 155, 0.12)" : "var(--bg-surface)",
+        border: isComplete ? "3px solid var(--accent-acid)" : "3px solid var(--border-neo-strong)",
+        borderRadius: "8px",
         padding: "1.25rem 1.5rem",
         marginBottom: "2rem",
         display: "flex",
@@ -66,22 +66,25 @@ export function DailyResetCountdown({
         justifyContent: "space-between",
         flexWrap: "wrap",
         gap: "1.25rem",
+        boxShadow: "5px 5px 0px var(--shadow-neo)",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
         <div
           style={{
-            width: "40px",
-            height: "40px",
-            borderRadius: "4px",
-            background: isComplete ? "rgba(16, 185, 129, 0.15)" : "rgba(33, 72, 255, 0.12)",
-            color: isComplete ? "var(--accent-acid)" : "var(--accent-cobalt)",
+            width: "44px",
+            height: "44px",
+            borderRadius: "6px",
+            background: isComplete ? "var(--accent-acid)" : "var(--accent-yellow)",
+            color: "#000000",
+            border: "2.5px solid #000000",
+            boxShadow: "2px 2px 0px #000000",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          {isComplete ? <CheckCircle2 size={22} /> : <Clock size={22} />}
+          {isComplete ? <CheckCircle2 size={24} /> : <Clock size={24} />}
         </div>
 
         <div>
@@ -91,17 +94,17 @@ export function DailyResetCountdown({
                 fontFamily: "var(--font-mono)",
                 fontSize: "0.75rem",
                 textTransform: "uppercase",
-                color: isComplete ? "var(--accent-acid)" : "var(--accent-cobalt)",
-                fontWeight: 800,
-                letterSpacing: "0.05em",
+                color: isComplete ? "var(--accent-acid)" : "var(--accent-purple)",
+                fontWeight: 900,
+                letterSpacing: "0.08em",
               }}
             >
               {isComplete ? "DAY COMPLETED // MISSION CLEARED" : `DAY ${dayNumber.toString().padStart(2, "0")} IN PROGRESS`}
             </span>
-            <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>• 24-HR UTC ROTATION</span>
+            <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 700 }}>• 24-HR UTC ROTATION</span>
           </div>
 
-          <div style={{ fontSize: "0.95rem", color: "#FFF", fontWeight: 600, marginTop: "0.2rem" }}>
+          <div style={{ fontSize: "0.95rem", color: "var(--text-primary)", fontWeight: 800, marginTop: "0.2rem" }}>
             {isComplete ? (
               <span>All {totalCount} daily questions conquered (+20 Bonus Points Claimed) 🎉</span>
             ) : (
@@ -115,15 +118,15 @@ export function DailyResetCountdown({
 
       <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", flexWrap: "wrap" }}>
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "var(--text-muted)", textTransform: "uppercase" }}>
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 800 }}>
             NEXT DAILY 3 RESETS IN
           </div>
           <div
             style={{
               fontFamily: "var(--font-mono)",
               fontSize: "1.3rem",
-              fontWeight: 800,
-              color: "#FFF",
+              fontWeight: 900,
+              color: "var(--text-primary)",
               letterSpacing: "0.05em",
             }}
           >

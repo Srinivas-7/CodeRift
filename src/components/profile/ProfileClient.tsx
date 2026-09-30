@@ -120,7 +120,7 @@ export function ProfileClient({
                 fontSize: "clamp(2.5rem, 6vw, 4.2rem)",
                 textTransform: "uppercase",
                 lineHeight: 0.95,
-                color: "#FFFFFF",
+                color: "var(--text-primary)",
                 marginBottom: "0.75rem",
               }}
             >
@@ -276,7 +276,7 @@ export function ProfileClient({
                 }}
               >
                 <span style={{ color: "var(--accent-cobalt)", fontWeight: 800 }}>ARENA SCORE</span>
-                <span style={{ color: "#FFF", fontWeight: 800 }}>{((user.score ?? user.xp) || 0).toLocaleString()} PTS</span>
+                <span style={{ color: "var(--text-primary)", fontWeight: 800 }}>{((user.score ?? user.xp) || 0).toLocaleString()} PTS</span>
               </div>
               <div className="progress-bar-bg">
                 <div
@@ -288,15 +288,16 @@ export function ProfileClient({
           </div>
 
           {/* Oversized Stat Blocks */}
-          <div style={{ display: "flex", gap: "1.5rem", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
             <div
               style={{
-                border: "1px solid var(--border-editorial)",
-                background: "var(--bg-primary)",
-                padding: "1.25rem 1.5rem",
-                borderRadius: "2px",
+                border: "2px solid var(--border-neo-strong)",
+                background: "var(--bg-paper)",
+                padding: "1.1rem 1.35rem",
+                borderRadius: "4px",
                 textAlign: "center",
-                minWidth: "120px",
+                minWidth: "110px",
+                boxShadow: "3px 3px 0px var(--shadow-neo)",
               }}
             >
               <div className="font-serif" style={{ fontSize: "2.4rem", color: "var(--accent-cobalt)", lineHeight: 1 }}>
@@ -309,12 +310,13 @@ export function ProfileClient({
 
             <div
               style={{
-                border: "1px solid var(--border-editorial)",
-                background: "var(--bg-primary)",
-                padding: "1.25rem 1.5rem",
-                borderRadius: "2px",
+                border: "2px solid var(--border-neo-strong)",
+                background: "var(--bg-paper)",
+                padding: "1.1rem 1.35rem",
+                borderRadius: "4px",
                 textAlign: "center",
-                minWidth: "120px",
+                minWidth: "110px",
+                boxShadow: "3px 3px 0px var(--shadow-neo)",
               }}
             >
               <div className="font-serif" style={{ fontSize: "2.4rem", color: "var(--accent-vermillion)", lineHeight: 1 }}>
@@ -327,12 +329,13 @@ export function ProfileClient({
 
             <div
               style={{
-                border: "1px solid var(--border-editorial)",
-                background: "var(--bg-primary)",
-                padding: "1.25rem 1.5rem",
-                borderRadius: "2px",
+                border: "2px solid var(--border-neo-strong)",
+                background: "var(--bg-paper)",
+                padding: "1.1rem 1.35rem",
+                borderRadius: "4px",
                 textAlign: "center",
-                minWidth: "120px",
+                minWidth: "110px",
+                boxShadow: "3px 3px 0px var(--shadow-neo)",
               }}
             >
               <div className="font-serif" style={{ fontSize: "2.4rem", color: "var(--accent-acid)", lineHeight: 1 }}>
@@ -345,15 +348,16 @@ export function ProfileClient({
 
             <div
               style={{
-                border: "1px solid var(--border-editorial)",
-                background: "var(--bg-primary)",
-                padding: "1.25rem 1.5rem",
-                borderRadius: "2px",
+                border: "2px solid var(--border-neo-strong)",
+                background: "var(--bg-paper)",
+                padding: "1.1rem 1.35rem",
+                borderRadius: "4px",
                 textAlign: "center",
-                minWidth: "120px",
+                minWidth: "110px",
+                boxShadow: "3px 3px 0px var(--shadow-neo)",
               }}
             >
-              <div className="font-serif" style={{ fontSize: "2.4rem", color: "var(--text-primary)", lineHeight: 1 }}>
+              <div className="font-serif" style={{ fontSize: "2.4rem", color: "var(--accent-cyan)", lineHeight: 1 }}>
                 {user.streakShields} / 3
               </div>
               <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "var(--text-muted)", textTransform: "uppercase", marginTop: "0.2rem" }}>

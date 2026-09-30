@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { getAvatar } from "@/data/avatars";
 import Link from "next/link";
-import { Users, Globe, ArrowUp, ArrowDown, Minus, Flame, Trophy } from "lucide-react";
+import { Users, Globe, Trophy, Crown } from "lucide-react";
 import { compareLeaderboardRank } from "@/lib/scoring";
 
 interface LeaderboardClientProps {
@@ -43,33 +42,34 @@ export function LeaderboardClient({
           flexWrap: "wrap",
           gap: "1.5rem",
           paddingBottom: "1.5rem",
-          borderBottom: "1px solid var(--border-editorial)",
-          marginBottom: "3rem",
+          borderBottom: "2px solid var(--border-editorial)",
+          marginBottom: "2.5rem",
         }}
       >
         <div>
-          <span className="editorial-stamp" style={{ borderColor: "var(--accent-cobalt)", color: "#FFF", marginBottom: "0.5rem" }}>
-            WARRIOR RANKINGS // ARENA STANDINGS
-          </span>
+          <div className="pixel-kicker" style={{ marginBottom: "0.4rem" }}>
+            // WARRIOR RANKINGS · ARENA STANDINGS
+          </div>
           <h1
-            className="font-grotesk"
+            className="font-pixel"
             style={{
               fontSize: "clamp(2.5rem, 6vw, 4rem)",
               textTransform: "uppercase",
               lineHeight: 0.95,
-              letterSpacing: "-0.03em",
+              color: "var(--accent-purple)",
             }}
           >
             STANDINGS.
           </h1>
         </div>
 
-        {/* Tab Switcher: [ MY GROUP ] [ GLOBAL ] */}
+        {/* Tab Switcher: [ MY SQUAD ] [ GLOBAL ] */}
         <div
           style={{
             background: "var(--bg-surface)",
-            border: "1px solid var(--border-editorial)",
-            borderRadius: "2px",
+            border: "2px solid var(--border-neo-strong)",
+            borderRadius: "6px",
+            boxShadow: "3px 3px 0px var(--shadow-neo)",
             padding: "0.3rem",
             display: "flex",
             gap: "0.3rem",
@@ -82,14 +82,15 @@ export function LeaderboardClient({
               display: "flex",
               alignItems: "center",
               gap: "0.4rem",
-              background: activeTab === "MY_GROUP" ? "var(--text-primary)" : "transparent",
-              color: activeTab === "MY_GROUP" ? "var(--text-dark)" : "var(--text-muted)",
-              border: "none",
+              background: activeTab === "MY_GROUP" ? "var(--accent-purple)" : "transparent",
+              color: activeTab === "MY_GROUP" ? "#FFFFFF" : "var(--text-secondary)",
+              border: activeTab === "MY_GROUP" ? "2px solid var(--border-neo-strong)" : "2px solid transparent",
               padding: "0.5rem 1.2rem",
-              borderRadius: "2px",
-              fontWeight: 700,
+              borderRadius: "4px",
+              fontWeight: 800,
               fontSize: "0.85rem",
               cursor: "pointer",
+              transition: "all 0.15s ease",
             }}
           >
             <Users size={15} /> MY SQUAD ({myGroupName || "Squad"})
@@ -102,14 +103,15 @@ export function LeaderboardClient({
               display: "flex",
               alignItems: "center",
               gap: "0.4rem",
-              background: activeTab === "GLOBAL" ? "var(--text-primary)" : "transparent",
-              color: activeTab === "GLOBAL" ? "var(--text-dark)" : "var(--text-muted)",
-              border: "none",
+              background: activeTab === "GLOBAL" ? "var(--accent-purple)" : "transparent",
+              color: activeTab === "GLOBAL" ? "#FFFFFF" : "var(--text-secondary)",
+              border: activeTab === "GLOBAL" ? "2px solid var(--border-neo-strong)" : "2px solid transparent",
               padding: "0.5rem 1.2rem",
-              borderRadius: "2px",
-              fontWeight: 700,
+              borderRadius: "4px",
+              fontWeight: 800,
               fontSize: "0.85rem",
               cursor: "pointer",
+              transition: "all 0.15s ease",
             }}
           >
             <Globe size={15} /> GLOBAL ARENA
@@ -127,7 +129,7 @@ export function LeaderboardClient({
             padding: "4rem 2rem",
           }}
         >
-          <h3 className="font-grotesk" style={{ fontSize: "1.6rem", textTransform: "uppercase", color: "#FFF", marginBottom: "0.5rem" }}>
+          <h3 className="font-pixel" style={{ fontSize: "1.8rem", textTransform: "uppercase", color: "var(--text-primary)", marginBottom: "0.5rem" }}>
             NO STANDINGS RECORDED YET
           </h3>
           <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", marginBottom: "2rem" }}>
@@ -139,35 +141,35 @@ export function LeaderboardClient({
         </div>
       ) : (
         <>
-          {/* Top 3 High-Fashion Editorial Blocks */}
+          {/* Top 3 Neo-Brutalist Podium Cards */}
           {sortedList.length >= 3 && (
             <div
               style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
                 gap: "1.5rem",
-                marginBottom: "3.5rem",
+                marginBottom: "3rem",
               }}
             >
-              {/* #1 Gold / Champion */}
+              {/* #1 Champion */}
               {top1 && (
                 <div
                   className="editorial-card"
                   style={{
-                    padding: "2.5rem 2rem",
-                    border: "2px solid var(--accent-cobalt)",
+                    padding: "2.25rem 2rem",
+                    border: "2px solid var(--accent-amber)",
                     background: "var(--bg-surface)",
-                    boxShadow: "12px 12px 0px rgba(33, 72, 255, 0.2)",
+                    boxShadow: "6px 6px 0px var(--accent-amber)",
                   }}
                 >
-                  <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem", color: "var(--accent-cobalt)", fontWeight: 800, marginBottom: "0.5rem" }}>
-                    [RANK N° 01 // ARENA CHAMPION]
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontFamily: "var(--font-mono)", fontSize: "0.8rem", color: "var(--accent-amber)", fontWeight: 800, marginBottom: "0.5rem" }}>
+                    <Crown size={16} /> [RANK N° 01 // ARENA CHAMPION]
                   </div>
-                  <h3 className="font-serif" style={{ fontSize: "2.5rem", lineHeight: 1, color: "#FFFFFF", marginBottom: "0.5rem" }}>
+                  <h3 className="font-pixel" style={{ fontSize: "2.2rem", lineHeight: 1.1, color: "var(--text-primary)", marginBottom: "0.5rem" }}>
                     {top1.username}
                   </h3>
-                  <div className="font-mono" style={{ fontSize: "1.6rem", fontWeight: 800, color: "var(--accent-cobalt)", marginBottom: "1rem" }}>
-                    {((top1.score ?? top1.xp) || 0).toLocaleString()} SCORE
+                  <div className="font-pixel" style={{ fontSize: "1.6rem", fontWeight: 700, color: "var(--accent-amber)", marginBottom: "1rem" }}>
+                    {((top1.score ?? top1.xp) || 0).toLocaleString()} PTS
                   </div>
                   <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem", color: "var(--text-muted)" }}>
                     LVL {top1.level} • {top1.totalSolved} / 191 Solved • 🔥 {top1.currentStreak}D Streak
@@ -180,18 +182,18 @@ export function LeaderboardClient({
                 <div
                   className="editorial-card"
                   style={{
-                    padding: "2.5rem 2rem",
+                    padding: "2.25rem 2rem",
                     background: "var(--bg-surface)",
                   }}
                 >
                   <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: 800, marginBottom: "0.5rem" }}>
                     [RANK N° 02]
                   </div>
-                  <h3 className="font-serif" style={{ fontSize: "2.2rem", lineHeight: 1, color: "#FFFFFF", marginBottom: "0.5rem" }}>
+                  <h3 className="font-pixel" style={{ fontSize: "2rem", lineHeight: 1.1, color: "var(--text-primary)", marginBottom: "0.5rem" }}>
                     {top2.username}
                   </h3>
-                  <div className="font-mono" style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: "1rem" }}>
-                    {((top2.score ?? top2.xp) || 0).toLocaleString()} SCORE
+                  <div className="font-pixel" style={{ fontSize: "1.4rem", fontWeight: 700, color: "var(--accent-purple)", marginBottom: "1rem" }}>
+                    {((top2.score ?? top2.xp) || 0).toLocaleString()} PTS
                   </div>
                   <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem", color: "var(--text-muted)" }}>
                     LVL {top2.level} • {top2.totalSolved} Solved • 🔥 {top2.currentStreak}D Streak
@@ -204,18 +206,18 @@ export function LeaderboardClient({
                 <div
                   className="editorial-card"
                   style={{
-                    padding: "2.5rem 2rem",
+                    padding: "2.25rem 2rem",
                     background: "var(--bg-surface)",
                   }}
                 >
                   <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: 800, marginBottom: "0.5rem" }}>
                     [RANK N° 03]
                   </div>
-                  <h3 className="font-serif" style={{ fontSize: "2.2rem", lineHeight: 1, color: "#FFFFFF", marginBottom: "0.5rem" }}>
+                  <h3 className="font-pixel" style={{ fontSize: "2rem", lineHeight: 1.1, color: "var(--text-primary)", marginBottom: "0.5rem" }}>
                     {top3.username}
                   </h3>
-                  <div className="font-mono" style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: "1rem" }}>
-                    {((top3.score ?? top3.xp) || 0).toLocaleString()} SCORE
+                  <div className="font-pixel" style={{ fontSize: "1.4rem", fontWeight: 700, color: "var(--accent-purple)", marginBottom: "1rem" }}>
+                    {((top3.score ?? top3.xp) || 0).toLocaleString()} PTS
                   </div>
                   <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem", color: "var(--text-muted)" }}>
                     LVL {top3.level} • {top3.totalSolved} Solved • 🔥 {top3.currentStreak}D Streak
@@ -236,7 +238,7 @@ export function LeaderboardClient({
                 textAlign: "center",
               }}
             >
-              <h3 className="font-grotesk" style={{ fontSize: "1.4rem", textTransform: "uppercase", color: "#FFF", marginBottom: "0.4rem" }}>
+              <h3 className="font-pixel" style={{ fontSize: "1.6rem", textTransform: "uppercase", color: "var(--text-primary)", marginBottom: "0.4rem" }}>
                 YOU'RE CURRENTLY #1.
               </h3>
               <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", marginBottom: "1.25rem" }}>
@@ -248,8 +250,8 @@ export function LeaderboardClient({
             </div>
           )}
 
-          {/* Full Magazine Ranking Table */}
-          <div className="editorial-card" style={{ padding: "1.5rem" }}>
+          {/* Full Neo-Brutalist Ranking Table */}
+          <div className="editorial-card" style={{ padding: "1.25rem" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
               {sortedList.map((u, idx) => {
                 const rank = idx + 1;
@@ -259,23 +261,25 @@ export function LeaderboardClient({
                   <div
                     key={u.id}
                     style={{
-                      background: isUser ? "rgba(33, 72, 255, 0.12)" : "transparent",
-                      borderBottom: "1px solid var(--border-editorial)",
+                      background: isUser ? "var(--accent-purple-subtle)" : "transparent",
+                      border: isUser ? "2px solid var(--accent-purple)" : "1px solid var(--border-editorial)",
+                      borderRadius: "6px",
                       padding: "1rem 1.25rem",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "space-between",
                       flexWrap: "wrap",
                       gap: "0.75rem",
+                      transition: "all 0.15s ease",
                     }}
                   >
                     {/* Left: Rank, Name */}
                     <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
                       <span
                         style={{
-                          fontFamily: "var(--font-mono)",
-                          fontSize: "1.2rem",
-                          fontWeight: 900,
+                          fontFamily: "var(--font-pixel)",
+                          fontSize: "1.3rem",
+                          fontWeight: 700,
                           color: rank === 1 ? "var(--accent-amber)" : "var(--text-muted)",
                           width: "36px",
                         }}
@@ -284,8 +288,8 @@ export function LeaderboardClient({
                       </span>
 
                       <div>
-                        <div style={{ fontWeight: 700, fontSize: "1.05rem", color: isUser ? "#FFF" : "var(--text-primary)" }}>
-                          {u.username} {isUser && <span style={{ color: "var(--accent-cobalt)", fontSize: "0.8rem" }}>(You)</span>}
+                        <div style={{ fontWeight: 800, fontSize: "1.05rem", color: isUser ? "var(--accent-purple)" : "var(--text-primary)" }}>
+                          {u.username} {isUser && <span style={{ color: "var(--accent-purple)", fontSize: "0.8rem" }}>(You)</span>}
                         </div>
                         <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem", color: "var(--text-muted)" }}>
                           LVL {u.level} • {u.totalSolved} / 191 Solved
@@ -295,12 +299,12 @@ export function LeaderboardClient({
 
                     {/* Right: Streak & XP */}
                     <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
-                      <div style={{ fontFamily: "var(--font-mono)", color: "var(--accent-vermillion)", fontSize: "0.85rem", fontWeight: 700 }}>
+                      <div style={{ fontFamily: "var(--font-mono)", color: "var(--accent-vermillion)", fontSize: "0.85rem", fontWeight: 800 }}>
                         🔥 {u.currentStreak}D
                       </div>
 
-                      <div style={{ fontFamily: "var(--font-mono)", fontWeight: 900, fontSize: "1.25rem", color: "#FFF", minWidth: "110px", textAlign: "right" }}>
-                        {((u.score ?? u.xp) || 0).toLocaleString()} SCORE
+                      <div style={{ fontFamily: "var(--font-pixel)", fontWeight: 700, fontSize: "1.25rem", color: "var(--text-primary)", minWidth: "120px", textAlign: "right" }}>
+                        {((u.score ?? u.xp) || 0).toLocaleString()} PTS
                       </div>
                     </div>
                   </div>

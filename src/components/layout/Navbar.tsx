@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logoutUser } from "@/actions/auth";
+import { ThemeToggle } from "./ThemeToggle";
 import {
   Menu,
   X,
@@ -12,12 +13,7 @@ import {
   User,
   LogOut,
   ChevronDown,
-  ExternalLink,
-  BookOpen,
-  Trophy,
-  Users,
   Award,
-  Zap,
 } from "lucide-react";
 
 interface NavbarProps {
@@ -56,11 +52,12 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
         position: "sticky",
         top: 0,
         zIndex: 100,
-        background: "rgba(10, 11, 16, 0.92)",
+        background: "var(--bg-surface)",
         backdropFilter: "blur(16px)",
         WebkitBackdropFilter: "blur(16px)",
-        borderBottom: "2px solid var(--text-primary)",
-        boxShadow: "0 8px 0px rgba(33, 72, 255, 0.18)",
+        borderBottom: "3px solid var(--border-neo-strong)",
+        boxShadow: "0 4px 0px var(--shadow-neo)",
+        transition: "background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease",
       }}
     >
       <div
@@ -72,7 +69,7 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
           height: "76px",
         }}
       >
-        {/* Left: Editorial Logo & Masthead Label */}
+        {/* Left: Neo-Brutalist Pixel Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
           <Link
             href="/"
@@ -86,14 +83,15 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
           >
             <div
               style={{
-                border: "2px solid var(--text-primary)",
-                background: "var(--bg-primary)",
-                padding: "3px",
-                borderRadius: "2px",
-                boxShadow: "3px 3px 0px var(--accent-cobalt)",
+                border: "3px solid var(--border-neo-strong)",
+                background: "var(--accent-yellow)",
+                padding: "4px",
+                borderRadius: "6px",
+                boxShadow: "3px 3px 0px var(--shadow-neo)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                transition: "transform 0.15s ease",
               }}
             >
               <img
@@ -108,26 +106,30 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
               />
             </div>
 
-            <div style={{ display: "flex", alignItems: "baseline", gap: "0.25rem" }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: "0.3rem" }}>
               <span
-                className="font-serif"
+                className="font-pixel"
                 style={{
-                  fontSize: "2rem",
-                  fontWeight: 400,
-                  letterSpacing: "-0.03em",
+                  fontSize: "1.9rem",
+                  fontWeight: 700,
+                  letterSpacing: "0.02em",
                   lineHeight: 1,
-                  color: "#F5F2EB",
+                  color: "var(--text-primary)",
+                  textShadow: "2px 2px 0px rgba(99, 102, 241, 0.35), 3px 3px 0px var(--shadow-neo)",
+                  textTransform: "uppercase",
                 }}
               >
-                Code
+                CODE
               </span>
               <span
-                className="font-grotesk"
+                className="font-pixel"
                 style={{
-                  fontSize: "1.25rem",
-                  fontWeight: 900,
-                  letterSpacing: "0.08em",
-                  color: "var(--accent-cobalt)",
+                  fontSize: "1.9rem",
+                  fontWeight: 700,
+                  letterSpacing: "0.02em",
+                  lineHeight: 1,
+                  color: "var(--accent-purple)",
+                  textShadow: "2px 2px 0px #C7D2FE, 3px 3px 0px var(--shadow-neo)",
                   textTransform: "uppercase",
                 }}
               >
@@ -135,10 +137,9 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
               </span>
             </div>
           </Link>
-
         </div>
 
-        {/* Center: Editorial Maximalist Navigation Links */}
+        {/* Center: Neo-Brutalist Navigation Links */}
         <nav
           style={{
             display: "none",
@@ -162,28 +163,32 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
                 className="font-grotesk"
                 style={{
                   color: isActive ? "#FFFFFF" : "var(--text-primary)",
-                  background: isActive ? "var(--accent-cobalt)" : "transparent",
-                  border: isActive ? "1px solid var(--accent-cobalt)" : "1px solid transparent",
-                  boxShadow: isActive ? "3px 3px 0px #000000" : "none",
+                  background: isActive ? "var(--accent-purple)" : "transparent",
+                  border: isActive ? "2.5px solid var(--border-neo-strong)" : "2.5px solid transparent",
+                  boxShadow: isActive ? "3px 3px 0px var(--shadow-neo)" : "none",
                   textDecoration: "none",
                   fontSize: "0.85rem",
                   fontWeight: 800,
-                  letterSpacing: "0.08em",
+                  letterSpacing: "0.06em",
                   textTransform: "uppercase",
-                  padding: "0.45rem 1rem",
-                  borderRadius: "2px",
+                  padding: "0.45rem 0.95rem",
+                  borderRadius: "6px",
                   transition: "all 0.12s ease",
                 }}
                 onMouseOver={(e) => {
                   if (!isActive) {
-                    e.currentTarget.style.background = "rgba(245, 242, 235, 0.08)";
-                    e.currentTarget.style.border = "1px solid var(--border-editorial-strong)";
+                    e.currentTarget.style.background = "var(--accent-yellow)";
+                    e.currentTarget.style.color = "#000000";
+                    e.currentTarget.style.border = "2.5px solid #000000";
+                    e.currentTarget.style.boxShadow = "3px 3px 0px var(--shadow-neo)";
                   }
                 }}
                 onMouseOut={(e) => {
                   if (!isActive) {
                     e.currentTarget.style.background = "transparent";
-                    e.currentTarget.style.border = "1px solid transparent";
+                    e.currentTarget.style.color = "var(--text-primary)";
+                    e.currentTarget.style.border = "2.5px solid transparent";
+                    e.currentTarget.style.boxShadow = "none";
                   }
                 }}
               >
@@ -193,8 +198,11 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
           })}
         </nav>
 
-        {/* Right: Authenticated User Status or CTA */}
-        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+        {/* Right: Theme Switcher & Authenticated User Status */}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          {/* Light/Dark Mode Switcher */}
+          <ThemeToggle />
+
           {user ? (
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
               {/* Streak Badge */}
@@ -205,17 +213,17 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
                   gap: "0.35rem",
                   fontFamily: "var(--font-mono)",
                   fontSize: "0.8rem",
-                  fontWeight: 800,
-                  color: "var(--accent-vermillion)",
-                  border: "1px solid var(--accent-vermillion)",
-                  background: "rgba(255, 55, 20, 0.08)",
-                  boxShadow: "2px 2px 0px rgba(255, 55, 20, 0.3)",
+                  fontWeight: 900,
+                  color: "#FFFFFF",
+                  border: "2.5px solid #000000",
+                  background: "var(--accent-vermillion)",
+                  boxShadow: "3px 3px 0px var(--shadow-neo)",
                   padding: "0.35rem 0.65rem",
-                  borderRadius: "2px",
+                  borderRadius: "6px",
                 }}
               >
-                <Flame size={15} />
-                <span>{user.currentStreak}D STREAK</span>
+                <Flame size={16} />
+                <span>{user.currentStreak}D</span>
               </div>
 
               {/* SCORE Counter */}
@@ -226,15 +234,15 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
                   gap: "0.35rem",
                   fontFamily: "var(--font-mono)",
                   fontSize: "0.8rem",
-                  color: "var(--text-secondary)",
-                  border: "1px solid var(--border-editorial-strong)",
-                  background: "var(--bg-primary)",
-                  boxShadow: "2px 2px 0px #000",
+                  color: "var(--text-primary)",
+                  border: "2.5px solid var(--border-neo-strong)",
+                  background: "var(--bg-surface)",
+                  boxShadow: "3px 3px 0px var(--shadow-neo)",
                   padding: "0.35rem 0.65rem",
-                  borderRadius: "2px",
+                  borderRadius: "6px",
                 }}
               >
-                <strong style={{ color: "var(--accent-cobalt)", fontWeight: 800 }}>
+                <strong style={{ color: "var(--accent-purple)", fontWeight: 900 }}>
                   {((user.score ?? user.xp) || 0).toLocaleString()}
                 </strong>
                 <span>PTS</span>
@@ -250,10 +258,10 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                   style={{
                     background: "var(--bg-surface)",
-                    border: "2px solid var(--text-primary)",
-                    boxShadow: "3px 3px 0px var(--accent-cobalt)",
-                    padding: "0.4rem 0.85rem",
-                    borderRadius: "2px",
+                    border: "2.5px solid var(--border-neo-strong)",
+                    boxShadow: "3px 3px 0px var(--shadow-neo)",
+                    padding: "0.45rem 0.85rem",
+                    borderRadius: "6px",
                     color: "var(--text-primary)",
                     display: "flex",
                     alignItems: "center",
@@ -290,27 +298,27 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
                     <div
                       style={{
                         width: "240px",
-                        background: "var(--bg-surface)",
-                        border: "2px solid var(--text-primary)",
-                        borderRadius: "2px",
+                        background: "var(--bg-surface-solid)",
+                        border: "3px solid var(--border-neo-strong)",
+                        borderRadius: "6px",
                         padding: "0.5rem 0",
-                        boxShadow: "6px 6px 0px var(--accent-cobalt)",
+                        boxShadow: "6px 6px 0px var(--shadow-neo)",
                       }}
                     >
-                      <div style={{ padding: "0.75rem 1rem", borderBottom: "1px solid var(--border-editorial)" }}>
-                        <div style={{ fontSize: "0.7rem", color: "var(--text-muted)", textTransform: "uppercase", fontFamily: "var(--font-mono)", letterSpacing: "0.08em" }}>
+                      <div style={{ padding: "0.75rem 1rem", borderBottom: "2px solid var(--border-neo-strong)" }}>
+                        <div style={{ fontSize: "0.7rem", color: "var(--text-muted)", textTransform: "uppercase", fontFamily: "var(--font-mono)", fontWeight: 800 }}>
                           WARRIOR IDENTITY
                         </div>
-                        <div style={{ fontWeight: 800, color: "#FFF", fontSize: "1rem", marginTop: "0.2rem" }}>
+                        <div style={{ fontWeight: 800, color: "var(--text-primary)", fontSize: "1rem", marginTop: "0.2rem" }}>
                           {user.username}
                         </div>
                         {user.leetcodeUsername && (
-                          <div style={{ fontSize: "0.75rem", color: "#FFA116", fontFamily: "var(--font-mono)", marginTop: "0.2rem" }}>
+                          <div style={{ fontSize: "0.75rem", color: "#FFA116", fontFamily: "var(--font-mono)", marginTop: "0.2rem", fontWeight: 700 }}>
                             LC: @{user.leetcodeUsername}
                           </div>
                         )}
                         {user.gfgUsername && (
-                          <div style={{ fontSize: "0.75rem", color: "#2ecc71", fontFamily: "var(--font-mono)", marginTop: "0.1rem" }}>
+                          <div style={{ fontSize: "0.75rem", color: "#10B981", fontFamily: "var(--font-mono)", marginTop: "0.1rem", fontWeight: 700 }}>
                             GFG: @{user.gfgUsername}
                           </div>
                         )}
@@ -329,15 +337,15 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
                           textDecoration: "none",
                           fontSize: "0.85rem",
                           fontFamily: "var(--font-grotesk)",
-                          fontWeight: 700,
+                          fontWeight: 800,
                           textTransform: "uppercase",
                           letterSpacing: "0.04em",
                           transition: "background 0.12s ease",
                         }}
-                        onMouseOver={(e) => (e.currentTarget.style.background = "rgba(33, 72, 255, 0.15)")}
-                        onMouseOut={(e) => (e.currentTarget.style.background = "transparent")}
+                        onMouseOver={(e) => (e.currentTarget.style.background = "var(--accent-yellow)", e.currentTarget.style.color = "#000000")}
+                        onMouseOut={(e) => (e.currentTarget.style.background = "transparent", e.currentTarget.style.color = "var(--text-primary)")}
                       >
-                        <User size={15} color="var(--accent-cobalt)" /> Profile & Settings
+                        <User size={15} color="var(--accent-purple)" /> Profile & Settings
                       </Link>
 
                       <Link
@@ -353,13 +361,13 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
                           textDecoration: "none",
                           fontSize: "0.85rem",
                           fontFamily: "var(--font-grotesk)",
-                          fontWeight: 700,
+                          fontWeight: 800,
                           textTransform: "uppercase",
                           letterSpacing: "0.04em",
                           transition: "background 0.12s ease",
                         }}
-                        onMouseOver={(e) => (e.currentTarget.style.background = "rgba(255, 158, 0, 0.15)")}
-                        onMouseOut={(e) => (e.currentTarget.style.background = "transparent")}
+                        onMouseOver={(e) => (e.currentTarget.style.background = "var(--accent-yellow)", e.currentTarget.style.color = "#000000")}
+                        onMouseOut={(e) => (e.currentTarget.style.background = "transparent", e.currentTarget.style.color = "var(--text-primary)")}
                       >
                         <Award size={15} color="var(--accent-amber)" /> Achievement Room
                       </Link>
@@ -378,7 +386,7 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
                             textDecoration: "none",
                             fontSize: "0.85rem",
                             fontFamily: "var(--font-grotesk)",
-                            fontWeight: 700,
+                            fontWeight: 800,
                             textTransform: "uppercase",
                             letterSpacing: "0.04em",
                             transition: "background 0.12s ease",
@@ -390,7 +398,7 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
                         </Link>
                       )}
 
-                      <div style={{ borderTop: "1px solid var(--border-editorial)", marginTop: "0.3rem" }}>
+                      <div style={{ borderTop: "2px solid var(--border-neo-strong)", marginTop: "0.3rem" }}>
                         <button
                           onClick={async () => {
                             setDropdownOpen(false);
@@ -405,7 +413,7 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
                             color: "var(--accent-vermillion)",
                             fontSize: "0.85rem",
                             fontFamily: "var(--font-grotesk)",
-                            fontWeight: 700,
+                            fontWeight: 800,
                             textTransform: "uppercase",
                             letterSpacing: "0.04em",
                             cursor: "pointer",
@@ -414,7 +422,7 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
                             gap: "0.6rem",
                             transition: "background 0.12s ease",
                           }}
-                          onMouseOver={(e) => (e.currentTarget.style.background = "rgba(255, 55, 20, 0.12)")}
+                          onMouseOver={(e) => (e.currentTarget.style.background = "rgba(255, 71, 87, 0.15)")}
                           onMouseOut={(e) => (e.currentTarget.style.background = "transparent")}
                         >
                           <LogOut size={15} /> Sign Out
@@ -428,8 +436,8 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
           ) : (
             <Link
               href="/login"
-              className="btn-editorial-primary"
-              style={{ fontSize: "0.85rem", padding: "0.65rem 1.4rem" }}
+              className="btn-editorial-primary font-grotesk"
+              style={{ fontSize: "0.85rem", padding: "0.55rem 1.25rem", fontWeight: 800, letterSpacing: "0.04em" }}
             >
               GET IN TO ARENA →
             </Link>
@@ -440,13 +448,14 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             style={{
               background: "var(--bg-surface)",
-              border: "2px solid var(--text-primary)",
+              border: "2.5px solid var(--border-neo-strong)",
               padding: "0.45rem",
-              borderRadius: "2px",
+              borderRadius: "6px",
               color: "var(--text-primary)",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
+              boxShadow: "3px 3px 0px var(--shadow-neo)",
             }}
             className="mobile-toggle"
           >
@@ -459,9 +468,9 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
       {mobileMenuOpen && (
         <div
           style={{
-            background: "var(--bg-surface)",
-            borderBottom: "2px solid var(--text-primary)",
-            boxShadow: "0 10px 0px rgba(33, 72, 255, 0.2)",
+            background: "var(--bg-surface-solid)",
+            borderBottom: "3px solid var(--border-neo-strong)",
+            boxShadow: "0 8px 0px var(--shadow-neo)",
             padding: "1.5rem",
             display: "flex",
             flexDirection: "column",
@@ -475,7 +484,7 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
               onClick={() => setMobileMenuOpen(false)}
               className="font-grotesk"
               style={{
-                color: pathname === item.href ? "var(--accent-cobalt)" : "var(--text-primary)",
+                color: pathname === item.href ? "var(--accent-purple)" : "var(--text-primary)",
                 textDecoration: "none",
                 fontSize: "1.05rem",
                 fontWeight: 800,
@@ -488,7 +497,7 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
             </Link>
           ))}
           {user ? (
-            <div style={{ borderTop: "1px solid var(--border-editorial)", paddingTop: "1rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            <div style={{ borderTop: "2px solid var(--border-neo-strong)", paddingTop: "1rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
               <Link
                 href="/profile"
                 onClick={() => setMobileMenuOpen(false)}
@@ -554,8 +563,8 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
             <Link
               href="/login"
               onClick={() => setMobileMenuOpen(false)}
-              className="btn-editorial-primary"
-              style={{ textAlign: "center", marginTop: "0.5rem" }}
+              className="btn-editorial-primary font-grotesk"
+              style={{ textAlign: "center", marginTop: "0.5rem", fontSize: "0.95rem", fontWeight: 800 }}
             >
               GET IN TO ARENA →
             </Link>

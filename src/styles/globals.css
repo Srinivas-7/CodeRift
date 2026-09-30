@@ -1,33 +1,102 @@
+@font-face {
+  font-family: 'SuperMario256';
+  src: url('/fonts/SuperMario256.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
-  /* Editorial Maximalist Palette */
-  --bg-primary: #0A0B10;
-  --bg-surface: #10121A;
-  --bg-card: #151822;
-  --bg-card-hover: #1B1F2D;
-  --bg-paper: #F5F2EB;
-  --bg-paper-subtle: #ECE7DD;
+  /* DARK THEME (CYBER NEO-BRUTALISM) */
+  --bg-primary: #0B0E1A;
+  --bg-surface: rgba(18, 22, 38, 0.92);
+  --bg-surface-solid: #121626;
+  --bg-card: rgba(22, 27, 48, 0.94);
+  --bg-card-hover: rgba(28, 35, 62, 0.96);
+  --bg-paper: #1B213B;
+  --bg-paper-subtle: #242D50;
+  --bg-subtle: #1E2542;
 
-  --text-primary: #F5F2EB;
-  --text-dark: #0A0B10;
-  --text-secondary: #A0A6B8;
-  --text-muted: #6B7286;
-  --text-dim: #4B5164;
+  --text-primary: #F8FAFD;
+  --text-dark: #0A0C14;
+  --text-secondary: #A6B2D4;
+  --text-muted: #7280A6;
+  --text-dim: #4B577A;
+  --text-inverse: #0A0C14;
 
-  --accent-cobalt: #2148FF;
-  --accent-cobalt-hover: #3B60FF;
-  --accent-vermillion: #FF3714;
-  --accent-amber: #FF9E00;
-  --accent-acid: #10B981;
+  /* High-Voltage Neo-Brutalist Palette */
+  --accent-purple: #7C3AED;
+  --accent-purple-hover: #6D28D9;
+  --accent-purple-glow: rgba(124, 58, 237, 0.4);
+  --accent-purple-subtle: rgba(124, 58, 237, 0.18);
 
-  --border-editorial: rgba(245, 242, 235, 0.12);
-  --border-editorial-strong: rgba(245, 242, 235, 0.25);
-  --border-cobalt: rgba(33, 72, 255, 0.5);
-  --border-dark: rgba(10, 11, 16, 0.15);
+  --accent-cobalt: #6366F1;
+  --accent-cobalt-hover: #4F46E5;
+  --accent-cyan: #00D2FF;
+  --accent-yellow: #FFE600;
+  --accent-vermillion: #FF3366;
+  --accent-amber: #FFB800;
+  --accent-acid: #00F59B;
 
-  --font-serif: var(--font-serif), Georgia, serif;
-  --font-grotesk: var(--font-grotesk), sans-serif;
-  --font-sans: var(--font-sans), sans-serif;
-  --font-mono: var(--font-mono), monospace;
+  /* Thick Bold Neo-Brutalist Borders & Pure Black Hard Shadows */
+  --border-editorial: rgba(255, 255, 255, 0.18);
+  --border-editorial-strong: rgba(255, 255, 255, 0.35);
+  --border-neo: #000000;
+  --border-neo-strong: #000000;
+  --border-neo-accent: #7C3AED;
+  --shadow-neo: #000000;
+  --shadow-neo-purple: #4C1D95;
+
+  /* Typography */
+  --font-serif: var(--font-serif-src), Georgia, serif;
+  --font-grotesk: var(--font-grotesk-src), 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: var(--font-sans-src), 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: var(--font-mono-src), 'JetBrains Mono', monospace;
+  --font-display: var(--font-display-src), var(--font-syne-src), 'Unbounded', 'Syne', sans-serif;
+  --font-brand: var(--font-display-src), var(--font-syne-src), 'Unbounded', sans-serif;
+  --font-pixel: var(--font-pixelify-src), 'Pixelify Sans', cursive, monospace;
+  --font-silkscreen: var(--font-pixelify-src), 'Pixelify Sans', cursive, monospace;
+}
+
+[data-theme="light"] {
+  /* LIGHT THEME (VIBRANT RETRO SKY & AUTHENTIC NEO-BRUTALISM) */
+  --bg-primary: #87CEEB;
+  --bg-surface: rgba(255, 255, 255, 0.94);
+  --bg-surface-solid: #FFFFFF;
+  --bg-card: rgba(255, 255, 255, 0.96);
+  --bg-card-hover: #F8FAFC;
+  --bg-paper: #F3F6FA;
+  --bg-paper-subtle: #E2E8F0;
+  --bg-subtle: #EDF2F7;
+
+  --text-primary: #000000;
+  --text-dark: #000000;
+  --text-secondary: #1E293B;
+  --text-muted: #475569;
+  --text-dim: #64748B;
+  --text-inverse: #FFFFFF;
+
+  --accent-purple: #6366F1;
+  --accent-purple-hover: #4F46E5;
+  --accent-purple-glow: rgba(99, 102, 241, 0.3);
+  --accent-purple-subtle: rgba(99, 102, 241, 0.14);
+
+  --accent-cobalt: #4F46E5;
+  --accent-cobalt-hover: #3730A3;
+  --accent-cyan: #00B4D8;
+  --accent-yellow: #FFD600;
+  --accent-vermillion: #FF2A55;
+  --accent-amber: #D97706;
+  --accent-acid: #00D084;
+
+  /* True Neo-Brutalist Thick 3px Black Borders & Solid Offset Shadows */
+  --border-editorial: rgba(0, 0, 0, 0.2);
+  --border-editorial-strong: #000000;
+  --border-neo: #000000;
+  --border-neo-strong: #000000;
+  --border-neo-accent: #000000;
+  --shadow-neo: #000000;
+  --shadow-neo-purple: #000000;
 }
 
 * {
@@ -42,15 +111,7 @@ html {
 }
 
 body {
-  background-color: #0A0B10;
-  background-image:
-    radial-gradient(circle at 18% 12%, rgba(68, 125, 98, 0.25), transparent 42%),
-    radial-gradient(circle at 82% 18%, rgba(33, 72, 255, 0.16), transparent 36%),
-    radial-gradient(circle at 50% 80%, rgba(9, 48, 35, 0.32), transparent 52%),
-    radial-gradient(circle at 88% 88%, rgba(33, 72, 255, 0.12), transparent 40%),
-    linear-gradient(135deg, #07100D 0%, #0A0B10 40%, #08161D 100%);
-  background-attachment: fixed;
-  background-size: cover;
+  background-color: transparent;
   color: var(--text-primary);
   font-family: var(--font-sans);
   overflow-x: hidden;
@@ -62,11 +123,513 @@ body {
 }
 
 ::selection {
-  background: var(--accent-cobalt);
-  color: #FFFFFF;
+  background: var(--accent-yellow);
+  color: #000000;
 }
 
-/* Fast Container */
+/* ============================================================
+   ANIMATED SKY & FLOWING GRASS WORLD BACKGROUND
+   ============================================================ */
+
+.animated-world-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  pointer-events: none;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+/* Sky gradient */
+.world-sky {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #090C18 0%, #11172E 45%, #182245 80%, #0D1C24 100%);
+  transition: background 0.3s ease;
+}
+
+[data-theme="light"] .world-sky {
+  background: linear-gradient(180deg, #5CA4FF 0%, #87CEEB 35%, #BDE4F4 70%, #E0F4EE 100%);
+}
+
+/* Starry particle layer (Dark Mode) */
+.world-stars {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.7;
+  background-image:
+    radial-gradient(2px 2px at 20px 30px, #FFFFFF, transparent),
+    radial-gradient(2px 2px at 90px 140px, rgba(255, 230, 0, 0.9), transparent),
+    radial-gradient(1.5px 1.5px at 160px 80px, #FFFFFF, transparent),
+    radial-gradient(2px 2px at 260px 190px, rgba(0, 210, 255, 0.8), transparent),
+    radial-gradient(2.5px 2.5px at 380px 60px, #FFFFFF, transparent),
+    radial-gradient(1.5px 1.5px at 450px 220px, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(2px 2px at 580px 110px, rgba(124, 58, 237, 0.9), transparent),
+    radial-gradient(2px 2px at 720px 180px, #FFFFFF, transparent),
+    radial-gradient(1.5px 1.5px at 850px 90px, rgba(0, 245, 155, 0.8), transparent),
+    radial-gradient(2px 2px at 980px 240px, #FFFFFF, transparent),
+    radial-gradient(2px 2px at 1120px 70px, rgba(255, 230, 0, 0.9), transparent),
+    radial-gradient(1.5px 1.5px at 1280px 150px, #FFFFFF, transparent);
+  background-repeat: repeat;
+  background-size: 400px 300px;
+}
+
+[data-theme="light"] .world-stars {
+  opacity: 0;
+}
+
+/* Moving Air / Clouds Layer */
+.world-clouds-container {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.cloud {
+  position: absolute;
+  will-change: transform;
+}
+
+.cloud-fill {
+  fill: #FFFFFF;
+  stroke: #000000;
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  filter: drop-shadow(4px 4px 0px rgba(0, 0, 0, 0.7));
+}
+
+[data-theme="light"] .cloud-fill {
+  fill: #FFFFFF;
+  stroke: #000000;
+  stroke-width: 3px;
+  filter: drop-shadow(4px 4px 0px rgba(0, 0, 0, 0.35));
+}
+
+[data-theme="dark"] .cloud-fill {
+  fill: rgba(30, 38, 66, 0.75);
+  stroke: #000000;
+  stroke-width: 2.5px;
+  filter: drop-shadow(4px 4px 0px #000000);
+}
+
+/* Slower, peaceful drifting cloud animations */
+.cloud-1 {
+  top: 8%;
+  left: -200px;
+  animation: floatCloudLinear 80s linear infinite;
+  opacity: 0.95;
+}
+
+.cloud-2 {
+  top: 20%;
+  left: -260px;
+  animation: floatCloudLinear 115s linear infinite;
+  animation-delay: -35s;
+  opacity: 0.85;
+}
+
+.cloud-3 {
+  top: 36%;
+  left: -180px;
+  animation: floatCloudLinear 70s linear infinite;
+  animation-delay: -15s;
+  opacity: 0.9;
+}
+
+.cloud-4 {
+  top: 14%;
+  left: -240px;
+  animation: floatCloudLinear 95s linear infinite;
+  animation-delay: -45s;
+  opacity: 0.8;
+}
+
+.cloud-5 {
+  top: 45%;
+  left: -200px;
+  animation: floatCloudLinear 130s linear infinite;
+  animation-delay: -60s;
+  opacity: 0.75;
+}
+
+@keyframes floatCloudLinear {
+  0% {
+    transform: translate3d(-200px, 0, 0);
+  }
+  100% {
+    transform: translate3d(calc(100vw + 300px), 0, 0);
+  }
+}
+
+/* Wind streaks */
+.wind-container {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.wind-line {
+  position: absolute;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  border-radius: 9999px;
+  will-change: transform;
+}
+
+[data-theme="light"] .wind-line {
+  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.25), transparent);
+}
+
+.wind-1 {
+  top: 28%;
+  left: -150px;
+  width: 220px;
+  animation: windBreeze 18s ease-in-out infinite;
+}
+
+.wind-2 {
+  top: 42%;
+  left: -180px;
+  width: 280px;
+  animation: windBreeze 22s ease-in-out infinite 6s;
+}
+
+.wind-3 {
+  top: 60%;
+  left: -200px;
+  width: 200px;
+  animation: windBreeze 20s ease-in-out infinite 11s;
+}
+
+@keyframes windBreeze {
+  0% {
+    transform: translate3d(-200px, 0, 0) scaleX(0.5);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.8;
+    transform: translate3d(calc(50vw), 0, 0) scaleX(1.4);
+  }
+  100% {
+    transform: translate3d(calc(100vw + 200px), 0, 0) scaleX(0.5);
+    opacity: 0;
+  }
+}
+
+/* Grass hills, Solid Earth Ground, & Animated Flowers */
+.world-grass-wrapper {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 160px;
+  z-index: -5;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.grass-layer {
+  position: absolute;
+  bottom: 24px;
+  left: 0;
+  width: 100%;
+  height: calc(100% - 24px);
+  will-change: transform;
+}
+
+.grass-svg {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Back Grass Layer */
+.grass-back {
+  animation: swayHillsBack 7s ease-in-out infinite alternate;
+  transform-origin: bottom center;
+}
+
+.grass-back-fill {
+  fill: #0F382A;
+  stroke: #000000;
+  stroke-width: 3px;
+}
+
+[data-theme="light"] .grass-back-fill {
+  fill: #22C55E;
+  stroke: #000000;
+  stroke-width: 3px;
+}
+
+/* Mid Grass Layer */
+.grass-mid {
+  animation: swayHillsMid 5.5s ease-in-out infinite alternate;
+  transform-origin: bottom center;
+}
+
+.grass-mid-fill {
+  fill: #144A37;
+  stroke: #000000;
+  stroke-width: 3px;
+}
+
+[data-theme="light"] .grass-mid-fill {
+  fill: #16A34A;
+  stroke: #000000;
+  stroke-width: 3px;
+}
+
+/* Front Grass Layer */
+.grass-front {
+  animation: swayHillsFront 4.2s ease-in-out infinite alternate;
+  transform-origin: bottom center;
+}
+
+.grass-front-fill {
+  fill: #1A634B;
+  stroke: #000000;
+  stroke-width: 3px;
+}
+
+[data-theme="light"] .grass-front-fill {
+  fill: #15803D;
+  stroke: #000000;
+  stroke-width: 3px;
+}
+
+/* Solid Ground / Soil Base at bottom */
+.world-ground-base {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 28px;
+  background: #080A12;
+  border-top: 3px solid #000000;
+  z-index: 2;
+}
+
+[data-theme="light"] .world-ground-base {
+  background: #6B4226;
+  border-top: 3px solid #000000;
+}
+
+.ground-texture {
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(circle at 10px 10px, rgba(255, 255, 255, 0.1) 2px, transparent 0),
+    radial-gradient(circle at 25px 20px, rgba(0, 0, 0, 0.25) 2px, transparent 0);
+  background-size: 30px 24px;
+}
+
+/* ============================================================
+   ANIMATED WIND-SWAYING FLOWERS (Tilting along wind direction)
+   ============================================================ */
+
+.world-flowers-container {
+  position: absolute;
+  bottom: 24px;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 90px;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.swaying-flower {
+  position: absolute;
+  bottom: 0;
+  width: 24px;
+  height: 52px;
+  transform-origin: bottom center;
+  will-change: transform;
+}
+
+.flower-pos-1 {
+  left: 7%;
+  animation: swayFlowerLeft 4s ease-in-out infinite alternate;
+}
+
+.flower-pos-2 {
+  left: 22%;
+  animation: swayFlowerRight 3.2s ease-in-out infinite alternate 0.5s;
+}
+
+.flower-pos-3 {
+  left: 41%;
+  animation: swayFlowerLeft 4.5s ease-in-out infinite alternate 1.2s;
+}
+
+.flower-pos-4 {
+  left: 63%;
+  animation: swayFlowerRight 3.8s ease-in-out infinite alternate 0.8s;
+}
+
+.flower-pos-5 {
+  left: 81%;
+  animation: swayFlowerLeft 3.6s ease-in-out infinite alternate 0.3s;
+}
+
+.flower-pos-6 {
+  left: 93%;
+  animation: swayFlowerRight 4.2s ease-in-out infinite alternate 1.5s;
+}
+
+.flower-stem {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 40px;
+  background: #15803D;
+  border-left: 1.5px solid #000000;
+  border-right: 1.5px solid #000000;
+  border-radius: 2px;
+}
+
+.stem-short {
+  height: 32px;
+}
+
+.stem-tall {
+  height: 46px;
+}
+
+.flower-leaf {
+  position: absolute;
+  width: 10px;
+  height: 6px;
+  background: #22C55E;
+  border: 1.5px solid #000000;
+  border-radius: 50% 0 50% 0;
+}
+
+.leaf-left {
+  bottom: 16px;
+  left: -2px;
+  transform: rotate(-30deg);
+}
+
+.leaf-right {
+  bottom: 18px;
+  right: -2px;
+  transform: rotate(30deg) scaleX(-1);
+}
+
+.flower-head {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #000000;
+  box-shadow: 2px 2px 0px #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flower-yellow {
+  background: #FFE600;
+}
+
+.flower-pink {
+  background: #FF3366;
+}
+
+.flower-cyan {
+  background: #00D2FF;
+}
+
+.flower-purple {
+  background: #A855F7;
+}
+
+.flower-core {
+  width: 8px;
+  height: 8px;
+  background: #000000;
+  border-radius: 50%;
+}
+
+[data-theme="light"] .flower-yellow .flower-core {
+  background: #8B4513;
+}
+
+/* Dynamic Wind Sway Keyframes for Flowers */
+@keyframes swayFlowerLeft {
+  0% {
+    transform: rotate(-14deg) skewX(-8deg);
+  }
+  50% {
+    transform: rotate(4deg) skewX(2deg);
+  }
+  100% {
+    transform: rotate(16deg) skewX(10deg);
+  }
+}
+
+@keyframes swayFlowerRight {
+  0% {
+    transform: rotate(18deg) skewX(11deg);
+  }
+  50% {
+    transform: rotate(-2deg) skewX(-2deg);
+  }
+  100% {
+    transform: rotate(-12deg) skewX(-7deg);
+  }
+}
+
+/* Animated grass sway keyframes */
+@keyframes swayHillsBack {
+  0% {
+    transform: skewX(-1.5deg) scaleY(0.98);
+  }
+  100% {
+    transform: skewX(1.5deg) scaleY(1.02);
+  }
+}
+
+@keyframes swayHillsMid {
+  0% {
+    transform: skewX(2deg) scaleY(1.02);
+  }
+  100% {
+    transform: skewX(-2deg) scaleY(0.98);
+  }
+}
+
+@keyframes swayHillsFront {
+  0% {
+    transform: skewX(-2.5deg) scaleY(0.97);
+  }
+  100% {
+    transform: skewX(2.5deg) scaleY(1.03);
+  }
+}
+
+/* ============================================================
+   CONTAINER & LAYOUT
+   ============================================================ */
+
 .app-container {
   width: 100%;
   max-width: 1360px;
@@ -74,7 +637,20 @@ body {
   padding: 0 1.75rem;
 }
 
-/* Typography Hierarchy */
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+
+.font-pixel {
+  font-family: var(--font-pixel);
+  letter-spacing: 0.04em;
+}
+
+.font-silkscreen {
+  font-family: var(--font-silkscreen);
+  letter-spacing: 0.06em;
+}
+
 .font-serif {
   font-family: var(--font-serif);
 }
@@ -91,140 +667,209 @@ body {
   font-family: var(--font-sans);
 }
 
-/* Giant Editorial Display Text */
-.display-huge {
-  font-family: var(--font-serif);
-  font-size: clamp(4.5rem, 14vw, 13rem);
-  line-height: 0.88;
-  letter-spacing: -0.04em;
-  font-weight: 400;
+.font-brand {
+  font-family: var(--font-brand);
+  font-weight: 900;
+  letter-spacing: -0.03em;
 }
 
-.display-title {
-  font-family: var(--font-grotesk);
-  font-size: clamp(2.5rem, 6vw, 4.8rem);
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 900;
+}
+
+/* Pixel Display Headings Matching Reference */
+.display-pixel {
+  font-family: var(--font-pixel);
+  font-size: clamp(2.8rem, 8vw, 6.5rem);
   line-height: 0.95;
-  letter-spacing: -0.03em;
-  font-weight: 800;
+  font-weight: 700;
+  color: var(--accent-purple);
+  text-shadow: 3px 3px 0px rgba(99, 102, 241, 0.45), 5px 5px 0px rgba(0, 0, 0, 0.6);
+  letter-spacing: 0.02em;
   text-transform: uppercase;
 }
 
-.serif-italic {
-  font-family: var(--font-serif);
-  font-style: italic;
+[data-theme="light"] .display-pixel {
+  color: #6366F1;
+  text-shadow: 3px 3px 0px #C7D2FE, 5px 5px 0px #000000;
 }
 
+.display-huge {
+  font-family: var(--font-pixel);
+  font-size: clamp(4.5rem, 13vw, 11rem);
+  line-height: 0.9;
+  letter-spacing: 0.02em;
+  font-weight: 700;
+  color: var(--accent-purple);
+  text-shadow: 4px 4px 0px rgba(99, 102, 241, 0.45), 7px 7px 0px #000000;
+}
+
+[data-theme="light"] .display-huge {
+  color: #6366F1;
+  text-shadow: 4px 4px 0px #C7D2FE, 7px 7px 0px #000000;
+}
+
+.pixel-kicker {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-purple);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--accent-purple-subtle);
+  border: 2px solid var(--border-neo-strong);
+  box-shadow: 2px 2px 0px var(--shadow-neo);
+  padding: 0.35rem 0.85rem;
+  border-radius: 4px;
+}
+
+[data-theme="light"] .pixel-kicker {
+  background: var(--accent-yellow);
+  color: #000000;
+  border: 2px solid #000000;
+  box-shadow: 2px 2px 0px #000000;
+}
+
+/* Neo-Brutalist Stamps & Badges */
 .editorial-stamp {
   font-family: var(--font-mono);
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  font-weight: 800;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  border: 1px solid var(--border-editorial);
-  padding: 0.3rem 0.75rem;
-  border-radius: 2px;
+  border: 2px solid var(--border-neo-strong);
+  background: var(--accent-yellow);
+  color: #000000;
+  box-shadow: 3px 3px 0px var(--shadow-neo);
+  padding: 0.35rem 0.85rem;
+  border-radius: 4px;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
 }
 
 .editorial-rule {
-  height: 1px;
-  background: var(--border-editorial);
+  height: 3px;
+  background: var(--border-neo-strong);
   width: 100%;
   margin: 1.5rem 0;
 }
 
-.editorial-rule-strong {
-  height: 2px;
-  background: var(--text-primary);
-  width: 100%;
-  margin: 2rem 0;
-}
+/* ============================================================
+   TRUE NEO-BRUTALIST CARDS (Thick 3px Border + Solid 5px Black Shadow)
+   ============================================================ */
 
-/* High-Performance Hardware-Accelerated Card System */
-.editorial-card {
+.editorial-card,
+.neo-card {
   background: var(--bg-surface);
-  border: 1px solid var(--border-editorial);
+  border: 3px solid var(--border-neo-strong);
   border-radius: 6px;
   position: relative;
+  box-shadow: 5px 5px 0px var(--shadow-neo);
   transform: translateZ(0);
-  backface-visibility: hidden;
-  transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
 }
 
-.editorial-card:hover {
-  border-color: var(--border-editorial-strong);
-  background: var(--bg-card);
-  transform: translateY(-2px);
+.editorial-card:hover,
+.neo-card:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 8px 8px 0px var(--shadow-neo);
 }
 
-/* Performance Optimized Fast Problem Row */
+/* Main Hero Neo-Brutalist Banner */
+.neo-hero-card {
+  background: var(--bg-surface);
+  border: 3px solid var(--border-neo-strong);
+  border-radius: 8px;
+  box-shadow: 8px 8px 0px var(--shadow-neo);
+  padding: clamp(2rem, 5vw, 3.5rem);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.neo-hero-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 10px 10px 0px var(--shadow-neo);
+}
+
+/* Neo-Brutalist Problem Row */
 .problem-row-item {
   content-visibility: auto;
   contain-intrinsic-size: 0 68px;
   contain: layout style;
   transform: translateZ(0);
   background: var(--bg-surface);
-  border: 1px solid var(--border-editorial);
-  border-radius: 4px;
-  padding: 0.9rem 1.25rem;
+  border: 2.5px solid var(--border-neo-strong);
+  border-radius: 6px;
+  padding: 0.95rem 1.35rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 1rem;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  box-shadow: 4px 4px 0px var(--shadow-neo);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 
 .problem-row-item:hover {
-  border-color: var(--border-editorial-strong);
-  background: var(--bg-card);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px var(--shadow-neo);
+  background: var(--bg-card-hover);
 }
 
 .problem-row-item.is-solved {
-  background: rgba(16, 185, 129, 0.04);
-  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(0, 245, 155, 0.12);
+  border-color: #000000;
 }
 
-.editorial-card-cobalt {
-  background: var(--accent-cobalt);
-  color: #FFFFFF;
-  border: 1px solid var(--accent-cobalt);
+[data-theme="light"] .problem-row-item.is-solved {
+  background: rgba(34, 197, 94, 0.18);
+  border-color: #000000;
 }
 
-.editorial-card-paper {
-  background: var(--bg-paper);
-  color: var(--text-dark);
-  border: 1px solid var(--bg-paper-subtle);
-}
+/* ============================================================
+   NEO-BRUTALIST TACTILE BUTTONS (3px Border, Pure Black Shadow, High-Feedback Press)
+   ============================================================ */
 
-/* Primary Editorial Buttons */
-.btn-editorial-primary {
+.btn-editorial-primary,
+.btn-neo-purple {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.6rem;
-  background: var(--accent-cobalt);
+  background: var(--accent-purple);
   color: #FFFFFF;
   font-family: var(--font-grotesk);
-  font-weight: 700;
+  font-weight: 800;
   font-size: 0.95rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  padding: 0.9rem 1.8rem;
-  border-radius: 4px;
-  border: none;
+  padding: 0.85rem 1.75rem;
+  border-radius: 6px;
+  border: 3px solid var(--border-neo-strong);
+  box-shadow: 4px 4px 0px var(--shadow-neo);
   cursor: pointer;
   text-decoration: none;
-  transform: translateZ(0);
-  transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  transform: translate(0, 0);
+  transition: background-color 0.15s ease, transform 0.12s ease, box-shadow 0.12s ease;
 }
 
-.btn-editorial-primary:hover {
-  background: var(--accent-cobalt-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(33, 72, 255, 0.3);
+.btn-editorial-primary:hover,
+.btn-neo-purple:hover {
+  background: var(--accent-purple-hover);
+  transform: translate(-2px, -2px);
+  box-shadow: 7px 7px 0px var(--shadow-neo);
+}
+
+.btn-editorial-primary:active,
+.btn-neo-purple:active {
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0px var(--shadow-neo);
 }
 
 .btn-editorial-vermillion {
@@ -235,23 +880,29 @@ body {
   background: var(--accent-vermillion);
   color: #FFFFFF;
   font-family: var(--font-grotesk);
-  font-weight: 700;
+  font-weight: 800;
   font-size: 0.95rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  padding: 0.9rem 1.8rem;
-  border-radius: 4px;
-  border: none;
+  padding: 0.85rem 1.75rem;
+  border-radius: 6px;
+  border: 3px solid var(--border-neo-strong);
+  box-shadow: 4px 4px 0px var(--shadow-neo);
   cursor: pointer;
   text-decoration: none;
-  transform: translateZ(0);
-  transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  transform: translate(0, 0);
+  transition: background-color 0.15s ease, transform 0.12s ease, box-shadow 0.12s ease;
 }
 
 .btn-editorial-vermillion:hover {
-  background: #FF4E2D;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(255, 55, 20, 0.3);
+  background: #FF1A4B;
+  transform: translate(-2px, -2px);
+  box-shadow: 7px 7px 0px var(--shadow-neo);
+}
+
+.btn-editorial-vermillion:active {
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0px var(--shadow-neo);
 }
 
 .btn-editorial-outline {
@@ -259,26 +910,33 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background: transparent;
+  background: var(--bg-surface-solid);
   color: var(--text-primary);
   font-family: var(--font-grotesk);
-  font-weight: 700;
+  font-weight: 800;
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   padding: 0.75rem 1.4rem;
-  border-radius: 4px;
-  border: 1px solid var(--border-editorial-strong);
+  border-radius: 6px;
+  border: 3px solid var(--border-neo-strong);
+  box-shadow: 4px 4px 0px var(--shadow-neo);
   cursor: pointer;
   text-decoration: none;
-  transform: translateZ(0);
-  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  transform: translate(0, 0);
+  transition: background-color 0.15s ease, transform 0.12s ease, box-shadow 0.12s ease;
 }
 
 .btn-editorial-outline:hover {
-  background: rgba(245, 242, 235, 0.06);
-  border-color: var(--text-primary);
-  transform: translateY(-1px);
+  background: var(--accent-yellow);
+  color: #000000;
+  transform: translate(-2px, -2px);
+  box-shadow: 7px 7px 0px var(--shadow-neo);
+}
+
+.btn-editorial-outline:active {
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0px var(--shadow-neo);
 }
 
 /* LeetCode Solve Button */
@@ -288,25 +946,31 @@ body {
   justify-content: center;
   gap: 0.5rem;
   background: #FFA116;
-  color: #0A0B10;
+  color: #000000;
   font-family: var(--font-mono);
   font-weight: 800;
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   padding: 0.75rem 1.4rem;
-  border-radius: 4px;
-  border: none;
+  border-radius: 6px;
+  border: 3px solid var(--border-neo-strong);
+  box-shadow: 4px 4px 0px var(--shadow-neo);
   text-decoration: none;
   cursor: pointer;
-  transform: translateZ(0);
-  transition: background-color 0.15s ease, transform 0.15s ease;
+  transform: translate(0, 0);
+  transition: background-color 0.15s ease, transform 0.12s ease, box-shadow 0.12s ease;
 }
 
 .btn-leetcode:hover {
   background: #FFB338;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(255, 161, 22, 0.25);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px var(--shadow-neo);
+}
+
+.btn-leetcode:active {
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0px var(--shadow-neo);
 }
 
 /* GeeksforGeeks Solve Button */
@@ -323,140 +987,108 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   padding: 0.75rem 1.4rem;
-  border-radius: 4px;
-  border: none;
+  border-radius: 6px;
+  border: 3px solid var(--border-neo-strong);
+  box-shadow: 4px 4px 0px var(--shadow-neo);
   text-decoration: none;
   cursor: pointer;
-  transform: translateZ(0);
-  transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  transform: translate(0, 0);
+  transition: background-color 0.15s ease, transform 0.12s ease, box-shadow 0.12s ease;
 }
 
 .btn-gfg:hover {
   background: #38A653;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(47, 141, 70, 0.35);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px var(--shadow-neo);
 }
 
-/* InterviewBit Solve Button */
-.btn-interviewbit {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  background: #007BFF;
-  color: #FFFFFF;
-  font-family: var(--font-mono);
-  font-weight: 800;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 0.75rem 1.4rem;
-  border-radius: 4px;
-  border: none;
-  text-decoration: none;
-  cursor: pointer;
-  transform: translateZ(0);
-  transition: background-color 0.15s ease, transform 0.15s ease;
+.btn-gfg:active {
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0px var(--shadow-neo);
 }
 
-.btn-interviewbit:hover {
-  background: #1A8AFF;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 123, 255, 0.35);
-}
-
-/* Coding Ninjas Solve Button */
-.btn-codingninjas {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  background: #F25C05;
-  color: #FFFFFF;
-  font-family: var(--font-mono);
-  font-weight: 800;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 0.75rem 1.4rem;
-  border-radius: 4px;
-  border: none;
-  text-decoration: none;
-  cursor: pointer;
-  transform: translateZ(0);
-  transition: background-color 0.15s ease, transform 0.15s ease;
-}
-
-.btn-codingninjas:hover {
-  background: #FF6E1A;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(242, 92, 5, 0.35);
-}
-
-/* Editorial Badges */
+/* Neo-Brutalist Badges */
 .badge-diff-easy {
   font-family: var(--font-mono);
   font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--accent-acid);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  background: rgba(16, 185, 129, 0.08);
-  padding: 0.2rem 0.5rem;
-  border-radius: 2px;
+  font-weight: 800;
+  color: #000000;
+  border: 2px solid #000000;
+  background: #00F59B;
+  box-shadow: 2px 2px 0px #000000;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
   text-transform: uppercase;
 }
 
 .badge-diff-medium {
   font-family: var(--font-mono);
   font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--accent-amber);
-  border: 1px solid rgba(255, 158, 0, 0.3);
-  background: rgba(255, 158, 0, 0.08);
-  padding: 0.2rem 0.5rem;
-  border-radius: 2px;
+  font-weight: 800;
+  color: #000000;
+  border: 2px solid #000000;
+  background: #FFE600;
+  box-shadow: 2px 2px 0px #000000;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
   text-transform: uppercase;
 }
 
 .badge-diff-hard {
   font-family: var(--font-mono);
   font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--accent-vermillion);
-  border: 1px solid rgba(255, 55, 20, 0.3);
-  background: rgba(255, 55, 20, 0.08);
-  padding: 0.2rem 0.5rem;
-  border-radius: 2px;
+  font-weight: 800;
+  color: #FFFFFF;
+  border: 2px solid #000000;
+  background: #FF3366;
+  box-shadow: 2px 2px 0px #000000;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
   text-transform: uppercase;
 }
 
 .badge-rank-up {
   color: var(--accent-acid);
   font-family: var(--font-mono);
-  font-weight: 700;
+  font-weight: 800;
   font-size: 0.8rem;
 }
 
 .badge-rank-down {
   color: var(--accent-vermillion);
   font-family: var(--font-mono);
-  font-weight: 700;
+  font-weight: 800;
   font-size: 0.8rem;
 }
 
 .badge-rank-same {
   color: var(--text-muted);
   font-family: var(--font-mono);
-  font-weight: 700;
+  font-weight: 800;
   font-size: 0.8rem;
+}
+
+/* Theme Toggle Button */
+.neo-theme-toggle {
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s ease;
+}
+
+.neo-theme-toggle:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0px var(--shadow-neo) !important;
+}
+
+.neo-theme-toggle:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px var(--shadow-neo) !important;
 }
 
 /* Modal Overlay */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(10, 11, 16, 0.85);
-  backdrop-filter: blur(4px);
+  background: rgba(10, 12, 20, 0.82);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -467,14 +1099,19 @@ body {
 /* Progress bar */
 .progress-bar-bg {
   width: 100%;
-  background: rgba(245, 242, 235, 0.08);
-  height: 4px;
+  background: var(--bg-subtle);
+  border: 2px solid var(--border-neo-strong);
+  border-radius: 6px;
+  height: 10px;
+  overflow: hidden;
   position: relative;
+  box-shadow: 2px 2px 0px var(--shadow-neo);
 }
 
-.progress-bar-fill-cobalt {
+.progress-bar-fill-cobalt,
+.progress-bar-fill-purple {
   height: 100%;
-  background: var(--accent-cobalt);
+  background: var(--accent-purple);
   transition: width 0.3s ease;
 }
 
@@ -486,7 +1123,6 @@ body {
 
 /* ============================================================
    RESPONSIVE MEDIA QUERIES (MOBILE & TABLET ONLY)
-   Desktop layout (min-width: 841px) is 100% preserved
    ============================================================ */
 
 @media (max-width: 840px) {
@@ -494,8 +1130,9 @@ body {
     padding: 0 1.25rem;
   }
 
+  .neo-hero-card,
   .editorial-card {
-    box-shadow: 6px 6px 0px rgba(33, 72, 255, 0.15) !important;
+    box-shadow: 4px 4px 0px var(--shadow-neo) !important;
   }
 }
 
@@ -504,18 +1141,16 @@ body {
     padding: 0 1rem;
   }
 
-  /* Prevent horizontal overflow on small mobile screens (320px - 430px) */
   body, html {
     overflow-x: hidden;
     width: 100%;
   }
 
-  /* Scale large fixed box-shadows on mobile */
+  .neo-hero-card,
   .editorial-card {
-    box-shadow: 4px 4px 0px rgba(33, 72, 255, 0.15) !important;
+    box-shadow: 3px 3px 0px var(--shadow-neo) !important;
   }
 
-  /* Touch-friendly inputs with 16px font size to prevent iOS zoom */
   input[type="text"],
   input[type="email"],
   input[type="password"],
@@ -524,13 +1159,11 @@ body {
     font-size: 16px !important;
   }
 
-  /* Responsive Problem Rows */
   .problem-row-item {
     padding: 0.85rem 1rem;
     gap: 0.75rem;
   }
 
-  /* Responsive Buttons */
   .btn-editorial-primary,
   .btn-editorial-vermillion,
   .btn-editorial-outline,
@@ -538,9 +1171,235 @@ body {
     min-height: 44px;
   }
 
-  /* Modal Dialogs */
   .modal-overlay {
     padding: 1rem;
   }
 }
+
+/* ============================================================
+   MARIO JUMPER & HIGH-VOLTAGE SINGLE FRAME LOGIN HERO
+   ============================================================ */
+
+/* Hide default GlyphPortal text link/captions */
+[data-gp-caption],
+[data-gp-enter],
+[data-gp-hint] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.mario-stage-container {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 25;
+  overflow: hidden;
+}
+
+/* Mario Jumping Track directly overlaid on top of CODERIFT letters */
+.mario-letters-track,
+.mario-letters-track-static {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 28;
+}
+
+/* Authentic NES Mario character - Always 100% solid opacity */
+.mario-character-runner {
+  position: absolute;
+  bottom: 55px;
+  width: 50px;
+  height: 60px;
+  opacity: 1 !important;
+  pointer-events: auto;
+  z-index: 35;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.45));
+  animation: marioWordTraverse 11.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+/* Mario Traversal across C-O-D-E-R-I-F-T with crisp hops and ZERO fading */
+@keyframes marioWordTraverse {
+  0% { left: 4%; bottom: 55px; transform: scaleX(1); opacity: 1; }
+  7% { left: 16%; bottom: 120px; transform: scaleX(1); opacity: 1; }
+  14% { left: 17%; bottom: 55px; transform: scaleX(1); opacity: 1; }
+  21% { left: 28%; bottom: 120px; transform: scaleX(1); opacity: 1; }
+  28% { left: 29%; bottom: 55px; transform: scaleX(1); opacity: 1; }
+  35% { left: 40%; bottom: 120px; transform: scaleX(1); opacity: 1; }
+  42% { left: 41%; bottom: 55px; transform: scaleX(1); opacity: 1; }
+  49% { left: 52%; bottom: 120px; transform: scaleX(1); opacity: 1; }
+  56% { left: 53%; bottom: 55px; transform: scaleX(1); opacity: 1; }
+  63% { left: 64%; bottom: 120px; transform: scaleX(1); opacity: 1; }
+  70% { left: 65%; bottom: 55px; transform: scaleX(1); opacity: 1; }
+  77% { left: 76%; bottom: 120px; transform: scaleX(1); opacity: 1; }
+  84% { left: 77%; bottom: 55px; transform: scaleX(1); opacity: 1; }
+  90% { left: 88%; bottom: 120px; transform: scaleX(1); opacity: 1; }
+  93% { left: 89%; bottom: 55px; transform: scaleX(1); opacity: 1; }
+  96% { left: 89%; bottom: 80px; transform: scaleX(-1); opacity: 1; }
+  98% { left: 89%; bottom: 55px; transform: scaleX(1); opacity: 1; }
+  100% { left: 4%; bottom: 55px; transform: scaleX(1); opacity: 1; }
+}
+
+/* Speech Bubble above Mario */
+.mario-speech-bubble-wrapper {
+  position: absolute;
+  bottom: 72px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #FFE600;
+  color: #000000;
+  border: 2px solid #000000;
+  box-shadow: 3px 3px 0px #000000;
+  border-radius: 6px;
+  padding: 0.35rem 0.75rem;
+  font-family: var(--font-pixel);
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+  pointer-events: auto;
+  z-index: 40;
+}
+
+.mario-speech-bubble-wrapper::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid #000000;
+}
+
+/* Dust Puff and FX */
+.mario-dust-puff,
+.mario-fx-coin,
+.mario-fx-star {
+  position: absolute;
+  display: none;
+}
+
+/* Single Frame Scroll Prompt - Positioned right below the word CODERIFT */
+.mario-scroll-prompt-wrapper {
+  position: absolute;
+  top: calc(50% + clamp(60px, 12vw, 110px));
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: auto;
+  z-index: 35;
+  width: 90%;
+  max-width: 500px;
+  display: flex;
+  justify-content: center;
+}
+
+.mario-scroll-pill-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  background: var(--bg-surface);
+  border: 3px solid var(--border-neo-strong);
+  box-shadow: 6px 6px 0px var(--shadow-neo);
+  padding: 0.85rem 1.25rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transform: translate(0, 0);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s ease;
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.mario-scroll-pill-btn:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 9px 9px 0px var(--shadow-neo);
+  background: var(--bg-card-hover);
+}
+
+.mario-scroll-pill-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px var(--shadow-neo);
+}
+
+.scroll-pill-badge {
+  display: inline-flex;
+  align-items: center;
+  background: #E52521;
+  color: #FFFFFF;
+  border: 2px solid #000000;
+  box-shadow: 2px 2px 0px #000000;
+  padding: 0.35rem 0.75rem;
+  border-radius: 4px;
+  font-family: var(--font-pixel);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.scroll-pill-text-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  flex: 1;
+}
+
+.scroll-pill-title {
+  font-family: var(--font-pixel);
+  font-size: clamp(0.95rem, 2vw, 1.2rem);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.04em;
+}
+
+.scroll-bounce-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFE600;
+  color: #000000;
+  border: 2px solid #000000;
+  box-shadow: 2px 2px 0px #000000;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  animation: marioArrowBounce 0.8s ease-in-out infinite alternate;
+  flex-shrink: 0;
+}
+
+@keyframes marioArrowBounce {
+  0% { transform: translateY(-4px); }
+  100% { transform: translateY(4px); }
+}
+
+@media (max-width: 640px) {
+  .mario-scroll-pill-btn {
+    padding: 0.7rem 0.9rem;
+    gap: 0.5rem;
+  }
+  .scroll-pill-title {
+    font-size: 0.78rem;
+  }
+  .scroll-bounce-arrow {
+    width: 26px;
+    height: 26px;
+  }
+}
+
 

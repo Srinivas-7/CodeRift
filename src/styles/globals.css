@@ -1007,6 +1007,74 @@ body {
   box-shadow: 1px 1px 0px var(--shadow-neo);
 }
 
+/* InterviewBit Solve Button */
+.btn-interviewbit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: #007BFF;
+  color: #FFFFFF;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.75rem 1.4rem;
+  border-radius: 6px;
+  border: 3px solid var(--border-neo-strong);
+  box-shadow: 4px 4px 0px var(--shadow-neo);
+  text-decoration: none;
+  cursor: pointer;
+  transform: translate(0, 0);
+  transition: background-color 0.15s ease, transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.btn-interviewbit:hover {
+  background: #1A8CFF;
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px var(--shadow-neo);
+}
+
+.btn-interviewbit:active {
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0px var(--shadow-neo);
+}
+
+/* Coding Ninjas Solve Button */
+.btn-codingninjas {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: #F25C05;
+  color: #FFFFFF;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.75rem 1.4rem;
+  border-radius: 6px;
+  border: 3px solid var(--border-neo-strong);
+  box-shadow: 4px 4px 0px var(--shadow-neo);
+  text-decoration: none;
+  cursor: pointer;
+  transform: translate(0, 0);
+  transition: background-color 0.15s ease, transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.btn-codingninjas:hover {
+  background: #FF6E1A;
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px var(--shadow-neo);
+}
+
+.btn-codingninjas:active {
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0px var(--shadow-neo);
+}
+
 /* Neo-Brutalist Badges */
 .badge-diff-easy {
   font-family: var(--font-mono);

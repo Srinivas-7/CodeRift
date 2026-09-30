@@ -14,6 +14,10 @@ import {
   LogOut,
   ChevronDown,
   Award,
+  Zap,
+  Users,
+  Map,
+  Trophy,
 } from "lucide-react";
 
 interface NavbarProps {
@@ -46,8 +50,17 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
     { label: "LEADERBOARD", href: "/leaderboard" },
   ];
 
+  const mobileDockLinks = [
+    { label: "DAILY 3", href: user ? "/dashboard" : "/login", icon: Zap },
+    { label: "SQUADS", href: user ? "/groups" : "/login", icon: Users },
+    { label: "ROADMAP", href: "/problems", icon: Map },
+    { label: "RANKS", href: "/leaderboard", icon: Trophy },
+    { label: user ? "WARRIOR" : "LOGIN", href: user ? "/profile" : "/login", icon: User },
+  ];
+
   return (
-    <header
+    <>
+      <header
       style={{
         position: "sticky",
         top: 0,
@@ -583,5 +596,27 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
         }
       `}</style>
     </header>
+
+    {/* MOBILE BOTTOM ARCADE DOCK (Only visible on mobile screens < 840px) */}
+    <nav className="mobile-bottom-dock" aria-label="Mobile Navigation Dock">
+      {mobileDockLinks.map((item) => {
+        const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(`${item.href}/`));
+        const Icon = item.icon;
+        return (
+          <Link
+            key={item.label}
+            href={item.href}
+            prefetch={true}
+            className={`mobile-dock-btn ${isActive ? "active" : ""}`}
+          >
+            <div className="mobile-dock-icon-wrap">
+              <Icon size={19} />
+            </div>
+            <span className="mobile-dock-label">{item.label}</span>
+          </Link>
+        );
+      })}
+    </nav>
+    </>
   );
 }

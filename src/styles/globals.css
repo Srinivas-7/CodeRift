@@ -935,10 +935,22 @@ body {
 }
 
 .btn-editorial-outline:hover {
-  background: var(--accent-yellow);
-  color: #000000;
+  background: var(--accent-yellow) !important;
+  color: #000000 !important;
   transform: translate(-2px, -2px);
   box-shadow: 7px 7px 0px var(--shadow-neo);
+}
+
+.btn-yellow,
+.btn-editorial-yellow {
+  background: var(--accent-yellow) !important;
+  color: #000000 !important;
+}
+
+.btn-yellow:hover,
+.btn-editorial-yellow:hover {
+  background: var(--accent-yellow) !important;
+  color: #000000 !important;
 }
 
 .btn-editorial-outline:active {

@@ -199,12 +199,12 @@ export function ProblemListClient({
             </h1>
           </div>
 
-          <div style={{ textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.6rem" }}>
+          <div style={{ textAlign: "left", display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "0.6rem" }}>
             <div>
-              <div className="font-pixel" style={{ fontSize: "2.4rem", color: "var(--text-primary)", lineHeight: 1 }}>
+              <div className="font-pixel" style={{ fontSize: "2.4rem", color: "var(--text-primary)", lineHeight: 1, textAlign: "left" }}>
                 {totalSolved} <span style={{ fontSize: "1.2rem", color: "var(--text-muted)" }}>/ 191</span>
               </div>
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem", color: "var(--accent-purple)", fontWeight: 800 }}>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem", color: "var(--accent-purple)", fontWeight: 800, textAlign: "left" }}>
                 {progressPercent}% MASTERED
               </div>
             </div>

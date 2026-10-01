@@ -38,23 +38,23 @@ export default async function LandingPage() {
               justifyContent: "space-between",
               alignItems: "center",
               flexWrap: "wrap",
-              gap: "1rem",
-              marginBottom: "2rem",
+              gap: "0.5rem",
+              marginBottom: "1.5rem",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
-              <span className="editorial-stamp">
-                <Zap size={14} fill="#000000" />
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+              <span className="editorial-stamp" style={{ fontSize: "0.75rem", padding: "0.3rem 0.65rem" }}>
+                <Zap size={13} fill="#000000" />
                 GAMIFIED DSA ARENA
               </span>
               <span
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: "0.8rem",
+                  fontSize: "0.75rem",
                   color: "var(--text-primary)",
                   fontWeight: 800,
                   background: "var(--bg-surface)",
-                  padding: "0.35rem 0.75rem",
+                  padding: "0.3rem 0.65rem",
                   border: "2px solid var(--border-neo-strong)",
                   borderRadius: "4px",
                   boxShadow: "2px 2px 0px var(--shadow-neo)",
@@ -67,11 +67,11 @@ export default async function LandingPage() {
             <div
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: "0.8rem",
+                fontSize: "0.75rem",
                 color: "var(--text-primary)",
                 fontWeight: 800,
                 background: "var(--bg-surface)",
-                padding: "0.35rem 0.75rem",
+                padding: "0.3rem 0.65rem",
                 border: "2px solid var(--border-neo-strong)",
                 borderRadius: "4px",
                 boxShadow: "2px 2px 0px var(--shadow-neo)",
@@ -91,11 +91,12 @@ export default async function LandingPage() {
             </div>
 
             {/* Pixel Headline */}
-            <div style={{ marginBottom: "2rem" }}>
+            <div style={{ marginBottom: "1.5rem" }}>
               <h1
                 className="display-pixel"
                 style={{
-                  marginBottom: "0.4rem",
+                  marginBottom: "0.3rem",
+                  wordBreak: "break-word",
                 }}
               >
                 191 PROBLEMS.
@@ -103,11 +104,12 @@ export default async function LandingPage() {
               <div
                 className="font-pixel"
                 style={{
-                  fontSize: "clamp(1.8rem, 4.8vw, 3.8rem)",
+                  fontSize: "clamp(1.5rem, 4.5vw, 3.8rem)",
                   fontWeight: 700,
                   color: "var(--text-primary)",
                   letterSpacing: "0.02em",
-                  lineHeight: 1.1,
+                  lineHeight: 1.15,
+                  wordBreak: "break-word",
                 }}
               >
                 THREE EVERY SINGLE DAY.
@@ -118,31 +120,31 @@ export default async function LandingPage() {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))",
-                gap: "2.5rem",
+                gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
+                gap: "2rem",
                 alignItems: "center",
                 borderTop: "3px solid var(--border-neo-strong)",
-                paddingTop: "2rem",
+                paddingTop: "1.75rem",
               }}
             >
               <div>
                 <p
                   style={{
-                    fontSize: "1.15rem",
+                    fontSize: "clamp(0.95rem, 2.5vw, 1.15rem)",
                     color: "var(--text-secondary)",
-                    lineHeight: 1.65,
-                    marginBottom: "1.75rem",
+                    lineHeight: 1.6,
+                    marginBottom: "1.5rem",
                     fontWeight: 500,
                   }}
                 >
                   Stop staring at an intimidating 191-problem mountain. We break it down into 3 manageable challenges every 24 hours. Solve authentically on LeetCode & GFG, maintain daily streaks, and conquer private squad leaderboards with your friends.
                 </p>
 
-                <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
                   <Link
                     href={user ? "/dashboard" : "/login"}
                     className="btn-editorial-primary"
-                    style={{ fontSize: "1rem", padding: "0.95rem 2rem" }}
+                    style={{ fontSize: "0.95rem", padding: "0.85rem 1.6rem", flex: "1 1 auto", textAlign: "center", justifyContent: "center" }}
                   >
                     GET IN TO ARENA →
                   </Link>
@@ -150,7 +152,7 @@ export default async function LandingPage() {
                   <Link
                     href={user ? "/groups" : "/login"}
                     className="btn-editorial-outline"
-                    style={{ fontSize: "0.95rem", padding: "0.95rem 1.8rem" }}
+                    style={{ fontSize: "0.9rem", padding: "0.85rem 1.4rem", flex: "1 1 auto", textAlign: "center", justifyContent: "center" }}
                   >
                     JOIN A SQUAD
                   </Link>

@@ -241,6 +241,7 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
 
               {/* SCORE Counter */}
               <div
+                className="desktop-score-counter"
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -449,8 +450,8 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
           ) : (
             <Link
               href="/login"
-              className="btn-editorial-primary font-grotesk"
-              style={{ fontSize: "0.85rem", padding: "0.55rem 1.25rem", fontWeight: 800, letterSpacing: "0.04em" }}
+              className="btn-editorial-primary font-grotesk desktop-auth-btn"
+              style={{ fontSize: "0.85rem", padding: "0.55rem 1.25rem", fontWeight: 800, letterSpacing: "0.04em", whiteSpace: "nowrap" }}
             >
               GET IN TO ARENA →
             </Link>
@@ -586,11 +587,27 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
       )}
 
       <style jsx>{`
+        @media (max-width: 839px) {
+          .desktop-nav {
+            display: none !important;
+          }
+          .desktop-auth-btn {
+            display: none !important;
+          }
+        }
         @media (min-width: 840px) {
           .desktop-nav {
             display: flex !important;
           }
           .mobile-toggle {
+            display: none !important;
+          }
+          .desktop-auth-btn {
+            display: inline-flex !important;
+          }
+        }
+        @media (max-width: 640px) {
+          .desktop-score-counter {
             display: none !important;
           }
         }

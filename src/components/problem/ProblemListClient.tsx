@@ -259,12 +259,12 @@ export function ProblemListClient({
           marginBottom: "2.5rem",
         }}
       >
-        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "stretch" }}>
           {/* Search bar */}
           <div
             style={{
-              flex: 1,
-              minWidth: "280px",
+              flex: "1 1 240px",
+              minWidth: "0",
               position: "relative",
               display: "flex",
               alignItems: "center",
@@ -299,7 +299,14 @@ export function ProblemListClient({
           </div>
 
           {/* Difficulty filter buttons */}
-          <div style={{ display: "flex", gap: "0.4rem" }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 1fr)",
+              gap: "0.35rem",
+              flex: "1 1 260px",
+            }}
+          >
             {["ALL", "Easy", "Medium", "Hard"].map((diff) => (
               <button
                 key={diff}
@@ -310,12 +317,14 @@ export function ProblemListClient({
                   color: selectedDifficulty === diff ? "#FFF" : "var(--text-secondary)",
                   border: "2.5px solid var(--border-neo-strong)",
                   boxShadow: "2px 2px 0px var(--shadow-neo)",
-                  padding: "0.6rem 1rem",
+                  padding: "0.6rem 0.4rem",
                   borderRadius: "6px",
-                  fontSize: "0.8rem",
+                  fontSize: "0.75rem",
                   fontWeight: 800,
                   cursor: "pointer",
                   transition: "all 0.15s ease",
+                  textAlign: "center",
+                  whiteSpace: "nowrap",
                 }}
               >
                 {diff.toUpperCase()}
@@ -325,14 +334,70 @@ export function ProblemListClient({
         </div>
 
         {/* Categories horizontal bar + Expand/Collapse All Buttons */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.75rem" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem", width: "100%" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "0.5rem",
+              flexWrap: "wrap",
+            }}
+          >
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem", fontWeight: 800, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              Topics ({SDE_CATEGORIES.length})
+            </div>
+
+            {/* Quick Accordion Utilities */}
+            <div style={{ display: "flex", gap: "0.4rem" }}>
+              <button
+                onClick={expandAllCategories}
+                className="font-mono"
+                style={{
+                  background: "var(--bg-surface)",
+                  color: "var(--text-primary)",
+                  border: "2px solid var(--border-neo-strong)",
+                  boxShadow: "2px 2px 0px var(--shadow-neo)",
+                  padding: "0.35rem 0.65rem",
+                  borderRadius: "4px",
+                  fontSize: "0.7rem",
+                  fontWeight: 800,
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                EXPAND ALL
+              </button>
+              <button
+                onClick={collapseAllCategories}
+                className="font-mono"
+                style={{
+                  background: "var(--bg-surface)",
+                  color: "var(--text-primary)",
+                  border: "2px solid var(--border-neo-strong)",
+                  boxShadow: "2px 2px 0px var(--shadow-neo)",
+                  padding: "0.35rem 0.65rem",
+                  borderRadius: "4px",
+                  fontSize: "0.7rem",
+                  fontWeight: 800,
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                COLLAPSE ALL
+              </button>
+            </div>
+          </div>
+
           <div
             style={{
               display: "flex",
               gap: "0.5rem",
               overflowX: "auto",
-              paddingBottom: "0.5rem",
-              flex: 1,
+              paddingBottom: "0.4rem",
+              width: "100%",
+              minWidth: 0,
+              scrollbarWidth: "none",
             }}
           >
             <button
@@ -340,11 +405,12 @@ export function ProblemListClient({
               className="font-mono"
               style={{
                 whiteSpace: "nowrap",
+                flexShrink: 0,
                 background: selectedCategory === "ALL" ? "var(--accent-purple)" : "var(--bg-surface)",
                 color: selectedCategory === "ALL" ? "#FFF" : "var(--text-muted)",
                 border: "2px solid var(--border-neo-strong)",
                 boxShadow: "2px 2px 0px var(--shadow-neo)",
-                padding: "0.4rem 0.85rem",
+                padding: "0.45rem 0.85rem",
                 borderRadius: "6px",
                 fontSize: "0.75rem",
                 fontWeight: 800,
@@ -363,11 +429,12 @@ export function ProblemListClient({
                   className="font-mono"
                   style={{
                     whiteSpace: "nowrap",
+                    flexShrink: 0,
                     background: isSel ? "var(--accent-purple)" : "var(--bg-surface)",
                     color: isSel ? "#FFF" : "var(--text-muted)",
                     border: "2px solid var(--border-neo-strong)",
                     boxShadow: "2px 2px 0px var(--shadow-neo)",
-                    padding: "0.4rem 0.85rem",
+                    padding: "0.45rem 0.85rem",
                     borderRadius: "6px",
                     fontSize: "0.75rem",
                     fontWeight: 800,
@@ -379,44 +446,6 @@ export function ProblemListClient({
                 </button>
               );
             })}
-          </div>
-
-          {/* Quick Accordion Utilities */}
-          <div style={{ display: "flex", gap: "0.4rem" }}>
-            <button
-              onClick={expandAllCategories}
-              className="font-mono"
-              style={{
-                background: "var(--bg-surface)",
-                color: "var(--text-primary)",
-                border: "2px solid var(--border-neo-strong)",
-                boxShadow: "2px 2px 0px var(--shadow-neo)",
-                padding: "0.4rem 0.75rem",
-                borderRadius: "4px",
-                fontSize: "0.75rem",
-                fontWeight: 800,
-                cursor: "pointer",
-              }}
-            >
-              EXPAND ALL
-            </button>
-            <button
-              onClick={collapseAllCategories}
-              className="font-mono"
-              style={{
-                background: "var(--bg-surface)",
-                color: "var(--text-primary)",
-                border: "2px solid var(--border-neo-strong)",
-                boxShadow: "2px 2px 0px var(--shadow-neo)",
-                padding: "0.4rem 0.75rem",
-                borderRadius: "4px",
-                fontSize: "0.75rem",
-                fontWeight: 800,
-                cursor: "pointer",
-              }}
-            >
-              COLLAPSE ALL
-            </button>
           </div>
         </div>
       </div>

@@ -681,13 +681,15 @@ body {
 /* Pixel Display Headings Matching Reference */
 .display-pixel {
   font-family: var(--font-pixel);
-  font-size: clamp(2.8rem, 8vw, 6.5rem);
+  font-size: clamp(2rem, 7vw, 6.5rem);
   line-height: 0.95;
   font-weight: 700;
   color: var(--accent-purple);
   text-shadow: 3px 3px 0px rgba(99, 102, 241, 0.45), 5px 5px 0px rgba(0, 0, 0, 0.6);
   letter-spacing: 0.02em;
   text-transform: uppercase;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 [data-theme="light"] .display-pixel {
@@ -697,12 +699,14 @@ body {
 
 .display-huge {
   font-family: var(--font-pixel);
-  font-size: clamp(4.5rem, 13vw, 11rem);
+  font-size: clamp(3rem, 11vw, 11rem);
   line-height: 0.9;
   letter-spacing: 0.02em;
   font-weight: 700;
   color: var(--accent-purple);
   text-shadow: 4px 4px 0px rgba(99, 102, 241, 0.45), 7px 7px 0px #000000;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 [data-theme="light"] .display-huge {
@@ -712,9 +716,9 @@ body {
 
 .pixel-kicker {
   font-family: var(--font-mono);
-  font-size: 0.85rem;
+  font-size: clamp(0.68rem, 2.2vw, 0.85rem);
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--accent-purple);
   display: inline-flex;
@@ -723,8 +727,11 @@ body {
   background: var(--accent-purple-subtle);
   border: 2px solid var(--border-neo-strong);
   box-shadow: 2px 2px 0px var(--shadow-neo);
-  padding: 0.35rem 0.85rem;
+  padding: 0.35rem 0.75rem;
   border-radius: 4px;
+  max-width: 100%;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 [data-theme="light"] .pixel-kicker {

@@ -585,33 +585,6 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
           )}
         </div>
       )}
-
-      <style jsx>{`
-        @media (max-width: 839px) {
-          .desktop-nav {
-            display: none !important;
-          }
-          .desktop-auth-btn {
-            display: none !important;
-          }
-        }
-        @media (min-width: 840px) {
-          .desktop-nav {
-            display: flex !important;
-          }
-          .mobile-toggle {
-            display: none !important;
-          }
-          .desktop-auth-btn {
-            display: inline-flex !important;
-          }
-        }
-        @media (max-width: 640px) {
-          .desktop-score-counter {
-            display: none !important;
-          }
-        }
-      `}</style>
     </header>
 
     {/* MOBILE BOTTOM ARCADE DOCK (Only visible on mobile screens < 840px) */}

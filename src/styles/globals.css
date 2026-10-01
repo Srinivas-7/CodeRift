@@ -1204,7 +1204,40 @@ body {
   display: none;
 }
 
+.desktop-nav {
+  display: flex;
+}
+
+.desktop-auth-btn {
+  display: inline-flex;
+}
+
+.mobile-toggle {
+  display: none;
+}
+
+.desktop-score-counter {
+  display: flex;
+}
+
 @media (max-width: 839px) {
+  /* On mobile (<840px), hide desktop links, header auth CTA button, and hamburger toggle */
+  .desktop-nav {
+    display: none !important;
+  }
+
+  .desktop-auth-btn {
+    display: none !important;
+  }
+
+  .mobile-toggle {
+    display: none !important;
+  }
+
+  .desktop-score-counter {
+    display: none !important;
+  }
+
   /* Prevent content from being covered by the bottom dock */
   main {
     padding-bottom: calc(5.25rem + env(safe-area-inset-bottom, 0px)) !important;

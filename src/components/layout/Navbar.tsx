@@ -217,7 +217,7 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
           <ThemeToggle />
 
           {user ? (
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <div className="desktop-user-menu" style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
               {/* Streak Badge */}
               <div
                 style={{

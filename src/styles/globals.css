@@ -1232,13 +1232,21 @@ body {
   display: flex;
 }
 
+.desktop-user-menu {
+  display: flex;
+}
+
 @media (max-width: 839px) {
-  /* On mobile (<840px), hide desktop links, header auth CTA button, and hamburger toggle */
+  /* On mobile (<840px), hide desktop links, header auth CTA button, user menu, and hamburger toggle */
   .desktop-nav {
     display: none !important;
   }
 
   .desktop-auth-btn {
+    display: none !important;
+  }
+
+  .desktop-user-menu {
     display: none !important;
   }
 

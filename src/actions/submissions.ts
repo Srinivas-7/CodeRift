@@ -83,7 +83,8 @@ export async function verifyAndCompleteProblemSubmission(input: VerifySubmission
     verification = await verifyGfgSubmission(
       effectiveGfgUsername,
       problem.title,
-      problem.leetcodeUrl
+      problem.leetcodeUrl,
+      { maxTimestamp: new Date(Date.now() + 60000) }
     );
 
     if (!verification.verified) {
@@ -91,17 +92,6 @@ export async function verifyAndCompleteProblemSubmission(input: VerifySubmission
         success: false,
         error: verification.message || "Could not verify submission on GeeksforGeeks.",
       };
-    }
-
-    // Save connected GFG handle if provided
-    if (input.gfgUsername && !user.gfgConnected) {
-      await db.user.update({
-        where: { id: user.id },
-        data: {
-          gfgUsername: input.gfgUsername.trim().replace(/^@/, ""),
-          gfgConnected: true,
-        },
-      });
     }
   } else {
     // LeetCode verification
@@ -121,7 +111,8 @@ export async function verifyAndCompleteProblemSubmission(input: VerifySubmission
     verification = await verifyLeetCodeSubmission(
       effectiveUsername,
       problem.title,
-      problem.leetcodeUrl
+      problem.leetcodeUrl,
+      { maxTimestamp: new Date(Date.now() + 60000) }
     );
 
     if (!verification.verified) {
@@ -129,17 +120,6 @@ export async function verifyAndCompleteProblemSubmission(input: VerifySubmission
         success: false,
         error: verification.message || "Could not verify submission on LeetCode.",
       };
-    }
-
-    // Save connected LeetCode username if provided
-    if (input.leetcodeUsername && !user.leetcodeConnected) {
-      await db.user.update({
-        where: { id: user.id },
-        data: {
-          leetcodeUsername: input.leetcodeUsername.trim().replace(/^@/, ""),
-          leetcodeConnected: true,
-        },
-      });
     }
   }
 

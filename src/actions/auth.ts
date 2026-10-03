@@ -181,6 +181,36 @@ const UpdateProfileSchema = z.object({
 });
 
 /**
+ * Retrieve or generate a unique handle ownership verification token for the authenticated user
+ */
+export async function getOrCreateHandleVerificationToken() {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) {
+    return { success: false, error: "Authentication required." };
+  }
+
+  const user = await db.user.findUnique({
+    where: { id: currentUser.id },
+  });
+
+  if (!user) {
+    return { success: false, error: "User profile not found." };
+  }
+
+  if (user.handleVerificationCode) {
+    return { success: true, token: user.handleVerificationCode };
+  }
+
+  const token = `CR-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+  await db.user.update({
+    where: { id: currentUser.id },
+    data: { handleVerificationCode: token },
+  });
+
+  return { success: true, token };
+}
+
+/**
  * Connect or update LeetCode Account
  */
 export async function connectLeetCodeAccount(leetcodeUsername: string) {
@@ -199,16 +229,58 @@ export async function connectLeetCodeAccount(leetcodeUsername: string) {
     return { success: false, error: "Please provide a valid LeetCode username." };
   }
 
+  // 1. Enforce 1 handle per account: check if another user is already linked to this handle
+  const existingWithHandle = await db.user.findFirst({
+    where: {
+      leetcodeUsername: clean,
+      NOT: { id: currentUser.id },
+    },
+  });
+
+  if (existingWithHandle) {
+    return {
+      success: false,
+      error: "This LeetCode handle is already linked to another CodeRift account.",
+    };
+  }
+
+  // 2. Obtain verification token
+  const tokenRes = await getOrCreateHandleVerificationToken();
+  if (!tokenRes.success || !tokenRes.token) {
+    return { success: false, error: "Could not generate verification token." };
+  }
+  const token = tokenRes.token;
+
+  // 3. Verify handle bio contains token
+  const { fetchLeetCodeProfile } = await import("@/lib/leetcode");
+  const profileRes = await fetchLeetCodeProfile(clean);
+  if (!profileRes.success || !profileRes.profile) {
+    return {
+      success: false,
+      error: profileRes.error || `LeetCode account @${clean} could not be verified.`,
+    };
+  }
+
+  const bio = profileRes.profile.aboutMe || "";
+  if (!bio.includes(token)) {
+    return {
+      success: false,
+      error: `Verification token "${token}" was not found in @${clean}'s LeetCode profile bio/aboutMe. Please add "${token}" to your LeetCode profile bio, save it on LeetCode, and try again.`,
+    };
+  }
+
   const updated = await db.user.update({
     where: { id: currentUser.id },
     data: {
       leetcodeUsername: clean,
       leetcodeConnected: true,
+      leetcodeVerifiedAt: new Date(),
     },
   });
 
   revalidatePath("/profile");
   revalidatePath("/dashboard");
+  revalidatePath("/problems");
 
   return {
     success: true,
@@ -275,11 +347,52 @@ export async function connectGfgAccount(gfgUsername: string) {
     return { success: false, error: "Please provide a valid GeeksforGeeks username." };
   }
 
+  // 1. Enforce 1 handle per account: check if another user is already linked to this handle
+  const existingWithHandle = await db.user.findFirst({
+    where: {
+      gfgUsername: clean,
+      NOT: { id: currentUser.id },
+    },
+  });
+
+  if (existingWithHandle) {
+    return {
+      success: false,
+      error: "This GeeksforGeeks handle is already linked to another CodeRift account.",
+    };
+  }
+
+  // 2. Obtain verification token
+  const tokenRes = await getOrCreateHandleVerificationToken();
+  if (!tokenRes.success || !tokenRes.token) {
+    return { success: false, error: "Could not generate verification token." };
+  }
+  const token = tokenRes.token;
+
+  // 3. Verify handle bio contains token
+  const { fetchGfgProfile } = await import("@/lib/gfg");
+  const profileRes = await fetchGfgProfile(clean);
+  if (!profileRes.success || !profileRes.profile) {
+    return {
+      success: false,
+      error: profileRes.error || `GeeksforGeeks account @${clean} could not be verified.`,
+    };
+  }
+
+  const bio = profileRes.profile.bio || "";
+  if (!bio.includes(token)) {
+    return {
+      success: false,
+      error: `Verification token "${token}" was not found in @${clean}'s GeeksforGeeks bio. Please add "${token}" to your GFG profile bio, save it on GFG, and try again.`,
+    };
+  }
+
   const updated = await db.user.update({
     where: { id: currentUser.id },
     data: {
       gfgUsername: clean,
       gfgConnected: true,
+      gfgVerifiedAt: new Date(),
     },
   });
 

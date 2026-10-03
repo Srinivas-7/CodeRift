@@ -5,9 +5,12 @@
  * for GeeksforGeeks problems in Striver's SDE Sheet.
  */
 
+import { z } from "zod";
+
 export interface GfgUserProfile {
   username: string;
   name?: string;
+  bio?: string;
   profilePic?: string;
   codingScore?: number;
   totalSolved?: number;
@@ -16,6 +19,11 @@ export interface GfgUserProfile {
   easySolved?: number;
   mediumSolved?: number;
   hardSolved?: number;
+}
+
+export interface VerificationOptions {
+  minTimestamp?: Date;
+  maxTimestamp?: Date;
 }
 
 /**
@@ -42,7 +50,7 @@ export function slugifyGfgTitle(title: string): string {
 }
 
 /**
- * Fetches user profile data from GeeksforGeeks public scrapers/endpoints
+ * Fetches user profile data from GeeksforGeeks public endpoints/profile
  */
 export async function fetchGfgProfile(
   gfgUsername: string
@@ -60,10 +68,11 @@ export async function fetchGfgProfile(
 
   // 1. Check via community API endpoint if available
   try {
-    const apiRes = await fetch(`https://geeks-for-geeks-api.vercel.app/${cleanUsername}`, {
+    const apiRes = await fetch(`https://geeks-for-geeks-api.vercel.app/${encodeURIComponent(cleanUsername)}`, {
       headers: {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
       },
+      signal: AbortSignal.timeout(8000),
       next: { revalidate: 0 },
     });
 
@@ -77,6 +86,7 @@ export async function fetchGfgProfile(
           profile: {
             username: cleanUsername,
             name: info.name || data.name || cleanUsername,
+            bio: info.bio || info.about || info.summary || undefined,
             profilePic: info.profilePicture || data.profilePicture,
             codingScore: parseInt(info.codingScore || data.codingScore || "0", 10) || 0,
             totalSolved: parseInt(data.totalProblemsSolved || info.totalProblemsSolved || "0", 10) || 0,
@@ -90,7 +100,7 @@ export async function fetchGfgProfile(
       }
     }
   } catch (err: any) {
-    console.warn("GeeksforGeeks API check note:", err?.message || err);
+    // Continue to direct HTML check
   }
 
   // 2. Direct HTTP status verification against GeeksforGeeks user profile URL
@@ -101,16 +111,23 @@ export async function fetchGfgProfile(
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
       },
+      signal: AbortSignal.timeout(8000),
       next: { revalidate: 0 },
     });
 
     if (directRes.status === 200) {
+      const html = await directRes.text();
+      // Look for bio or summary in page
+      const bioMatch = html.match(/"bio":"(.*?)"/) || html.match(/class="user_bio"[^>]*>(.*?)<\/div>/i);
+      const bio = bioMatch ? bioMatch[1] : undefined;
+
       return {
         success: true,
         exists: true,
         profile: {
           username: cleanUsername,
           name: cleanUsername,
+          bio,
         },
       };
     } else if (directRes.status === 404) {
@@ -121,24 +138,27 @@ export async function fetchGfgProfile(
       };
     }
   } catch (err: any) {
-    console.warn("Direct GFG profile check note:", err?.message || err);
+    return {
+      success: false,
+      exists: false,
+      error: err.name === "TimeoutError" || err.name === "AbortError"
+        ? "GeeksforGeeks verification timed out. Please try again."
+        : "Failed to connect to GeeksforGeeks.",
+    };
   }
 
-  // 3. Fallback: Assume valid format if network is restricted
   return {
-    success: true,
-    exists: true,
-    profile: {
-      username: cleanUsername,
-      name: cleanUsername,
-    },
+    success: false,
+    exists: false,
+    error: `Unable to verify GeeksforGeeks profile for @${cleanUsername}.`,
   };
 }
 
 export async function verifyGfgSubmission(
   gfgUsername: string,
   problemTitle: string,
-  problemGfgUrl?: string | null
+  problemGfgUrl?: string | null,
+  options?: VerificationOptions
 ): Promise<{
   verified: boolean;
   submissionId?: string;
@@ -158,20 +178,15 @@ export async function verifyGfgSubmission(
   const targetSlug = extractGfgSlug(problemGfgUrl) || slugifyGfgTitle(problemTitle);
 
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
-
     const directRes = await fetch(`https://www.geeksforgeeks.org/user/${encodeURIComponent(cleanUsername)}/`, {
       headers: {
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
       },
-      signal: controller.signal,
+      signal: AbortSignal.timeout(8000),
       next: { revalidate: 0 },
     });
-
-    clearTimeout(timeoutId);
 
     if (directRes.status === 404) {
       return {
@@ -208,7 +223,6 @@ export async function verifyGfgSubmission(
     const scoreMatch = combined.match(/"score":\s*(\d+)/) || html.match(/"score":\s*(\d+)/);
     const score = scoreMatch ? parseInt(scoreMatch[1], 10) : 0;
 
-    // If total solved is 0 and score is 0, user has not solved anything on GFG
     if (totalSolved === 0 && score === 0) {
       return {
         verified: false,
@@ -219,7 +233,7 @@ export async function verifyGfgSubmission(
 
     // 3. Search for problem slug or title match in user's profile activity
     const lowerCombined = (combined + " " + html).toLowerCase();
-    const cleanSlug = targetSlug.replace(/-\d+$/, ""); // remove trailing numbers if any, e.g. inversion-of-array-1587115620 -> inversion-of-array
+    const cleanSlug = targetSlug.replace(/-\d+$/, "");
     const hasSlugMatch = targetSlug && (lowerCombined.includes(targetSlug.toLowerCase()) || (cleanSlug && lowerCombined.includes(cleanSlug)));
     const hasTitleMatch = problemTitle && lowerCombined.includes(problemTitle.toLowerCase().trim());
 
@@ -231,9 +245,15 @@ export async function verifyGfgSubmission(
       };
     }
 
-    // If the user has solved problems and we confirmed activity/existence
-    const submissionId = `GFG-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 900 + 100)}`;
     const solvedDate = new Date();
+    if (options?.minTimestamp && solvedDate < options.minTimestamp) {
+      return {
+        verified: false,
+        message: `Submission was solved outside the active competition window.`,
+      };
+    }
+
+    const submissionId = `GFG-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 900 + 100)}`;
 
     return {
       verified: true,
@@ -244,7 +264,9 @@ export async function verifyGfgSubmission(
   } catch (err: any) {
     return {
       verified: false,
-      message: `Could not reach GeeksforGeeks servers right now. Please check your connection and try again.`,
+      message: err.name === "TimeoutError" || err.name === "AbortError"
+        ? "GeeksforGeeks verification timed out. Please try again."
+        : "Could not reach GeeksforGeeks servers right now. Please check your connection and try again.",
     };
   }
 }

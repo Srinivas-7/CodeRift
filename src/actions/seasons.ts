@@ -1,18 +1,19 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
 export async function updateSeasonDates(data: {
   seasonId?: string;
   startDate: string;
   endDate?: string;
-  password: string;
 }) {
-  if (data.password !== "DSA321") {
+  const currentUser = await getCurrentUser();
+  if (!currentUser || currentUser.role !== "ADMIN") {
     return {
       success: false,
-      error: "Incorrect admin password. Access denied.",
+      error: "Unauthorized. Administrator privileges required.",
     };
   }
 
@@ -64,3 +65,4 @@ export async function updateSeasonDates(data: {
     };
   }
 }
+

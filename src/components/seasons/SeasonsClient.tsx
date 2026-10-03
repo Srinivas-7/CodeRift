@@ -21,7 +21,6 @@ interface SeasonsClientProps {
 export function SeasonsClient({ initialSeason }: SeasonsClientProps) {
   const [season, setSeason] = useState<SeasonData | null>(initialSeason);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [password, setPassword] = useState("");
   
   // Format dates for HTML date input: YYYY-MM-DD
   const formatForInput = (d: string | Date | undefined) => {
@@ -54,11 +53,6 @@ export function SeasonsClient({ initialSeason }: SeasonsClientProps) {
     setErrorMsg("");
     setSuccessMsg("");
 
-    if (!password) {
-      setErrorMsg("Please enter the admin password.");
-      return;
-    }
-
     if (!startDate) {
       setErrorMsg("Please choose a valid start date.");
       return;
@@ -70,7 +64,6 @@ export function SeasonsClient({ initialSeason }: SeasonsClientProps) {
         seasonId: season?.id || "season_1",
         startDate,
         endDate,
-        password,
       });
 
       if (!res.success) {
@@ -82,7 +75,6 @@ export function SeasonsClient({ initialSeason }: SeasonsClientProps) {
         }
         setTimeout(() => {
           setIsModalOpen(false);
-          setPassword("");
           setSuccessMsg("");
         }, 1500);
       }
@@ -275,7 +267,7 @@ export function SeasonsClient({ initialSeason }: SeasonsClientProps) {
             </div>
 
             <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "1.5rem", lineHeight: 1.5 }}>
-              Enter the admin password to reschedule when this competitive season begins.
+              Administrator control to reschedule when this competitive season begins and ends.
             </p>
 
             <form onSubmit={handleSaveDates} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
@@ -312,31 +304,6 @@ export function SeasonsClient({ initialSeason }: SeasonsClientProps) {
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  required
-                  style={{
-                    width: "100%",
-                    background: "var(--bg-primary)",
-                    border: "1px solid var(--border-editorial)",
-                    borderRadius: "3px",
-                    padding: "0.65rem 0.85rem",
-                    color: "#FFF",
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "0.9rem",
-                    outline: "none",
-                  }}
-                />
-              </div>
-
-              {/* Admin Password */}
-              <div>
-                <label style={{ display: "block", fontFamily: "var(--font-mono)", fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "0.4rem", textTransform: "uppercase" }}>
-                  Admin Password (Protected)
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter admin password..."
                   required
                   style={{
                     width: "100%",

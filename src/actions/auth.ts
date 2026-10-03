@@ -167,16 +167,34 @@ export async function loginWithFirebaseAuth(input: FirebaseAuthInput) {
 export const loginWithGoogleAuth = loginWithFirebaseAuth;
 
 
+import { z } from "zod";
+
+const ConnectHandleSchema = z.object({
+  username: z.string().trim().min(1, "Username is required").max(64, "Username is too long"),
+});
+
+const UpdateProfileSchema = z.object({
+  username: z.string().trim().min(3, "Warrior Tag must be at least 3 characters").max(30, "Warrior Tag must be at most 30 characters").regex(/^[a-zA-Z0-9_]+$/, "Warrior Tag can only contain letters, numbers, and underscores").optional(),
+  avatar: z.string().trim().min(1).max(64).optional(),
+  leetcodeUsername: z.string().trim().max(64).optional(),
+  gfgUsername: z.string().trim().max(64).optional(),
+});
+
 /**
  * Connect or update LeetCode Account
  */
 export async function connectLeetCodeAccount(leetcodeUsername: string) {
+  const parsed = ConnectHandleSchema.safeParse({ username: leetcodeUsername });
+  if (!parsed.success) {
+    return { success: false, error: "Please provide a valid LeetCode username." };
+  }
+
   const currentUser = await getCurrentUser();
   if (!currentUser) {
     return { success: false, error: "Authentication required." };
   }
 
-  const clean = leetcodeUsername.trim().replace(/^@/, "");
+  const clean = parsed.data.username.replace(/^@/, "");
   if (!clean) {
     return { success: false, error: "Please provide a valid LeetCode username." };
   }
@@ -230,20 +248,29 @@ export async function disconnectLeetCodeAccount() {
  * Check if a LeetCode handle exists and fetch profile statistics
  */
 export async function checkLeetCodeAccount(username: string) {
+  const parsed = ConnectHandleSchema.safeParse({ username });
+  if (!parsed.success) {
+    return { success: false, exists: false, error: "Invalid username format." };
+  }
   const { fetchLeetCodeProfile } = await import("@/lib/leetcode");
-  return fetchLeetCodeProfile(username);
+  return fetchLeetCodeProfile(parsed.data.username);
 }
 
 /**
  * Connect or update GeeksforGeeks Account
  */
 export async function connectGfgAccount(gfgUsername: string) {
+  const parsed = ConnectHandleSchema.safeParse({ username: gfgUsername });
+  if (!parsed.success) {
+    return { success: false, error: "Please provide a valid GeeksforGeeks username." };
+  }
+
   const currentUser = await getCurrentUser();
   if (!currentUser) {
     return { success: false, error: "Authentication required." };
   }
 
-  const clean = gfgUsername.trim().replace(/^@/, "");
+  const clean = parsed.data.username.replace(/^@/, "");
   if (!clean) {
     return { success: false, error: "Please provide a valid GeeksforGeeks username." };
   }
@@ -299,8 +326,12 @@ export async function disconnectGfgAccount() {
  * Check if a GeeksforGeeks handle exists and fetch profile statistics
  */
 export async function checkGfgAccount(username: string) {
+  const parsed = ConnectHandleSchema.safeParse({ username });
+  if (!parsed.success) {
+    return { success: false, exists: false, error: "Invalid username format." };
+  }
   const { fetchGfgProfile } = await import("@/lib/gfg");
-  return fetchGfgProfile(username);
+  return fetchGfgProfile(parsed.data.username);
 }
 
 /**
@@ -312,15 +343,21 @@ export async function updateProfile(data: {
   leetcodeUsername?: string;
   gfgUsername?: string;
 }) {
+  const parsed = UpdateProfileSchema.safeParse(data);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message || "Invalid profile data provided." };
+  }
+
   const currentUser = await getCurrentUser();
   if (!currentUser) {
     return { success: false, error: "Authentication required." };
   }
 
+  const validData = parsed.data;
   const updates: any = {};
 
-  if (data.username && data.username.trim()) {
-    const cleanUsername = data.username.trim();
+  if (validData.username) {
+    const cleanUsername = validData.username.trim();
     if (cleanUsername !== currentUser.username) {
       const existing = await db.user.findUnique({
         where: { username: cleanUsername },
@@ -332,18 +369,18 @@ export async function updateProfile(data: {
     }
   }
 
-  if (data.avatar) {
-    updates.avatar = data.avatar;
+  if (validData.avatar) {
+    updates.avatar = validData.avatar;
   }
 
-  if (data.leetcodeUsername !== undefined) {
-    const cleanLc = data.leetcodeUsername.trim().replace(/^@/, "");
+  if (validData.leetcodeUsername !== undefined) {
+    const cleanLc = validData.leetcodeUsername.trim().replace(/^@/, "");
     updates.leetcodeUsername = cleanLc || null;
     updates.leetcodeConnected = !!cleanLc;
   }
 
-  if (data.gfgUsername !== undefined) {
-    const cleanGfg = data.gfgUsername.trim().replace(/^@/, "");
+  if (validData.gfgUsername !== undefined) {
+    const cleanGfg = validData.gfgUsername.trim().replace(/^@/, "");
     updates.gfgUsername = cleanGfg || null;
     updates.gfgConnected = !!cleanGfg;
   }
@@ -361,6 +398,7 @@ export async function updateProfile(data: {
     user: updated,
   };
 }
+
 
 /**
  * Reset all user progress (Problems solved, XP, streaks, daily challenges)

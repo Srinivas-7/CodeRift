@@ -1,8 +1,36 @@
 "use server";
 
+import { z } from "zod";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+
+const CreateGroupSchema = z.object({
+  name: z.string().trim().min(3, "Squad name must be at least 3 characters").max(30, "Squad name must be at most 30 characters"),
+  description: z.string().trim().max(250, "Description is too long").optional(),
+  avatar: z.string().trim().max(64).optional(),
+  phase1StartDate: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, "Start date must be in YYYY-MM-DD format").optional(),
+});
+
+const JoinGroupSchema = z.object({
+  inviteCode: z.string().trim().min(4, "Invalid invite code").max(32, "Invalid invite code"),
+});
+
+const GroupIdSchema = z.object({
+  groupId: z.string().trim().min(1, "Group ID required").max(128, "Group ID too long"),
+});
+
+const RemoveMemberSchema = z.object({
+  groupId: z.string().trim().min(1).max(128),
+  targetUserId: z.string().trim().min(1).max(128),
+});
+
+const UpdateGroupSchema = z.object({
+  name: z.string().trim().min(3, "Squad name must be at least 3 characters").max(30, "Squad name must be at most 30 characters").optional(),
+  description: z.string().trim().max(250).optional(),
+  phase1StartDate: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, "Start date must be in YYYY-MM-DD format").optional(),
+});
+
 
 function generateInviteCode(groupName: string): string {
   const prefix = groupName
@@ -23,25 +51,18 @@ export async function createGroup(formData: {
   avatar?: string;
   phase1StartDate?: string;
 }) {
+  const parsed = CreateGroupSchema.safeParse(formData);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message || "Invalid group parameters." };
+  }
+
   const currentUser = await getCurrentUser();
   if (!currentUser) {
     return { success: false, error: "Authentication required." };
   }
 
-  const name = formData.name.trim();
-  if (name.length < 3 || name.length > 30) {
-    return { success: false, error: "Group name must be between 3 and 30 characters." };
-  }
-
-  // Parse & validate phase1StartDate (defaults to today UTC)
-  let phase1StartDate = new Date().toISOString().split("T")[0];
-  if (formData.phase1StartDate && formData.phase1StartDate.trim()) {
-    const raw = formData.phase1StartDate.trim();
-    const parsed = new Date(raw + "T00:00:00.000Z");
-    if (!isNaN(parsed.getTime())) {
-      phase1StartDate = parsed.toISOString().split("T")[0];
-    }
-  }
+  const name = parsed.data.name;
+  let phase1StartDate = parsed.data.phase1StartDate || new Date().toISOString().split("T")[0];
 
   // Generate unique invite code
   let inviteCode = generateInviteCode(name);
@@ -52,8 +73,8 @@ export async function createGroup(formData: {
   const group = await db.group.create({
     data: {
       name,
-      description: formData.description?.trim() || "A fierce DSA consistency squad.",
-      avatar: formData.avatar || "flame_shield",
+      description: parsed.data.description || "A fierce DSA consistency squad.",
+      avatar: parsed.data.avatar || "flame_shield",
       inviteCode,
       phase1StartDate,
       createdById: currentUser.id,
@@ -77,13 +98,19 @@ export async function createGroup(formData: {
   return { success: true, group };
 }
 
+
 export async function joinGroup(inviteCode: string) {
+  const parsed = JoinGroupSchema.safeParse({ inviteCode });
+  if (!parsed.success) {
+    return { success: false, error: "Invalid squad invite code." };
+  }
+
   const currentUser = await getCurrentUser();
   if (!currentUser) {
     return { success: false, error: "Authentication required." };
   }
 
-  const cleanCode = inviteCode.trim().toUpperCase();
+  const cleanCode = parsed.data.inviteCode.toUpperCase();
   const group = await db.group.findUnique({
     where: { inviteCode: cleanCode },
     include: {
@@ -94,12 +121,12 @@ export async function joinGroup(inviteCode: string) {
   });
 
   if (!group) {
-    return { success: false, error: "No group found with that invite code. Please double-check the code." };
+    return { success: false, error: "No squad found with that invite code. Please double-check the code." };
   }
 
   const alreadyMember = group.members.some((m: any) => m.userId === currentUser.id);
   if (alreadyMember) {
-    return { success: false, error: "You are already an active member of this group!" };
+    return { success: false, error: "You are already an active member of this squad!" };
   }
 
   const newRank = group.members.length + 1;
@@ -133,22 +160,28 @@ export async function joinGroup(inviteCode: string) {
 }
 
 export async function leaveGroup(groupId: string) {
+  const parsed = GroupIdSchema.safeParse({ groupId });
+  if (!parsed.success) {
+    return { success: false, error: "Invalid group ID." };
+  }
+
   const currentUser = await getCurrentUser();
   if (!currentUser) {
     return { success: false, error: "Authentication required." };
   }
 
+  const cleanGroupId = parsed.data.groupId;
   const membership = await db.groupMember.findUnique({
     where: {
       userId_groupId: {
         userId: currentUser.id,
-        groupId,
+        groupId: cleanGroupId,
       },
     },
   });
 
   if (!membership) {
-    return { success: false, error: "You are not a member of this group." };
+    return { success: false, error: "You are not a member of this squad." };
   }
 
   await db.groupMember.delete({
@@ -159,7 +192,7 @@ export async function leaveGroup(groupId: string) {
   await db.notification.deleteMany({
     where: {
       userId: currentUser.id,
-      link: { startsWith: `/groups/${groupId}` },
+      link: { startsWith: `/groups/${cleanGroupId}` },
     },
   });
 
@@ -170,13 +203,19 @@ export async function leaveGroup(groupId: string) {
 }
 
 export async function removeMemberFromGroup(groupId: string, targetUserId: string) {
+  const parsed = RemoveMemberSchema.safeParse({ groupId, targetUserId });
+  if (!parsed.success) {
+    return { success: false, error: "Invalid parameters." };
+  }
+
   const currentUser = await getCurrentUser();
   if (!currentUser) {
     return { success: false, error: "Authentication required." };
   }
 
+  const { groupId: cleanGroupId, targetUserId: cleanTargetUserId } = parsed.data;
   const group = await db.group.findUnique({
-    where: { id: groupId },
+    where: { id: cleanGroupId },
     include: { members: true },
   });
 
@@ -192,15 +231,15 @@ export async function removeMemberFromGroup(groupId: string, targetUserId: strin
     return { success: false, error: "Only the Squad Leader can remove members." };
   }
 
-  if (targetUserId === currentUser.id) {
+  if (cleanTargetUserId === currentUser.id) {
     return { success: false, error: "Squad Leaders cannot remove themselves. Disband or transfer leadership instead." };
   }
 
   await db.groupMember.delete({
     where: {
       userId_groupId: {
-        userId: targetUserId,
-        groupId,
+        userId: cleanTargetUserId,
+        groupId: cleanGroupId,
       },
     },
   });
@@ -208,15 +247,15 @@ export async function removeMemberFromGroup(groupId: string, targetUserId: strin
   // Clean up removed user's notifications for this squad
   await db.notification.deleteMany({
     where: {
-      userId: targetUserId,
-      link: { startsWith: `/groups/${groupId}` },
+      userId: cleanTargetUserId,
+      link: { startsWith: `/groups/${cleanGroupId}` },
     },
   });
 
   // Notify removed member
   await db.notification.create({
     data: {
-      userId: targetUserId,
+      userId: cleanTargetUserId,
       title: "Squad Roster Update",
       type: "DAILY_READY",
       message: `You were removed from squad "${group.name}".`,
@@ -224,7 +263,7 @@ export async function removeMemberFromGroup(groupId: string, targetUserId: strin
     },
   });
 
-  revalidatePath(`/groups/${groupId}`);
+  revalidatePath(`/groups/${cleanGroupId}`);
   revalidatePath("/groups");
 
   return { success: true, message: "Member removed from squad." };
@@ -234,13 +273,20 @@ export async function updateGroupDetails(
   groupId: string,
   data: { name?: string; description?: string; phase1StartDate?: string }
 ) {
+  const parsedGroup = GroupIdSchema.safeParse({ groupId });
+  const parsedData = UpdateGroupSchema.safeParse(data);
+  if (!parsedGroup.success || !parsedData.success) {
+    return { success: false, error: "Invalid squad update parameters." };
+  }
+
   const currentUser = await getCurrentUser();
   if (!currentUser) {
     return { success: false, error: "Authentication required." };
   }
 
+  const cleanGroupId = parsedGroup.data.groupId;
   const group = await db.group.findUnique({
-    where: { id: groupId },
+    where: { id: cleanGroupId },
     include: { members: true },
   });
 
@@ -257,32 +303,22 @@ export async function updateGroupDetails(
   }
 
   const updateData: any = {};
-  if (data.name && data.name.trim()) {
-    const cleanName = data.name.trim();
-    if (cleanName.length < 3 || cleanName.length > 30) {
-      return { success: false, error: "Squad name must be between 3 and 30 characters." };
-    }
-    updateData.name = cleanName;
+  if (parsedData.data.name) {
+    updateData.name = parsedData.data.name;
   }
-
-  if (data.description !== undefined) {
-    updateData.description = data.description.trim();
+  if (parsedData.data.description !== undefined) {
+    updateData.description = parsedData.data.description;
   }
-
-  if (data.phase1StartDate && data.phase1StartDate.trim()) {
-    const raw = data.phase1StartDate.trim();
-    const parsed = new Date(raw + "T00:00:00.000Z");
-    if (!isNaN(parsed.getTime())) {
-      updateData.phase1StartDate = parsed.toISOString().split("T")[0];
-    }
+  if (parsedData.data.phase1StartDate) {
+    updateData.phase1StartDate = parsedData.data.phase1StartDate;
   }
 
   const updated = await db.group.update({
-    where: { id: groupId },
+    where: { id: cleanGroupId },
     data: updateData,
   });
 
-  revalidatePath(`/groups/${groupId}`);
+  revalidatePath(`/groups/${cleanGroupId}`);
   revalidatePath("/groups");
   revalidatePath("/dashboard");
   revalidatePath("/daily");
@@ -291,13 +327,19 @@ export async function updateGroupDetails(
 }
 
 export async function regenerateGroupInviteCode(groupId: string) {
+  const parsed = GroupIdSchema.safeParse({ groupId });
+  if (!parsed.success) {
+    return { success: false, error: "Invalid group ID." };
+  }
+
   const currentUser = await getCurrentUser();
   if (!currentUser) {
     return { success: false, error: "Authentication required." };
   }
 
+  const cleanGroupId = parsed.data.groupId;
   const group = await db.group.findUnique({
-    where: { id: groupId },
+    where: { id: cleanGroupId },
     include: { members: true },
   });
 
@@ -319,23 +361,29 @@ export async function regenerateGroupInviteCode(groupId: string) {
   }
 
   const updated = await db.group.update({
-    where: { id: groupId },
+    where: { id: cleanGroupId },
     data: { inviteCode: newCode },
   });
 
-  revalidatePath(`/groups/${groupId}`);
+  revalidatePath(`/groups/${cleanGroupId}`);
 
   return { success: true, newInviteCode: newCode };
 }
 
 export async function deleteGroup(groupId: string) {
+  const parsed = GroupIdSchema.safeParse({ groupId });
+  if (!parsed.success) {
+    return { success: false, error: "Invalid group ID." };
+  }
+
   const currentUser = await getCurrentUser();
   if (!currentUser) {
     return { success: false, error: "Authentication required." };
   }
 
+  const cleanGroupId = parsed.data.groupId;
   const group = await db.group.findUnique({
-    where: { id: groupId },
+    where: { id: cleanGroupId },
     include: { members: true },
   });
 
@@ -349,18 +397,18 @@ export async function deleteGroup(groupId: string) {
 
   // Remove all members
   await db.groupMember.deleteMany({
-    where: { groupId },
+    where: { groupId: cleanGroupId },
   });
 
   // Delete group
   await db.group.delete({
-    where: { id: groupId },
+    where: { id: cleanGroupId },
   });
 
   // Clean up all notifications for this disbanded squad
   await db.notification.deleteMany({
     where: {
-      link: { startsWith: `/groups/${groupId}` },
+      link: { startsWith: `/groups/${cleanGroupId}` },
     },
   });
 
@@ -369,3 +417,4 @@ export async function deleteGroup(groupId: string) {
 
   return { success: true };
 }
+

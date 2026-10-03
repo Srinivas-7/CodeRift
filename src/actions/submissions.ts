@@ -1,5 +1,6 @@
 "use server";
 
+import { z } from "zod";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { calculateXpGain, calculateLevel, XpBreakdown } from "@/lib/xp";
@@ -11,6 +12,17 @@ import { verifyGfgSubmission } from "@/lib/gfg";
 import { detectProblemPlatform } from "@/lib/platform";
 import { revalidatePath } from "next/cache";
 import { getOrCreateDailyChallenge } from "@/lib/team-phase";
+
+const verifySubmissionSchema = z.object({
+  problemId: z.number().int().positive().max(100000),
+  leetcodeUsername: z.string().trim().max(100).optional(),
+  gfgUsername: z.string().trim().max(100).optional(),
+  groupId: z.string().trim().max(100).optional(),
+});
+
+const clearSubmissionSchema = z.object({
+  problemId: z.number().int().positive().max(100000),
+});
 
 export interface VerifySubmissionInput {
   problemId: number;
@@ -24,6 +36,12 @@ export async function verifyAndCompleteLeetCodeSubmission(input: VerifySubmissio
 }
 
 export async function verifyAndCompleteProblemSubmission(input: VerifySubmissionInput) {
+  const parsed = verifySubmissionSchema.safeParse(input);
+  if (!parsed.success) {
+    return { success: false, error: "Invalid submission parameters." };
+  }
+  const validatedInput = parsed.data;
+
   const user = await getCurrentUser();
   if (!user) {
     return { success: false, error: "Authentication required to record progress." };
@@ -444,13 +462,19 @@ export async function verifyAndCompleteProblemSubmission(input: VerifySubmission
 }
 
 export async function clearProblemSubmission(input: { problemId: number }) {
+  const parsed = clearSubmissionSchema.safeParse(input);
+  if (!parsed.success) {
+    return { success: false, error: "Invalid problem ID." };
+  }
+  const validatedInput = parsed.data;
+
   const user = await getCurrentUser();
   if (!user) {
     return { success: false, error: "Authentication required to clear problem status." };
   }
 
   const problem = await db.problem.findUnique({
-    where: { id: input.problemId },
+    where: { id: validatedInput.problemId },
   });
 
   if (!problem) {

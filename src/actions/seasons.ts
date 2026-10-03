@@ -1,14 +1,26 @@
 "use server";
 
+import { z } from "zod";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+
+const UpdateSeasonSchema = z.object({
+  seasonId: z.string().trim().max(64).optional(),
+  startDate: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}/, "Start date must be in YYYY-MM-DD format"),
+  endDate: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}/, "End date must be in YYYY-MM-DD format").optional(),
+});
 
 export async function updateSeasonDates(data: {
   seasonId?: string;
   startDate: string;
   endDate?: string;
 }) {
+  const parsed = UpdateSeasonSchema.safeParse(data);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message || "Invalid season parameters." };
+  }
+
   const currentUser = await getCurrentUser();
   if (!currentUser || currentUser.role !== "ADMIN") {
     return {
@@ -17,12 +29,8 @@ export async function updateSeasonDates(data: {
     };
   }
 
-  if (!data.startDate) {
-    return {
-      success: false,
-      error: "Please provide a valid start date.",
-    };
-  }
+  const { seasonId, startDate, endDate } = parsed.data;
+
 
   try {
     const start = new Date(data.startDate);

@@ -584,6 +584,31 @@ export async function resetUserProgress() {
 }
 
 /**
+ * Invalidate all active user sessions globally across all devices
+ */
+export async function invalidateAllUserSessions() {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) {
+    return { success: false, error: "Authentication required." };
+  }
+
+  const currentVersion = typeof currentUser.sessionVersion === "number" ? currentUser.sessionVersion : 1;
+  await db.user.update({
+    where: { id: currentUser.id },
+    data: { sessionVersion: currentVersion + 1 },
+  });
+
+  await removeSessionCookie();
+
+  revalidatePath("/dashboard");
+  revalidatePath("/profile");
+  revalidatePath("/login");
+
+  return { success: true, message: "All active sessions have been revoked." };
+}
+
+
+/**
  * Logout
  */
 export async function logoutUser() {

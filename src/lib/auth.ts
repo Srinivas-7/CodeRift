@@ -11,6 +11,7 @@ export interface SessionPayload {
   username: string;
   email: string;
   role: string;
+  sessionVersion?: number;
 }
 
 export function getJwtSecretKey(): Uint8Array {
@@ -49,11 +50,14 @@ export async function setSessionCookie(userId: string) {
   });
   if (!user) throw new Error("User not found");
 
+  const sessionVersion = typeof user.sessionVersion === "number" ? user.sessionVersion : 1;
+
   return createSession({
     userId: user.id,
     username: user.username,
     email: user.email,
     role: user.role,
+    sessionVersion,
   });
 }
 
@@ -89,11 +93,14 @@ export const getSession = cache(async (): Promise<SessionPayload | null> => {
       return null;
     }
 
+    const sessionVersion = typeof payload.sessionVersion === "number" ? payload.sessionVersion : 1;
+
     return {
       userId: payload.userId,
       username: payload.username,
       email: payload.email,
       role: payload.role,
+      sessionVersion,
     };
   } catch {
     return null;
@@ -115,17 +122,29 @@ export const getCurrentUser = cache(async () => {
     },
   });
 
-  if (user) {
+  if (!user) return null;
+
+  // Enforce sessionVersion match for global token revocation
+  const currentDbVersion = typeof user.sessionVersion === "number" ? user.sessionVersion : 1;
+  const sessionVersion = typeof session.sessionVersion === "number" ? session.sessionVersion : 1;
+
+  if (currentDbVersion !== sessionVersion) {
     try {
-      const streakInfo = await syncUserStreak(user.id);
-      user.currentStreak = streakInfo.currentStreak;
-      user.longestStreak = streakInfo.longestStreak;
-      user.streakShields = streakInfo.streakShields;
-    } catch (err) {
-      console.error("Error syncing streak in getCurrentUser:", err);
+      await removeSessionCookie();
+    } catch {
+      // Ignore if headers are already read-only
     }
+    return null;
+  }
+
+  try {
+    const streakInfo = await syncUserStreak(user.id);
+    user.currentStreak = streakInfo.currentStreak;
+    user.longestStreak = streakInfo.longestStreak;
+    user.streakShields = streakInfo.streakShields;
+  } catch (err) {
+    console.error("Error syncing streak in getCurrentUser:", err);
   }
 
   return user;
 });
-

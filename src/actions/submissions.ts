@@ -125,21 +125,120 @@ export async function verifyAndCompleteProblemSubmission(input: VerifySubmission
     }
   }
 
-  // 4. Check if previously solved
-  const previousStatus = await db.userProblemStatus.findUnique({
-    where: {
-      userId_problemId: {
+  // 4-9. Atomic Scoring & Submission Mutation Transaction (Guarantees points awarded exactly once)
+  const problemPhase = getProblemPhase(problem.orderInSheet);
+  const statusDocId = `${user.id}_${problem.id}`;
+  const basePoints = getProblemScore(problem.difficulty);
+
+  const txResult = await db.runTransaction(async (transaction) => {
+    const userRef = (db as any).user ? (await import("@/lib/firebase-admin")).adminDb.collection("users").doc(user.id) : null;
+    const statusRef = (await import("@/lib/firebase-admin")).adminDb.collection("user_problem_statuses").doc(statusDocId);
+    const subRef = (await import("@/lib/firebase-admin")).adminDb.collection("submissions").doc();
+
+    const [userSnap, statusSnap] = await Promise.all([
+      transaction.get(userRef!),
+      transaction.get(statusRef),
+    ]);
+
+    const statusData = statusSnap.exists ? (statusSnap.data() as any) : null;
+    const isFirstSolve = !statusData || (statusData.status !== "SOLVED" && statusData.status !== "OPTIMAL");
+    const problemPoints = isFirstSolve ? basePoints : 0;
+    const solveStatus = "SOLVED";
+
+    // Write 1: Record submission
+    const subRecord = {
+      id: subRef.id,
+      userId: user.id,
+      problemId: problem.id,
+      status: solveStatus,
+      xpEarned: problemPoints,
+      pointsEarned: problemPoints,
+      source: sourcePlatform,
+      leetcodeSubmissionId: verification.submissionId || `${sourcePlatform}-${Date.now()}`,
+      createdAt: new Date(),
+    };
+    transaction.set(subRef, subRecord);
+
+    // Write 2: Update UserProblemStatus
+    if (statusSnap.exists) {
+      transaction.update(statusRef, {
+        status: solveStatus,
+        attemptsCount: (statusData?.attemptsCount || 0) + 1,
+        firstSolvedAt: isFirstSolve ? new Date() : (statusData?.firstSolvedAt || new Date()),
+        lastAttemptedAt: new Date(),
+        submissionReference: verification.submissionId || statusData?.submissionReference,
+      });
+    } else {
+      transaction.set(statusRef, {
+        id: statusDocId,
         userId: user.id,
         problemId: problem.id,
-      },
-    },
+        status: solveStatus,
+        attemptsCount: 1,
+        firstSolvedAt: new Date(),
+        lastAttemptedAt: new Date(),
+        submissionReference: verification.submissionId,
+      });
+    }
+
+    // Write 3: Record XP Transaction on first solve
+    if (isFirstSolve && problemPoints > 0) {
+      const xpTxRef = (await import("@/lib/firebase-admin")).adminDb.collection("xp_transactions").doc();
+      transaction.set(xpTxRef, {
+        id: xpTxRef.id,
+        userId: user.id,
+        amount: problemPoints,
+        reason: "PROBLEM_SOLVE",
+        createdAt: new Date(),
+      });
+    }
+
+    // Write 4: Update User profile score atomically
+    const userData = userSnap?.exists ? (userSnap.data() as any) : {};
+    const currentScore = (userData.score ?? userData.xp ?? 0);
+    const runningTotalScore = currentScore + problemPoints;
+    const currentLevel = calculateLevel(runningTotalScore);
+
+    const updatedTotalSolved = isFirstSolve
+      ? (userData.totalSolved || 0) + 1
+      : (userData.totalSolved || 0);
+
+    const updatedPhase1Solved = (userData.phase1Solved || 0) + (isFirstSolve && problemPhase === 1 ? 1 : 0);
+    const updatedPhase2Solved = (userData.phase2Solved || 0) + (isFirstSolve && problemPhase === 2 ? 1 : 0);
+    const updatedPhase1Score = (userData.phase1Score || 0) + (isFirstSolve && problemPhase === 1 ? problemPoints : 0);
+    const updatedPhase2Score = (userData.phase2Score || 0) + (isFirstSolve && problemPhase === 2 ? problemPoints : 0);
+
+    if (userRef) {
+      transaction.update(userRef, {
+        score: runningTotalScore,
+        xp: runningTotalScore,
+        level: currentLevel,
+        totalSolved: updatedTotalSolved,
+        phase1Score: updatedPhase1Score,
+        phase2Score: updatedPhase2Score,
+        phase1Solved: updatedPhase1Solved,
+        phase2Solved: updatedPhase2Solved,
+        updatedAt: new Date(),
+      });
+    }
+
+    return {
+      isFirstSolve,
+      problemPoints,
+      runningTotalScore,
+      currentLevel,
+      updatedPhase1Score,
+      updatedPhase2Score,
+      submission: subRecord,
+    };
   });
 
-  const isFirstSolve = !previousStatus || (previousStatus.status !== "SOLVED" && previousStatus.status !== "OPTIMAL");
-  const solveStatus = "SOLVED";
+  const { isFirstSolve, problemPoints, submission } = txResult;
+  let runningTotalScore = txResult.runningTotalScore;
+  let currentLevel = txResult.currentLevel;
+  let updatedPhase1Score = txResult.updatedPhase1Score;
+  let updatedPhase2Score = txResult.updatedPhase2Score;
 
-  // 5. Calculate Server-Verified Points (10 Easy, 20 Medium, 30 Hard; exactly once on first solve)
-  const problemPoints = isFirstSolve ? getProblemScore(problem.difficulty) : 0;
   const xpBreakdown: XpBreakdown = {
     baseXp: problemPoints,
     totalXp: problemPoints,
@@ -151,96 +250,10 @@ export async function verifyAndCompleteProblemSubmission(input: VerifySubmission
       : ["0 PTS — Previously Solved (No Duplicate Points)"],
   };
 
-  // 6. Record Submission
-  const submission = await db.submission.create({
-    data: {
-      userId: user.id,
-      problemId: problem.id,
-      status: solveStatus,
-      xpEarned: problemPoints,
-      pointsEarned: problemPoints,
-      source: sourcePlatform,
-      leetcodeSubmissionId: verification.submissionId || `${sourcePlatform}-${Date.now()}`,
-    },
-  });
-
-  // 7. Update UserProblemStatus
-  await db.userProblemStatus.upsert({
-    where: {
-      userId_problemId: {
-        userId: user.id,
-        problemId: problem.id,
-      },
-    },
-    create: {
-      userId: user.id,
-      problemId: problem.id,
-      status: solveStatus,
-      attemptsCount: 1,
-      firstSolvedAt: new Date(),
-      lastAttemptedAt: new Date(),
-      submissionReference: verification.submissionId,
-    },
-    update: {
-      status: solveStatus,
-      attemptsCount: { increment: 1 },
-      firstSolvedAt: isFirstSolve ? new Date() : previousStatus?.firstSolvedAt,
-      lastAttemptedAt: new Date(),
-      submissionReference: verification.submissionId,
-    },
-  });
-
-  // 8. Record Points Transaction (Only if points were earned on first solve)
-  if (isFirstSolve && problemPoints > 0) {
-    await db.xpTransaction.create({
-      data: {
-        userId: user.id,
-        amount: problemPoints,
-        reason: "PROBLEM_SOLVE",
-      },
-    });
-  }
-
-  // 9. Update Streak & Total Solved & Phase Scores
+  // 9. Update Streak & Achievements
   const streakRes = await updateStreakOnProblemSolved(user.id);
-  const problemPhase = getProblemPhase(problem.orderInSheet);
 
-  let updatedPhase1Solved = user.phase1Solved || 0;
-  let updatedPhase2Solved = user.phase2Solved || 0;
-  let updatedPhase1Score = user.phase1Score || 0;
-  let updatedPhase2Score = user.phase2Score || 0;
 
-  if (isFirstSolve) {
-    if (problemPhase === 1) {
-      updatedPhase1Solved += 1;
-      updatedPhase1Score += problemPoints;
-    } else {
-      updatedPhase2Solved += 1;
-      updatedPhase2Score += problemPoints;
-    }
-  }
-
-  const updatedTotalSolved = isFirstSolve
-    ? (user.totalSolved || 0) + 1
-    : (user.totalSolved || 0);
-
-  const currentScore = typeof user.score === "number" ? user.score : (user.xp || 0);
-  let runningTotalScore = currentScore + problemPoints;
-  let currentLevel = calculateLevel(runningTotalScore);
-
-  await db.user.update({
-    where: { id: user.id },
-    data: {
-      score: runningTotalScore,
-      xp: runningTotalScore,
-      level: currentLevel,
-      totalSolved: updatedTotalSolved,
-      phase1Score: updatedPhase1Score,
-      phase2Score: updatedPhase2Score,
-      phase1Solved: updatedPhase1Solved,
-      phase2Solved: updatedPhase2Solved,
-    },
-  });
 
   // 10. Check and evaluate daily mission completion across all squads the user belongs to
   let userMemberships = await db.groupMember.findMany({

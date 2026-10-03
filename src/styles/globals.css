@@ -1224,10 +1224,6 @@ body {
   display: inline-flex;
 }
 
-.mobile-toggle {
-  display: none;
-}
-
 .desktop-score-counter {
   display: flex;
 }
@@ -1236,8 +1232,12 @@ body {
   display: flex;
 }
 
+.mobile-only-logout {
+  display: none !important;
+}
+
 @media (max-width: 839px) {
-  /* On mobile (<840px), hide desktop links, header auth CTA button, user menu, and hamburger toggle */
+  /* On mobile (<840px), hide desktop links, header auth CTA button, user menu */
   .desktop-nav {
     display: none !important;
   }
@@ -1250,12 +1250,12 @@ body {
     display: none !important;
   }
 
-  .mobile-toggle {
+  .desktop-score-counter {
     display: none !important;
   }
 
-  .desktop-score-counter {
-    display: none !important;
+  .mobile-only-logout {
+    display: flex !important;
   }
 
   /* Prevent content from being covered by the bottom dock */

@@ -4,7 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { calculateXpGain, calculateLevel, XpBreakdown } from "@/lib/xp";
 import { getProblemScore, DAILY_COMPLETION_BONUS, compareLeaderboardRank, getProblemPhase } from "@/lib/scoring";
-import { updateStreakOnProblemSolved } from "@/lib/streaks";
+import { updateStreakOnProblemSolved, syncUserStreak } from "@/lib/streaks";
 import { checkAndAwardAchievements } from "@/lib/achievements";
 import { verifyLeetCodeSubmission } from "@/lib/leetcode";
 import { verifyGfgSubmission } from "@/lib/gfg";
@@ -510,6 +510,8 @@ export async function clearProblemSubmission(input: { problemId: number }) {
         phase2Solved: updatedPhase2Solved,
       },
     });
+
+    await syncUserStreak(user.id);
   }
 
   revalidatePath("/dashboard");

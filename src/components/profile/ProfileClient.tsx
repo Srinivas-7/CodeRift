@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { AVATAR_OPTIONS, getAvatar } from "@/data/avatars";
-import { updateProfile } from "@/actions/auth";
+import { updateProfile, logoutUser } from "@/actions/auth";
 import { getLevelInfo } from "@/lib/xp";
 import { ProfileProgressSection } from "./ProfileProgressSection";
 import { LeetCodeConnectModal } from "./LeetCodeConnectModal";
@@ -25,6 +25,7 @@ import {
   Link2,
   Sparkles,
   User as UserIcon,
+  LogOut,
 } from "lucide-react";
 
 interface ProfileClientProps {
@@ -410,6 +411,45 @@ export function ProfileClient({
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Mobile-only Logout Button right below the Profile Hero Card */}
+      <div
+        className="mobile-only-logout"
+        style={{
+          width: "100%",
+          marginTop: "-0.75rem",
+        }}
+      >
+        <button
+          type="button"
+          onClick={async () => {
+            await logoutUser();
+            window.location.href = "/";
+          }}
+          className="font-grotesk"
+          style={{
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "0.55rem",
+            padding: "0.85rem 1.25rem",
+            background: "var(--bg-surface)",
+            border: "2.5px solid var(--accent-vermillion)",
+            borderRadius: "8px",
+            boxShadow: "3px 3px 0px var(--shadow-neo)",
+            color: "var(--accent-vermillion)",
+            fontSize: "0.9rem",
+            fontWeight: 800,
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
+            cursor: "pointer",
+            transition: "all 0.15s ease",
+          }}
+        >
+          <LogOut size={17} /> Sign Out of Account
+        </button>
       </div>
 
       {/* 2. SECTION NAVIGATION TABS */}
@@ -856,7 +896,7 @@ export function ProfileClient({
             </div>
           )}
 
-          <div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
             <button
               onClick={handleSave}
               disabled={loading}
@@ -864,6 +904,33 @@ export function ProfileClient({
               style={{ padding: "0.8rem 2rem", fontSize: "0.9rem", fontWeight: 800 }}
             >
               {loading ? "SAVING SETTINGS..." : "SAVE WARRIOR PROFILE"}
+            </button>
+
+            {/* Mobile-only Logout in Settings */}
+            <button
+              type="button"
+              onClick={async () => {
+                await logoutUser();
+                window.location.href = "/";
+              }}
+              className="mobile-only-logout font-grotesk"
+              style={{
+                alignItems: "center",
+                gap: "0.5rem",
+                padding: "0.75rem 1.25rem",
+                background: "rgba(255, 71, 87, 0.12)",
+                border: "2px solid var(--accent-vermillion)",
+                borderRadius: "6px",
+                boxShadow: "2px 2px 0px var(--shadow-neo)",
+                color: "var(--accent-vermillion)",
+                fontSize: "0.85rem",
+                fontWeight: 800,
+                textTransform: "uppercase",
+                letterSpacing: "0.04em",
+                cursor: "pointer",
+              }}
+            >
+              <LogOut size={16} /> Sign Out
             </button>
           </div>
         </div>

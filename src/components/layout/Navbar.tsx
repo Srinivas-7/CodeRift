@@ -5,9 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logoutUser } from "@/actions/auth";
 import { ThemeToggle } from "./ThemeToggle";
+import { getAvatar } from "@/data/avatars";
 import {
-  Menu,
-  X,
   Flame,
   Shield,
   User,
@@ -40,8 +39,8 @@ interface NavbarProps {
 
 export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
   const pathname = usePathname();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const currentAvatar = user ? getAvatar(user.avatar) : null;
 
   const navLinks = [
     { label: "DAILY 3", href: "/dashboard" },
@@ -51,11 +50,11 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
   ];
 
   const mobileDockLinks = [
-    { label: "DAILY 3", href: user ? "/dashboard" : "/login", icon: Zap },
-    { label: "SQUADS", href: user ? "/groups" : "/login", icon: Users },
-    { label: "ROADMAP", href: "/problems", icon: Map },
-    { label: "RANKS", href: "/leaderboard", icon: Trophy },
-    { label: user ? "WARRIOR" : "LOGIN", href: user ? "/profile" : "/login", icon: User },
+    { label: "DAILY 3", href: user ? "/dashboard" : "/login", icon: Zap, isUser: false },
+    { label: "SQUADS", href: user ? "/groups" : "/login", icon: Users, isUser: false },
+    { label: "ROADMAP", href: "/problems", icon: Map, isUser: false },
+    { label: "RANKS", href: "/leaderboard", icon: Trophy, isUser: false },
+    { label: user ? "WARRIOR" : "LOGIN", href: user ? "/profile" : "/login", icon: User, isUser: true },
   ];
 
   return (
@@ -155,7 +154,6 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
         {/* Center: Neo-Brutalist Navigation Links */}
         <nav
           style={{
-            display: "none",
             alignItems: "center",
             gap: "0.5rem",
           }}
@@ -289,6 +287,7 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
                     transition: "all 0.12s ease",
                   }}
                 >
+                  <span style={{ fontSize: "1.05rem", lineHeight: 1 }}>{currentAvatar?.emoji || "🥷"}</span>
                   <span>{user.username}</span>
                   <ChevronDown
                     size={14}
@@ -323,8 +322,11 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
                         <div style={{ fontSize: "0.7rem", color: "var(--text-muted)", textTransform: "uppercase", fontFamily: "var(--font-mono)", fontWeight: 800 }}>
                           WARRIOR IDENTITY
                         </div>
-                        <div style={{ fontWeight: 800, color: "var(--text-primary)", fontSize: "1rem", marginTop: "0.2rem" }}>
-                          {user.username}
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginTop: "0.2rem" }}>
+                          <span style={{ fontSize: "1.15rem", lineHeight: 1 }}>{currentAvatar?.emoji || "🥷"}</span>
+                          <span style={{ fontWeight: 800, color: "var(--text-primary)", fontSize: "1rem" }}>
+                            {user.username}
+                          </span>
                         </div>
                         {user.leetcodeUsername && (
                           <div style={{ fontSize: "0.75rem", color: "#FFA116", fontFamily: "var(--font-mono)", marginTop: "0.2rem", fontWeight: 700 }}>
@@ -456,135 +458,8 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
               GET IN TO ARENA →
             </Link>
           )}
-
-          {/* Mobile Menu Toggle Button */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            style={{
-              background: "var(--bg-surface)",
-              border: "2.5px solid var(--border-neo-strong)",
-              padding: "0.45rem",
-              borderRadius: "6px",
-              color: "var(--text-primary)",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              boxShadow: "3px 3px 0px var(--shadow-neo)",
-            }}
-            className="mobile-toggle"
-          >
-            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
         </div>
       </div>
-
-      {/* Mobile Drawer */}
-      {mobileMenuOpen && (
-        <div
-          style={{
-            background: "var(--bg-surface-solid)",
-            borderBottom: "3px solid var(--border-neo-strong)",
-            boxShadow: "0 8px 0px var(--shadow-neo)",
-            padding: "1.5rem",
-            display: "flex",
-            flexDirection: "column",
-            gap: "1.2rem",
-          }}
-        >
-          {navLinks.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setMobileMenuOpen(false)}
-              className="font-grotesk"
-              style={{
-                color: pathname === item.href ? "var(--accent-purple)" : "var(--text-primary)",
-                textDecoration: "none",
-                fontSize: "1.05rem",
-                fontWeight: 800,
-                textTransform: "uppercase",
-                letterSpacing: "0.06em",
-                padding: "0.25rem 0",
-              }}
-            >
-              {item.label}
-            </Link>
-          ))}
-          {user ? (
-            <div style={{ borderTop: "2px solid var(--border-neo-strong)", paddingTop: "1rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-              <Link
-                href="/profile"
-                onClick={() => setMobileMenuOpen(false)}
-                className="font-grotesk"
-                style={{
-                  color: "var(--text-primary)",
-                  textDecoration: "none",
-                  fontSize: "1rem",
-                  fontWeight: 800,
-                  textTransform: "uppercase",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                }}
-              >
-                <User size={16} /> WARRIOR PROFILE
-              </Link>
-              {user.role === "ADMIN" && (
-                <Link
-                  href="/admin"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="font-grotesk"
-                  style={{
-                    color: "var(--accent-vermillion)",
-                    textDecoration: "none",
-                    fontSize: "1rem",
-                    fontWeight: 800,
-                    textTransform: "uppercase",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.5rem",
-                  }}
-                >
-                  <Shield size={16} /> ADMIN TELEMETRY
-                </Link>
-              )}
-              <button
-                onClick={async () => {
-                  setMobileMenuOpen(false);
-                  await logoutUser();
-                  window.location.href = "/";
-                }}
-                className="font-grotesk"
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "var(--accent-vermillion)",
-                  fontSize: "0.95rem",
-                  fontWeight: 800,
-                  textTransform: "uppercase",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  cursor: "pointer",
-                  padding: "0.25rem 0",
-                  textAlign: "left",
-                }}
-              >
-                <LogOut size={16} /> SIGN OUT
-              </button>
-            </div>
-          ) : (
-            <Link
-              href="/login"
-              onClick={() => setMobileMenuOpen(false)}
-              className="btn-editorial-primary font-grotesk"
-              style={{ textAlign: "center", marginTop: "0.5rem", fontSize: "0.95rem", fontWeight: 800 }}
-            >
-              GET IN TO ARENA →
-            </Link>
-          )}
-        </div>
-      )}
     </header>
 
     {/* MOBILE BOTTOM ARCADE DOCK (Only visible on mobile screens < 840px) */}
@@ -592,6 +467,7 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
       {mobileDockLinks.map((item) => {
         const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(`${item.href}/`));
         const Icon = item.icon;
+        const isUserItem = item.isUser && user && currentAvatar;
         return (
           <Link
             key={item.label}
@@ -600,7 +476,11 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
             className={`mobile-dock-btn ${isActive ? "active" : ""}`}
           >
             <div className="mobile-dock-icon-wrap">
-              <Icon size={19} />
+              {isUserItem ? (
+                <span style={{ fontSize: "1.2rem", lineHeight: 1 }}>{currentAvatar.emoji}</span>
+              ) : (
+                <Icon size={19} />
+              )}
             </div>
             <span className="mobile-dock-label">{item.label}</span>
           </Link>

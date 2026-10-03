@@ -4,6 +4,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { checkRateLimit, RATE_LIMIT_CONFIGS } from "@/lib/ratelimit";
 
 const CreateGroupSchema = z.object({
   name: z.string().trim().min(3, "Squad name must be at least 3 characters").max(30, "Squad name must be at most 30 characters"),
@@ -31,15 +32,14 @@ const UpdateGroupSchema = z.object({
   phase1StartDate: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, "Start date must be in YYYY-MM-DD format").optional(),
 });
 
-
 function generateInviteCode(groupName: string): string {
   const prefix = groupName
     .replace(/[^a-zA-Z]/g, "")
-    .slice(0, 2)
-    .toUpperCase() || "DA";
+    .slice(0, 3)
+    .toUpperCase() || "CR";
   const chars = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
   let random = "";
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 8; i++) {
     random += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return `${prefix}-${random}`;
@@ -110,6 +110,12 @@ export async function joinGroup(inviteCode: string) {
     return { success: false, error: "Authentication required." };
   }
 
+  // 1. General join rate limit
+  const rateLimitRes = await checkRateLimit(RATE_LIMIT_CONFIGS.JOIN_GROUP, currentUser.id);
+  if (!rateLimitRes.success) {
+    return { success: false, error: rateLimitRes.error || "Too many squad join attempts. Please try again later." };
+  }
+
   const cleanCode = parsed.data.inviteCode.toUpperCase();
   const group = await db.group.findUnique({
     where: { inviteCode: cleanCode },
@@ -121,6 +127,11 @@ export async function joinGroup(inviteCode: string) {
   });
 
   if (!group) {
+    // 2. Brute-force lockout for failed invite code guesses
+    const failedLimitRes = await checkRateLimit(RATE_LIMIT_CONFIGS.FAILED_INVITE, currentUser.id);
+    if (!failedLimitRes.success) {
+      return { success: false, error: "Too many failed squad code attempts. Please wait 15 minutes before trying again." };
+    }
     return { success: false, error: "No squad found with that invite code. Please double-check the code." };
   }
 

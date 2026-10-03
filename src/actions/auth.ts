@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { setSessionCookie, removeSessionCookie, getCurrentUser } from "@/lib/auth";
 import { adminAuth } from "@/lib/firebase-admin";
 import { revalidatePath } from "next/cache";
+import { checkRateLimit, getClientIp, RATE_LIMIT_CONFIGS } from "@/lib/ratelimit";
 
 const ALLOWED_SIGN_IN_PROVIDERS = new Set(["google.com", "github.com", "password"]);
 
@@ -18,6 +19,15 @@ export interface FirebaseAuthInput {
  */
 export async function loginWithFirebaseAuth(input: FirebaseAuthInput) {
   try {
+    const ip = await getClientIp();
+    const rateLimitRes = await checkRateLimit(RATE_LIMIT_CONFIGS.LOGIN, ip);
+    if (!rateLimitRes.success) {
+      return {
+        success: false,
+        error: "Too many sign-in attempts. Please wait a minute before trying again.",
+      };
+    }
+
     if (!input?.idToken || typeof input.idToken !== "string" || !input.idToken.trim()) {
       return { success: false, error: "Authentication token required." };
     }
@@ -324,6 +334,14 @@ export async function checkLeetCodeAccount(username: string) {
   if (!parsed.success) {
     return { success: false, exists: false, error: "Invalid username format." };
   }
+
+  const currentUser = await getCurrentUser();
+  const identifier = currentUser?.id || (await getClientIp());
+  const rateLimitRes = await checkRateLimit(RATE_LIMIT_CONFIGS.CHECK_ACCOUNT, identifier);
+  if (!rateLimitRes.success) {
+    return { success: false, exists: false, error: "Too many profile check requests. Please slow down." };
+  }
+
   const { fetchLeetCodeProfile } = await import("@/lib/leetcode");
   return fetchLeetCodeProfile(parsed.data.username);
 }
@@ -443,6 +461,14 @@ export async function checkGfgAccount(username: string) {
   if (!parsed.success) {
     return { success: false, exists: false, error: "Invalid username format." };
   }
+
+  const currentUser = await getCurrentUser();
+  const identifier = currentUser?.id || (await getClientIp());
+  const rateLimitRes = await checkRateLimit(RATE_LIMIT_CONFIGS.CHECK_ACCOUNT, identifier);
+  if (!rateLimitRes.success) {
+    return { success: false, exists: false, error: "Too many profile check requests. Please slow down." };
+  }
+
   const { fetchGfgProfile } = await import("@/lib/gfg");
   return fetchGfgProfile(parsed.data.username);
 }

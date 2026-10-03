@@ -12,6 +12,7 @@ import { verifyGfgSubmission } from "@/lib/gfg";
 import { detectProblemPlatform } from "@/lib/platform";
 import { revalidatePath } from "next/cache";
 import { getOrCreateDailyChallenge } from "@/lib/team-phase";
+import { checkRateLimit, RATE_LIMIT_CONFIGS } from "@/lib/ratelimit";
 
 const verifySubmissionSchema = z.object({
   problemId: z.number().int().positive().max(100000),
@@ -45,6 +46,11 @@ export async function verifyAndCompleteProblemSubmission(input: VerifySubmission
   const user = await getCurrentUser();
   if (!user) {
     return { success: false, error: "Authentication required to record progress." };
+  }
+
+  const rateLimitRes = await checkRateLimit(RATE_LIMIT_CONFIGS.VERIFY_SUBMISSION, user.id);
+  if (!rateLimitRes.success) {
+    return { success: false, error: "Too many verification requests. Please wait a moment before trying again." };
   }
 
   // 1. Validate that problem exists in the strict 191 SDE Sheet dataset

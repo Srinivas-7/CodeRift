@@ -78,10 +78,11 @@ export function MarioJumper() {
         <div
           className="font-pixel"
           style={{
+            fontFamily: "'ArcadeClassic', monospace",
             fontSize: "clamp(3.5rem, 11vw, 7.5rem)",
-            fontWeight: 700,
+            fontWeight: 400,
             lineHeight: 1,
-            letterSpacing: "0.03em",
+            letterSpacing: "0.05em",
             color: "var(--text-primary)",
             textShadow: "3px 3px 0px rgba(99, 102, 241, 0.4), 6px 6px 0px var(--shadow-neo)",
             userSelect: "none",

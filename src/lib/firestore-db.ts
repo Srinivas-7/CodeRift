@@ -1,4 +1,4 @@
-import { adminDb, Timestamp, FieldValue } from "./firebase-admin";
+import { adminDb, Timestamp, FieldValue, hasAdminCredentials, warnMissingCredentialsOnce } from "./firebase-admin";
 import { SDE_SHEET_PROBLEMS } from "@/data/sdeSheetProblems";
 import { calculateLevel } from "@/lib/xp";
 
@@ -100,6 +100,10 @@ function formatDoc(data: any): any {
 
 const userService = {
   async findUnique(args: { where: { id?: string; email?: string; googleId?: string; firebaseUid?: string; username?: string }; include?: any; select?: any }) {
+    if (!hasAdminCredentials()) {
+      warnMissingCredentialsOnce();
+      return null;
+    }
     const { id, email, googleId, firebaseUid, username } = args.where;
     if (id) {
       const snap = await adminDb.collection("users").doc(id).get();
@@ -127,6 +131,10 @@ const userService = {
   },
 
   async findMany(args?: { where?: any; orderBy?: { xp?: "asc" | "desc"; createdAt?: "asc" | "desc" }; take?: number }) {
+    if (!hasAdminCredentials()) {
+      warnMissingCredentialsOnce();
+      return [];
+    }
     const usersRef = adminDb.collection("users");
     const snap = await usersRef.get();
     let list: any[] = snap.docs.map((d) => formatDoc({ id: d.id, ...d.data() }));
@@ -257,6 +265,7 @@ const problemService = {
 
 const userProblemStatusService = {
   async findUnique(args: { where: { userId_problemId?: { userId: string; problemId: number }; id?: string } }) {
+    if (!hasAdminCredentials()) return null;
     const docId = args.where.userId_problemId
       ? `${args.where.userId_problemId.userId}_${args.where.userId_problemId.problemId}`
       : args.where.id;
@@ -267,6 +276,7 @@ const userProblemStatusService = {
   },
 
   async findMany(args?: { where?: { userId?: string | { in: string[] }; status?: string | { in: string[] }; problemId?: number | { in: number[] } }; select?: any }) {
+    if (!hasAdminCredentials()) return [];
     const ref = adminDb.collection("user_problem_statuses");
 
     const userIds = args?.where?.userId
@@ -384,6 +394,7 @@ const userProblemStatusService = {
 
 const dailyChallengeService = {
   async findUnique(args: { where: { userId_groupId_date?: { userId: string; groupId?: string | null; date: string }; userId_date?: { userId: string; date: string }; id?: string } }) {
+    if (!hasAdminCredentials()) return null;
     let docId = args.where.id;
     if (args.where.userId_groupId_date) {
       const { userId, groupId, date } = args.where.userId_groupId_date;
@@ -398,6 +409,7 @@ const dailyChallengeService = {
   },
 
   async findMany(args?: { where?: { userId?: string | { in: string[] }; groupId?: string; date?: string; completed?: boolean } }) {
+    if (!hasAdminCredentials()) return [];
     const ref = adminDb.collection("daily_challenges");
     const snap = await ref.get();
     let list: any[] = snap.docs.map((d) => formatDoc({ id: d.id, ...d.data() }));
@@ -762,6 +774,7 @@ const groupMemberService = {
 
 const groupService = {
   async findUnique(args: { where: { id?: string; inviteCode?: string }; include?: any }) {
+    if (!hasAdminCredentials()) return null;
     const { id, inviteCode } = args.where;
     if (id) {
       const snap = await adminDb.collection("groups").doc(id).get();
@@ -782,6 +795,7 @@ const groupService = {
   },
 
   async findMany(args?: any) {
+    if (!hasAdminCredentials()) return [];
     const snap = await adminDb.collection("groups").get();
     return snap.docs.map((d) => formatDoc({ id: d.id, ...d.data() }));
   },
@@ -879,16 +893,6 @@ const userAchievementService = {
 
 const seasonService = {
   async findFirst(args?: any) {
-    try {
-      const snap = await adminDb.collection("seasons").get();
-      if (!snap.empty) {
-        const d = snap.docs[0];
-        return formatDoc({ id: d.id, ...d.data() });
-      }
-    } catch (e) {
-      console.warn("Error fetching season from firestore:", e);
-    }
-
     const defaultSeason = {
       id: "season_1",
       name: "Season 01 Arena",
@@ -899,6 +903,21 @@ const seasonService = {
       createdAt: new Date("2026-09-01T00:00:00.000Z"),
       updatedAt: new Date("2026-09-01T00:00:00.000Z"),
     };
+
+    if (!hasAdminCredentials()) {
+      return defaultSeason;
+    }
+
+    try {
+      const snap = await adminDb.collection("seasons").get();
+      if (!snap.empty) {
+        const d = snap.docs[0];
+        return formatDoc({ id: d.id, ...d.data() });
+      }
+    } catch (e) {
+      console.warn("Error fetching season from firestore:", e);
+    }
+
     try {
       await adminDb.collection("seasons").doc("season_1").set(defaultSeason);
     } catch (e) {}
@@ -1084,6 +1103,7 @@ const notificationService = {
   },
 
   async findMany(args?: { where?: { userId?: string; read?: boolean; type?: string }; orderBy?: any; take?: number }) {
+    if (!hasAdminCredentials()) return [];
     const ref = adminDb.collection("notifications");
     let queryRef: FirebaseFirestore.Query = ref;
     if (args?.where?.userId) queryRef = ref.where("userId", "==", args.where.userId);

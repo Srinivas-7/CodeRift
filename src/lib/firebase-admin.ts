@@ -7,6 +7,26 @@ let _adminApp: App | null = null;
 let _adminDb: Firestore | null = null;
 let _adminAuth: Auth | null = null;
 
+export function hasAdminCredentials(): boolean {
+  if (process.env.FIRESTORE_EMULATOR_HOST) return true;
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  const rawKey = process.env.FIREBASE_PRIVATE_KEY;
+  return Boolean(clientEmail && rawKey);
+}
+
+let _hasWarnedMissingCreds = false;
+export function warnMissingCredentialsOnce() {
+  if (!_hasWarnedMissingCreds && process.env.NODE_ENV !== "production") {
+    _hasWarnedMissingCreds = true;
+    console.warn(
+      "\n⚠️  [Firebase Admin Notice]\n" +
+      "FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY are missing from .env.local.\n" +
+      "Database operations will return safe fallback data to prevent server crashes.\n" +
+      "To connect with your live Firebase database, add your service account credentials to .env.local.\n"
+    );
+  }
+}
+
 export function getAdminApp(): App {
   if (_adminApp) return _adminApp;
   if (getApps().length > 0) {

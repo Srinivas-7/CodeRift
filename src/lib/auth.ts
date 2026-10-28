@@ -108,43 +108,48 @@ export const getSession = cache(async (): Promise<SessionPayload | null> => {
 });
 
 export const getCurrentUser = cache(async () => {
-  const session = await getSession();
-  if (!session?.userId) return null;
+  try {
+    const session = await getSession();
+    if (!session?.userId) return null;
 
-  const user = await db.user.findUnique({
-    where: { id: session.userId },
-    include: {
-      groupMemberships: {
-        include: {
-          group: true,
+    const user = await db.user.findUnique({
+      where: { id: session.userId },
+      include: {
+        groupMemberships: {
+          include: {
+            group: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  if (!user) return null;
+    if (!user) return null;
 
-  // Enforce sessionVersion match for global token revocation
-  const currentDbVersion = typeof user.sessionVersion === "number" ? user.sessionVersion : 1;
-  const sessionVersion = typeof session.sessionVersion === "number" ? session.sessionVersion : 1;
+    // Enforce sessionVersion match for global token revocation
+    const currentDbVersion = typeof user.sessionVersion === "number" ? user.sessionVersion : 1;
+    const sessionVersion = typeof session.sessionVersion === "number" ? session.sessionVersion : 1;
 
-  if (currentDbVersion !== sessionVersion) {
-    try {
-      await removeSessionCookie();
-    } catch {
-      // Ignore if headers are already read-only
+    if (currentDbVersion !== sessionVersion) {
+      try {
+        await removeSessionCookie();
+      } catch {
+        // Ignore if headers are already read-only
+      }
+      return null;
     }
+
+    try {
+      const streakInfo = await syncUserStreak(user.id);
+      user.currentStreak = streakInfo.currentStreak;
+      user.longestStreak = streakInfo.longestStreak;
+      user.streakShields = streakInfo.streakShields;
+    } catch (err) {
+      console.error("Error syncing streak in getCurrentUser:", err);
+    }
+
+    return user;
+  } catch (err) {
+    console.warn("Could not retrieve current user:", (err as Error)?.message || err);
     return null;
   }
-
-  try {
-    const streakInfo = await syncUserStreak(user.id);
-    user.currentStreak = streakInfo.currentStreak;
-    user.longestStreak = streakInfo.longestStreak;
-    user.streakShields = streakInfo.streakShields;
-  } catch (err) {
-    console.error("Error syncing streak in getCurrentUser:", err);
-  }
-
-  return user;
 });

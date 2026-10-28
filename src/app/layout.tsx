@@ -4,7 +4,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { AnimatedWorldBackground } from "@/components/layout/AnimatedWorldBackground";
 import { db } from "@/lib/db";
 import type { Metadata } from "next";
-import { Instrument_Serif, Plus_Jakarta_Sans, Space_Grotesk, JetBrains_Mono, Pixelify_Sans, Unbounded, Syne } from "next/font/google";
+import { Instrument_Serif, Plus_Jakarta_Sans, Space_Grotesk, JetBrains_Mono, Unbounded, Syne } from "next/font/google";
 
 const unbounded = Unbounded({
   subsets: ["latin"],
@@ -48,12 +48,6 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
-const pixelifySans = Pixelify_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-pixelify-src",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "CodeRift — 191 Problems. 3 Every Day. Beat Your Friends.",
@@ -86,20 +80,29 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getCurrentUser();
+  let user = null;
+  try {
+    user = await getCurrentUser();
+  } catch (err) {
+    console.warn("RootLayout: getCurrentUser failed:", err);
+  }
 
   let unreadCount = 0;
   if (user) {
-    unreadCount = await db.notification.count({
-      where: { userId: user.id, read: false },
-    });
+    try {
+      unreadCount = await db.notification.count({
+        where: { userId: user.id, read: false },
+      });
+    } catch (err) {
+      console.warn("RootLayout: notification.count failed:", err);
+    }
   }
 
   return (
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${instrumentSerif.variable} ${plusJakartaSans.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} ${pixelifySans.variable} ${unbounded.variable} ${syne.variable}`}
+      className={`${instrumentSerif.variable} ${plusJakartaSans.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} ${unbounded.variable} ${syne.variable}`}
     >
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />

@@ -1,19 +1,4 @@
-import { firestore } from "./firebase";
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  setDoc,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-  orderBy as firestoreOrderBy,
-  limit as firestoreLimit,
-  Timestamp,
-  runTransaction,
-} from "firebase/firestore";
+import { adminDb, Timestamp, FieldValue, hasAdminCredentials, warnMissingCredentialsOnce } from "./firebase-admin";
 import { SDE_SHEET_PROBLEMS } from "@/data/sdeSheetProblems";
 import { calculateLevel } from "@/lib/xp";
 
@@ -93,36 +78,48 @@ const SYSTEM_ACHIEVEMENTS = [
   },
 ];
 
-// Helper to sanitize dates from Firestore
+// Helper to recursively sanitize dates/Timestamps from Firestore
 function formatDoc(data: any): any {
-  if (!data) return null;
-  const formatted: any = { ...data };
-  for (const key of Object.keys(formatted)) {
-    if (formatted[key] instanceof Timestamp) {
-      formatted[key] = formatted[key].toDate();
-    }
+  if (data === null || data === undefined) return data;
+  if (typeof data === "object" && typeof data.toDate === "function") {
+    return data.toDate();
   }
-  return formatted;
+  if (Array.isArray(data)) {
+    return data.map((item) => formatDoc(item));
+  }
+  if (typeof data === "object" && (data.constructor === Object || !data.constructor)) {
+    const formatted: any = {};
+    for (const key of Object.keys(data)) {
+      formatted[key] = formatDoc(data[key]);
+    }
+    return formatted;
+  }
+  return data;
 }
+
 
 const userService = {
   async findUnique(args: { where: { id?: string; email?: string; googleId?: string; firebaseUid?: string; username?: string }; include?: any; select?: any }) {
+    if (!hasAdminCredentials()) {
+      warnMissingCredentialsOnce();
+      return null;
+    }
     const { id, email, googleId, firebaseUid, username } = args.where;
     if (id) {
-      const snap = await getDoc(doc(firestore, "users", id));
-      if (!snap.exists()) return null;
+      const snap = await adminDb.collection("users").doc(id).get();
+      if (!snap.exists) return null;
       return formatDoc({ id: snap.id, ...snap.data() });
     }
 
-    const usersRef = collection(firestore, "users");
-    let q = null;
-    if (email) q = query(usersRef, where("email", "==", email), firestoreLimit(1));
-    else if (googleId) q = query(usersRef, where("googleId", "==", googleId), firestoreLimit(1));
-    else if (firebaseUid) q = query(usersRef, where("firebaseUid", "==", firebaseUid), firestoreLimit(1));
-    else if (username) q = query(usersRef, where("username", "==", username), firestoreLimit(1));
+    const usersRef = adminDb.collection("users");
+    let queryRef: FirebaseFirestore.Query = usersRef;
+    if (email) queryRef = usersRef.where("email", "==", email).limit(1);
+    else if (googleId) queryRef = usersRef.where("googleId", "==", googleId).limit(1);
+    else if (firebaseUid) queryRef = usersRef.where("firebaseUid", "==", firebaseUid).limit(1);
+    else if (username) queryRef = usersRef.where("username", "==", username).limit(1);
+    else return null;
 
-    if (!q) return null;
-    const snap = await getDocs(q);
+    const snap = await queryRef.get();
     if (snap.empty) return null;
     const first = snap.docs[0];
     return formatDoc({ id: first.id, ...first.data() });
@@ -134,8 +131,12 @@ const userService = {
   },
 
   async findMany(args?: { where?: any; orderBy?: { xp?: "asc" | "desc"; createdAt?: "asc" | "desc" }; take?: number }) {
-    const usersRef = collection(firestore, "users");
-    const snap = await getDocs(usersRef);
+    if (!hasAdminCredentials()) {
+      warnMissingCredentialsOnce();
+      return [];
+    }
+    const usersRef = adminDb.collection("users");
+    const snap = await usersRef.get();
     let list: any[] = snap.docs.map((d) => formatDoc({ id: d.id, ...d.data() }));
 
     if (args?.where) {
@@ -157,7 +158,7 @@ const userService = {
   },
 
   async create(args: { data: any }) {
-    const id = args.data.id || args.data.firebaseUid || doc(collection(firestore, "users")).id;
+    const id = args.data.id || args.data.firebaseUid || adminDb.collection("users").doc().id;
     const record = {
       avatar: "cyber_ninja",
       score: 0,
@@ -173,7 +174,7 @@ const userService = {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    await setDoc(doc(firestore, "users", id), record);
+    await adminDb.collection("users").doc(id).set(record);
     return { id, ...record };
   },
 
@@ -194,7 +195,7 @@ const userService = {
       }
     }
 
-    await updateDoc(doc(firestore, "users", id), updateData);
+    await adminDb.collection("users").doc(id).update(updateData);
     return await userService.findUnique({ where: { id } });
   },
 
@@ -207,15 +208,17 @@ const userService = {
   },
 
   async count() {
-    const snap = await getDocs(collection(firestore, "users"));
+    const snap = await adminDb.collection("users").get();
     return snap.size;
   },
 
   async deleteMany(args?: { where?: any }) {
-    const snap = await getDocs(collection(firestore, "users"));
+    const snap = await adminDb.collection("users").get();
+    const batch = adminDb.batch();
     for (const d of snap.docs) {
-      await deleteDoc(d.ref);
+      batch.delete(d.ref);
     }
+    await batch.commit();
     return { count: snap.size };
   },
 };
@@ -262,19 +265,20 @@ const problemService = {
 
 const userProblemStatusService = {
   async findUnique(args: { where: { userId_problemId?: { userId: string; problemId: number }; id?: string } }) {
+    if (!hasAdminCredentials()) return null;
     const docId = args.where.userId_problemId
       ? `${args.where.userId_problemId.userId}_${args.where.userId_problemId.problemId}`
       : args.where.id;
     if (!docId) return null;
-    const snap = await getDoc(doc(firestore, "user_problem_statuses", docId));
-    if (!snap.exists()) return null;
+    const snap = await adminDb.collection("user_problem_statuses").doc(docId).get();
+    if (!snap.exists) return null;
     return formatDoc({ id: snap.id, ...snap.data() });
   },
 
   async findMany(args?: { where?: { userId?: string | { in: string[] }; status?: string | { in: string[] }; problemId?: number | { in: number[] } }; select?: any }) {
-    const ref = collection(firestore, "user_problem_statuses");
+    if (!hasAdminCredentials()) return [];
+    const ref = adminDb.collection("user_problem_statuses");
 
-    // Optimization 1: When user IDs and problem IDs are provided (e.g. squad dashboard checks)
     const userIds = args?.where?.userId
       ? typeof args.where.userId === "string"
         ? [args.where.userId]
@@ -301,20 +305,20 @@ const userProblemStatusService = {
         }
       }
       const snaps = await Promise.all(
-        docIds.map((docId) => getDoc(doc(firestore, "user_problem_statuses", docId)))
+        docIds.map((docId) => adminDb.collection("user_problem_statuses").doc(docId).get())
       );
       list = snaps
-        .filter((s) => s.exists())
+        .filter((s) => s.exists)
         .map((s) => formatDoc({ id: s.id, ...s.data() }));
     } else if (userIds && userIds.length > 0) {
       const snaps = await Promise.all(
-        userIds.map((uId) => getDocs(query(ref, where("userId", "==", uId))))
+        userIds.map((uId) => ref.where("userId", "==", uId).get())
       );
       for (const snap of snaps) {
         list.push(...snap.docs.map((d) => formatDoc({ id: d.id, ...d.data() })));
       }
     } else {
-      const snap = await getDocs(query(ref));
+      const snap = await ref.get();
       list = snap.docs.map((d) => formatDoc({ id: d.id, ...d.data() }));
     }
 
@@ -339,11 +343,11 @@ const userProblemStatusService = {
 
   async upsert(args: { where: { userId_problemId: { userId: string; problemId: number } }; update: any; create: any }) {
     const docId = `${args.where.userId_problemId.userId}_${args.where.userId_problemId.problemId}`;
-    const snap = await getDoc(doc(firestore, "user_problem_statuses", docId));
+    const snap = await adminDb.collection("user_problem_statuses").doc(docId).get();
 
-    if (snap.exists()) {
+    if (snap.exists) {
       const updateData = { ...args.update, lastAttemptedAt: new Date() };
-      await updateDoc(doc(firestore, "user_problem_statuses", docId), updateData);
+      await adminDb.collection("user_problem_statuses").doc(docId).update(updateData);
       return formatDoc({ id: docId, ...snap.data(), ...updateData });
     }
 
@@ -356,7 +360,7 @@ const userProblemStatusService = {
       lastAttemptedAt: new Date(),
       ...args.create,
     };
-    await setDoc(doc(firestore, "user_problem_statuses", docId), createData);
+    await adminDb.collection("user_problem_statuses").doc(docId).set(createData);
     return formatDoc({ id: docId, ...createData });
   },
 
@@ -370,24 +374,27 @@ const userProblemStatusService = {
       ? `${args.where.userId_problemId.userId}_${args.where.userId_problemId.problemId}`
       : args.where.id;
     if (!docId) return null;
-    await deleteDoc(doc(firestore, "user_problem_statuses", docId));
+    await adminDb.collection("user_problem_statuses").doc(docId).delete();
     return { success: true };
   },
 
   async deleteMany(args?: { where?: { userId?: string } }) {
-    const ref = collection(firestore, "user_problem_statuses");
-    let q = query(ref);
-    if (args?.where?.userId) q = query(ref, where("userId", "==", args.where.userId));
-    const snap = await getDocs(q);
+    const ref = adminDb.collection("user_problem_statuses");
+    let queryRef: FirebaseFirestore.Query = ref;
+    if (args?.where?.userId) queryRef = ref.where("userId", "==", args.where.userId);
+    const snap = await queryRef.get();
+    const batch = adminDb.batch();
     for (const d of snap.docs) {
-      await deleteDoc(d.ref);
+      batch.delete(d.ref);
     }
+    await batch.commit();
     return { count: snap.size };
   },
 };
 
 const dailyChallengeService = {
   async findUnique(args: { where: { userId_groupId_date?: { userId: string; groupId?: string | null; date: string }; userId_date?: { userId: string; date: string }; id?: string } }) {
+    if (!hasAdminCredentials()) return null;
     let docId = args.where.id;
     if (args.where.userId_groupId_date) {
       const { userId, groupId, date } = args.where.userId_groupId_date;
@@ -396,14 +403,15 @@ const dailyChallengeService = {
       docId = `${args.where.userId_date.userId}_${args.where.userId_date.date}`;
     }
     if (!docId) return null;
-    const snap = await getDoc(doc(firestore, "daily_challenges", docId));
-    if (!snap.exists()) return null;
+    const snap = await adminDb.collection("daily_challenges").doc(docId).get();
+    if (!snap.exists) return null;
     return formatDoc({ id: snap.id, ...snap.data() });
   },
 
   async findMany(args?: { where?: { userId?: string | { in: string[] }; groupId?: string; date?: string; completed?: boolean } }) {
-    const ref = collection(firestore, "daily_challenges");
-    const snap = await getDocs(ref);
+    if (!hasAdminCredentials()) return [];
+    const ref = adminDb.collection("daily_challenges");
+    const snap = await ref.get();
     let list: any[] = snap.docs.map((d) => formatDoc({ id: d.id, ...d.data() }));
 
     if (args?.where?.userId) {
@@ -446,10 +454,10 @@ const dailyChallengeService = {
       docId = `${userId}_${date}`;
     }
 
-    const snap = await getDoc(doc(firestore, "daily_challenges", docId));
+    const snap = await adminDb.collection("daily_challenges").doc(docId).get();
 
-    if (snap.exists()) {
-      await updateDoc(doc(firestore, "daily_challenges", docId), args.update);
+    if (snap.exists) {
+      await adminDb.collection("daily_challenges").doc(docId).update(args.update);
       return formatDoc({ id: docId, ...snap.data(), ...args.update });
     }
 
@@ -462,24 +470,26 @@ const dailyChallengeService = {
       createdAt: new Date(),
       ...args.create,
     };
-    await setDoc(doc(firestore, "daily_challenges", docId), createData);
+    await adminDb.collection("daily_challenges").doc(docId).set(createData);
     return formatDoc({ id: docId, ...createData });
   },
 
   async update(args: { where: { id: string }; data: any }) {
-    await updateDoc(doc(firestore, "daily_challenges", args.where.id), args.data);
-    const snap = await getDoc(doc(firestore, "daily_challenges", args.where.id));
+    await adminDb.collection("daily_challenges").doc(args.where.id).update(args.data);
+    const snap = await adminDb.collection("daily_challenges").doc(args.where.id).get();
     return formatDoc({ id: snap.id, ...snap.data() });
   },
 
   async deleteMany(args?: { where?: { userId?: string } }) {
-    const ref = collection(firestore, "daily_challenges");
-    let q = query(ref);
-    if (args?.where?.userId) q = query(ref, where("userId", "==", args.where.userId));
-    const snap = await getDocs(q);
+    const ref = adminDb.collection("daily_challenges");
+    let queryRef: FirebaseFirestore.Query = ref;
+    if (args?.where?.userId) queryRef = ref.where("userId", "==", args.where.userId);
+    const snap = await queryRef.get();
+    const batch = adminDb.batch();
     for (const d of snap.docs) {
-      await deleteDoc(d.ref);
+      batch.delete(d.ref);
     }
+    await batch.commit();
     return { count: snap.size };
   },
 
@@ -505,21 +515,21 @@ const dailyChallengeService = {
     const dailyDocId = groupId ? `${userId}_${groupId}_${date}` : `${userId}_${date}`;
     const deterministicBonusId = groupId ? `bonus_${userId}_${groupId}_${date}` : `bonus_${userId}_${date}`;
 
-    const dailyRef = doc(firestore, "daily_challenges", dailyDocId);
-    const userRef = doc(firestore, "users", userId);
-    const bonusRef = doc(firestore, "xp_transactions", deterministicBonusId);
+    const dailyRef = adminDb.collection("daily_challenges").doc(dailyDocId);
+    const userRef = adminDb.collection("users").doc(userId);
+    const bonusRef = adminDb.collection("xp_transactions").doc(deterministicBonusId);
 
     try {
-      const result = await runTransaction(firestore, async (transaction) => {
+      const result = await adminDb.runTransaction(async (transaction) => {
         const dailySnap = await transaction.get(dailyRef);
         const userSnap = await transaction.get(userRef);
         const bonusSnap = await transaction.get(bonusRef);
 
-        const dailyData = dailySnap.exists() ? (dailySnap.data() as any) : null;
-        const userData = userSnap.exists() ? (userSnap.data() as any) : {};
+        const dailyData = dailySnap.exists ? (dailySnap.data() as any) : null;
+        const userData = userSnap.exists ? (userSnap.data() as any) : {};
 
         // 1. If daily challenge is already completed or bonus transaction already exists, exit idempotently
-        if ((dailyData && dailyData.completed === true) || bonusSnap.exists()) {
+        if ((dailyData && dailyData.completed === true) || bonusSnap.exists) {
           return {
             awarded: false,
             alreadyCompleted: true,
@@ -531,7 +541,7 @@ const dailyChallengeService = {
         }
 
         // 2. Mark daily challenge as completed
-        if (dailySnap.exists()) {
+        if (dailySnap.exists) {
           transaction.update(dailyRef, {
             completed: true,
             completedAt: new Date(),
@@ -603,7 +613,7 @@ const dailyChallengeService = {
 
 const submissionService = {
   async create(args: { data: any }) {
-    const ref = doc(collection(firestore, "submissions"));
+    const ref = adminDb.collection("submissions").doc();
     const record = {
       id: ref.id,
       xpEarned: 0,
@@ -612,15 +622,15 @@ const submissionService = {
       createdAt: new Date(),
       ...args.data,
     };
-    await setDoc(ref, record);
+    await ref.set(record);
     return record;
   },
 
   async findMany(args?: { where?: { userId?: string; problemId?: number }; orderBy?: any; take?: number }) {
-    const ref = collection(firestore, "submissions");
-    let q = query(ref);
-    if (args?.where?.userId) q = query(ref, where("userId", "==", args.where.userId));
-    const snap = await getDocs(q);
+    const ref = adminDb.collection("submissions");
+    let queryRef: FirebaseFirestore.Query = ref;
+    if (args?.where?.userId) queryRef = ref.where("userId", "==", args.where.userId);
+    const snap = await queryRef.get();
     let list: any[] = snap.docs.map((d) => formatDoc({ id: d.id, ...d.data() }));
 
     if (args?.where?.problemId) {
@@ -633,23 +643,25 @@ const submissionService = {
   },
 
   async count() {
-    const snap = await getDocs(collection(firestore, "submissions"));
+    const snap = await adminDb.collection("submissions").get();
     return snap.size;
   },
 
   async deleteMany(args?: { where?: { userId?: string; problemId?: number } }) {
-    const ref = collection(firestore, "submissions");
-    let q = query(ref);
-    if (args?.where?.userId) q = query(ref, where("userId", "==", args.where.userId));
-    const snap = await getDocs(q);
+    const ref = adminDb.collection("submissions");
+    let queryRef: FirebaseFirestore.Query = ref;
+    if (args?.where?.userId) queryRef = ref.where("userId", "==", args.where.userId);
+    const snap = await queryRef.get();
+    const batch = adminDb.batch();
     let count = 0;
     for (const d of snap.docs) {
       const data = d.data();
       if (!args?.where?.problemId || data.problemId === args.where.problemId) {
-        await deleteDoc(d.ref);
+        batch.delete(d.ref);
         count++;
       }
     }
+    await batch.commit();
     return { count };
   },
 };
@@ -658,8 +670,8 @@ const groupMemberService = {
   async findUnique(args: { where: { id?: string; userId_groupId?: { userId: string; groupId: string } }; include?: any }) {
     const docId = args.where.id || (args.where.userId_groupId ? `${args.where.userId_groupId.userId}_${args.where.userId_groupId.groupId}` : null);
     if (!docId) return null;
-    const snap = await getDoc(doc(firestore, "group_members", docId));
-    if (!snap.exists()) return null;
+    const snap = await adminDb.collection("group_members").doc(docId).get();
+    if (!snap.exists) return null;
     const data = formatDoc({ id: snap.id, ...snap.data() });
     if (args?.include?.user) {
       data.user = await userService.findUnique({ where: { id: data.userId } });
@@ -676,33 +688,32 @@ const groupMemberService = {
   },
 
   async findMany(args?: { where?: { userId?: string; groupId?: string }; include?: { group?: any; user?: any }; orderBy?: any }) {
-    const ref = collection(firestore, "group_members");
-    let q = query(ref);
-    if (args?.where?.userId) q = query(ref, where("userId", "==", args.where.userId));
-    if (args?.where?.groupId) q = query(ref, where("groupId", "==", args.where.groupId));
+    const ref = adminDb.collection("group_members");
+    let queryRef: FirebaseFirestore.Query = ref;
+    if (args?.where?.userId) queryRef = queryRef.where("userId", "==", args.where.userId);
+    if (args?.where?.groupId) queryRef = queryRef.where("groupId", "==", args.where.groupId);
 
-    const snap = await getDocs(q);
+    const snap = await queryRef.get();
     let list: any[] = snap.docs.map((d) => formatDoc({ id: d.id, ...d.data() }));
 
     if (args?.include?.user || args?.include?.group) {
       await Promise.all(
         list.map(async (member) => {
           if (args?.include?.user) {
-            const uSnap = await getDoc(doc(firestore, "users", member.userId));
-            member.user = uSnap.exists() ? formatDoc({ id: uSnap.id, ...uSnap.data() }) : null;
+            const uSnap = await adminDb.collection("users").doc(member.userId).get();
+            member.user = uSnap.exists ? formatDoc({ id: uSnap.id, ...uSnap.data() }) : null;
           }
           if (args?.include?.group) {
-            const gSnap = await getDoc(doc(firestore, "groups", member.groupId));
-            if (gSnap.exists()) {
+            const gSnap = await adminDb.collection("groups").doc(member.groupId).get();
+            if (gSnap.exists) {
               const grpData = formatDoc({ id: gSnap.id, ...gSnap.data() });
-              // Populate members of this group
-              const gmSnaps = await getDocs(query(collection(firestore, "group_members"), where("groupId", "==", member.groupId)));
+              const gmSnaps = await adminDb.collection("group_members").where("groupId", "==", member.groupId).get();
               const gMembers = gmSnaps.docs.map((d) => formatDoc({ id: d.id, ...d.data() }));
               if (args?.include?.group?.include?.members?.include?.user) {
                 await Promise.all(
                   gMembers.map(async (gm) => {
-                    const uSnap = await getDoc(doc(firestore, "users", gm.userId));
-                    gm.user = uSnap.exists() ? formatDoc({ id: uSnap.id, ...uSnap.data() }) : null;
+                    const uSnap = await adminDb.collection("users").doc(gm.userId).get();
+                    gm.user = uSnap.exists ? formatDoc({ id: uSnap.id, ...uSnap.data() }) : null;
                   })
                 );
               }
@@ -729,49 +740,51 @@ const groupMemberService = {
       currentRank: null,
       ...args.data,
     };
-    await setDoc(doc(firestore, "group_members", docId), record);
+    await adminDb.collection("group_members").doc(docId).set(record);
     return record;
   },
 
   async update(args: { where: { id?: string; userId_groupId?: { userId: string; groupId: string } }; data: any }) {
     const docId = args.where.id || `${args.where.userId_groupId?.userId}_${args.where.userId_groupId?.groupId}`;
     if (!docId) return null;
-    await updateDoc(doc(firestore, "group_members", docId), args.data);
-    const snap = await getDoc(doc(firestore, "group_members", docId));
+    await adminDb.collection("group_members").doc(docId).update(args.data);
+    const snap = await adminDb.collection("group_members").doc(docId).get();
     return formatDoc({ id: snap.id, ...snap.data() });
   },
 
   async delete(args: { where: { id?: string; userId_groupId?: { userId: string; groupId: string } } }) {
     const docId = args.where.id || (args.where.userId_groupId ? `${args.where.userId_groupId.userId}_${args.where.userId_groupId.groupId}` : null);
     if (!docId) return null;
-    await deleteDoc(doc(firestore, "group_members", docId));
+    await adminDb.collection("group_members").doc(docId).delete();
     return { id: docId };
   },
 
   async deleteMany(args?: { where?: { userId?: string; groupId?: string } }) {
-    const ref = collection(firestore, "group_members");
-    let q = query(ref);
-    if (args?.where?.userId) q = query(ref, where("userId", "==", args.where.userId));
-    if (args?.where?.groupId) q = query(ref, where("groupId", "==", args.where.groupId));
-    const snap = await getDocs(q);
-    for (const d of snap.docs) await deleteDoc(d.ref);
+    const ref = adminDb.collection("group_members");
+    let queryRef: FirebaseFirestore.Query = ref;
+    if (args?.where?.userId) queryRef = queryRef.where("userId", "==", args.where.userId);
+    if (args?.where?.groupId) queryRef = queryRef.where("groupId", "==", args.where.groupId);
+    const snap = await queryRef.get();
+    const batch = adminDb.batch();
+    for (const d of snap.docs) batch.delete(d.ref);
+    await batch.commit();
     return { count: snap.size };
   },
 };
 
 const groupService = {
   async findUnique(args: { where: { id?: string; inviteCode?: string }; include?: any }) {
+    if (!hasAdminCredentials()) return null;
     const { id, inviteCode } = args.where;
     if (id) {
-      const snap = await getDoc(doc(firestore, "groups", id));
-      if (!snap.exists()) return null;
+      const snap = await adminDb.collection("groups").doc(id).get();
+      if (!snap.exists) return null;
       const groupData = formatDoc({ id: snap.id, ...snap.data() });
       const members = await groupMemberService.findMany({ where: { groupId: id }, include: { user: true } });
       return { ...groupData, members };
     }
     if (inviteCode) {
-      const q = query(collection(firestore, "groups"), where("inviteCode", "==", inviteCode), firestoreLimit(1));
-      const snap = await getDocs(q);
+      const snap = await adminDb.collection("groups").where("inviteCode", "==", inviteCode).limit(1).get();
       if (snap.empty) return null;
       const first = snap.docs[0];
       const groupData = formatDoc({ id: first.id, ...first.data() });
@@ -782,12 +795,13 @@ const groupService = {
   },
 
   async findMany(args?: any) {
-    const snap = await getDocs(collection(firestore, "groups"));
+    if (!hasAdminCredentials()) return [];
+    const snap = await adminDb.collection("groups").get();
     return snap.docs.map((d) => formatDoc({ id: d.id, ...d.data() }));
   },
 
   async create(args: { data: any }) {
-    const ref = doc(collection(firestore, "groups"));
+    const ref = adminDb.collection("groups").doc();
     const record = {
       id: ref.id,
       avatar: "neon_shield",
@@ -795,28 +809,30 @@ const groupService = {
       updatedAt: new Date(),
       ...args.data,
     };
-    await setDoc(ref, record);
+    await ref.set(record);
     return record;
   },
 
   async update(args: { where: { id: string }; data: any }) {
-    await updateDoc(doc(firestore, "groups", args.where.id), { ...args.data, updatedAt: new Date() });
+    await adminDb.collection("groups").doc(args.where.id).update({ ...args.data, updatedAt: new Date() });
     return await groupService.findUnique({ where: { id: args.where.id } });
   },
 
   async count() {
-    const snap = await getDocs(collection(firestore, "groups"));
+    const snap = await adminDb.collection("groups").get();
     return snap.size;
   },
 
   async delete(args: { where: { id: string } }) {
-    await deleteDoc(doc(firestore, "groups", args.where.id));
+    await adminDb.collection("groups").doc(args.where.id).delete();
     return { id: args.where.id };
   },
 
   async deleteMany() {
-    const snap = await getDocs(collection(firestore, "groups"));
-    for (const d of snap.docs) await deleteDoc(d.ref);
+    const snap = await adminDb.collection("groups").get();
+    const batch = adminDb.batch();
+    for (const d of snap.docs) batch.delete(d.ref);
+    await batch.commit();
     return { count: snap.size };
   },
 };
@@ -835,10 +851,10 @@ const achievementService = {
 
 const userAchievementService = {
   async findMany(args?: { where?: { userId?: string }; include?: any; orderBy?: any; select?: any }) {
-    const ref = collection(firestore, "user_achievements");
-    let q = query(ref);
-    if (args?.where?.userId) q = query(ref, where("userId", "==", args.where.userId));
-    const snap = await getDocs(q);
+    const ref = adminDb.collection("user_achievements");
+    let queryRef: FirebaseFirestore.Query = ref;
+    if (args?.where?.userId) queryRef = ref.where("userId", "==", args.where.userId);
+    const snap = await queryRef.get();
     const list: any[] = snap.docs.map((d) => formatDoc({ id: d.id, ...d.data() }));
 
     for (const ua of list) {
@@ -859,32 +875,24 @@ const userAchievementService = {
       unlockedAt: new Date(),
       ...args.data,
     };
-    await setDoc(doc(firestore, "user_achievements", docId), record);
+    await adminDb.collection("user_achievements").doc(docId).set(record);
     return record;
   },
 
   async deleteMany(args?: { where?: { userId?: string } }) {
-    const ref = collection(firestore, "user_achievements");
-    let q = query(ref);
-    if (args?.where?.userId) q = query(ref, where("userId", "==", args.where.userId));
-    const snap = await getDocs(q);
-    for (const d of snap.docs) await deleteDoc(d.ref);
+    const ref = adminDb.collection("user_achievements");
+    let queryRef: FirebaseFirestore.Query = ref;
+    if (args?.where?.userId) queryRef = ref.where("userId", "==", args.where.userId);
+    const snap = await queryRef.get();
+    const batch = adminDb.batch();
+    for (const d of snap.docs) batch.delete(d.ref);
+    await batch.commit();
     return { count: snap.size };
   },
 };
 
 const seasonService = {
   async findFirst(args?: any) {
-    try {
-      const snap = await getDocs(collection(firestore, "seasons"));
-      if (!snap.empty) {
-        const d = snap.docs[0];
-        return formatDoc({ id: d.id, ...d.data() });
-      }
-    } catch (e) {
-      console.warn("Error fetching season from firestore:", e);
-    }
-
     const defaultSeason = {
       id: "season_1",
       name: "Season 01 Arena",
@@ -895,8 +903,23 @@ const seasonService = {
       createdAt: new Date("2026-09-01T00:00:00.000Z"),
       updatedAt: new Date("2026-09-01T00:00:00.000Z"),
     };
+
+    if (!hasAdminCredentials()) {
+      return defaultSeason;
+    }
+
     try {
-      await setDoc(doc(firestore, "seasons", "season_1"), defaultSeason);
+      const snap = await adminDb.collection("seasons").get();
+      if (!snap.empty) {
+        const d = snap.docs[0];
+        return formatDoc({ id: d.id, ...d.data() });
+      }
+    } catch (e) {
+      console.warn("Error fetching season from firestore:", e);
+    }
+
+    try {
+      await adminDb.collection("seasons").doc("season_1").set(defaultSeason);
     } catch (e) {}
     return defaultSeason;
   },
@@ -910,8 +933,8 @@ const seasonService = {
     if (updateData.endDate && typeof updateData.endDate === "string") {
       updateData.endDate = new Date(updateData.endDate);
     }
-    await setDoc(doc(firestore, "seasons", id), updateData, { merge: true });
-    const snap = await getDoc(doc(firestore, "seasons", id));
+    await adminDb.collection("seasons").doc(id).set(updateData, { merge: true });
+    const snap = await adminDb.collection("seasons").doc(id).get();
     return formatDoc({ id: snap.id, ...snap.data() });
   },
 
@@ -940,16 +963,16 @@ const streakRecordService = {
       ? `${args.where.userId_date.userId}_${args.where.userId_date.date}`
       : args.where.id;
     if (!docId) return null;
-    const snap = await getDoc(doc(firestore, "streak_records", docId));
-    if (!snap.exists()) return null;
+    const snap = await adminDb.collection("streak_records").doc(docId).get();
+    if (!snap.exists) return null;
     return formatDoc({ id: snap.id, ...snap.data() });
   },
 
   async upsert(args: { where: { userId_date: { userId: string; date: string } }; update: any; create: any }) {
     const docId = `${args.where.userId_date.userId}_${args.where.userId_date.date}`;
-    const snap = await getDoc(doc(firestore, "streak_records", docId));
+    const snap = await adminDb.collection("streak_records").doc(docId).get();
 
-    if (snap.exists()) {
+    if (snap.exists) {
       const existingData = snap.data() || {};
       const updateData = { ...args.update, updatedAt: new Date() };
       for (const k of Object.keys(updateData)) {
@@ -961,7 +984,7 @@ const streakRecordService = {
           updateData[k] = Math.max(0, currentVal - updateData[k].decrement);
         }
       }
-      await updateDoc(doc(firestore, "streak_records", docId), updateData);
+      await adminDb.collection("streak_records").doc(docId).update(updateData);
       return formatDoc({ id: docId, ...existingData, ...updateData });
     }
 
@@ -973,7 +996,7 @@ const streakRecordService = {
       createdAt: new Date(),
       ...args.create,
     };
-    await setDoc(doc(firestore, "streak_records", docId), createData);
+    await adminDb.collection("streak_records").doc(docId).set(createData);
     return formatDoc({ id: docId, ...createData });
   },
 
@@ -982,8 +1005,8 @@ const streakRecordService = {
       ? `${args.where.userId_date.userId}_${args.where.userId_date.date}`
       : args.where.id;
     if (!docId) return null;
-    const snap = await getDoc(doc(firestore, "streak_records", docId));
-    if (!snap.exists()) return null;
+    const snap = await adminDb.collection("streak_records").doc(docId).get();
+    if (!snap.exists) return null;
     const existingData = snap.data() || {};
     const updateData = { ...args.data, updatedAt: new Date() };
     for (const k of Object.keys(updateData)) {
@@ -995,46 +1018,48 @@ const streakRecordService = {
         updateData[k] = Math.max(0, currentVal - updateData[k].decrement);
       }
     }
-    await updateDoc(doc(firestore, "streak_records", docId), updateData);
+    await adminDb.collection("streak_records").doc(docId).update(updateData);
     return formatDoc({ id: snap.id, ...existingData, ...updateData });
   },
 
   async findMany(args?: { where?: { userId?: string; date?: any } }) {
-    const ref = collection(firestore, "streak_records");
-    let q = query(ref);
-    if (args?.where?.userId) q = query(ref, where("userId", "==", args.where.userId));
-    const snap = await getDocs(q);
+    const ref = adminDb.collection("streak_records");
+    let queryRef: FirebaseFirestore.Query = ref;
+    if (args?.where?.userId) queryRef = ref.where("userId", "==", args.where.userId);
+    const snap = await queryRef.get();
     return snap.docs.map((d) => formatDoc({ id: d.id, ...d.data() }));
   },
 
   async deleteMany(args?: { where?: { userId?: string } }) {
-    const ref = collection(firestore, "streak_records");
-    let q = query(ref);
-    if (args?.where?.userId) q = query(ref, where("userId", "==", args.where.userId));
-    const snap = await getDocs(q);
-    for (const d of snap.docs) await deleteDoc(d.ref);
+    const ref = adminDb.collection("streak_records");
+    let queryRef: FirebaseFirestore.Query = ref;
+    if (args?.where?.userId) queryRef = ref.where("userId", "==", args.where.userId);
+    const snap = await queryRef.get();
+    const batch = adminDb.batch();
+    for (const d of snap.docs) batch.delete(d.ref);
+    await batch.commit();
     return { count: snap.size };
   },
 };
 
 const xpTransactionService = {
   async create(args: { data: any }) {
-    const id = args.data.id || doc(collection(firestore, "xp_transactions")).id;
-    const ref = doc(firestore, "xp_transactions", id);
+    const id = args.data.id || adminDb.collection("xp_transactions").doc().id;
+    const ref = adminDb.collection("xp_transactions").doc(id);
     const record = {
       id,
       createdAt: new Date(),
       ...args.data,
     };
-    await setDoc(ref, record);
+    await ref.set(record);
     return record;
   },
 
   async findMany(args?: { where?: { userId?: string; createdAt?: any }; orderBy?: any; take?: number }) {
-    const ref = collection(firestore, "xp_transactions");
-    let q = query(ref);
-    if (args?.where?.userId) q = query(ref, where("userId", "==", args.where.userId));
-    const snap = await getDocs(q);
+    const ref = adminDb.collection("xp_transactions");
+    let queryRef: FirebaseFirestore.Query = ref;
+    if (args?.where?.userId) queryRef = ref.where("userId", "==", args.where.userId);
+    const snap = await queryRef.get();
     let list: any[] = snap.docs.map((d) => formatDoc({ id: d.id, ...d.data() }));
 
     if (args?.where?.createdAt) {
@@ -1053,33 +1078,36 @@ const xpTransactionService = {
   },
 
   async deleteMany(args?: { where?: { userId?: string } }) {
-    const ref = collection(firestore, "xp_transactions");
-    let q = query(ref);
-    if (args?.where?.userId) q = query(ref, where("userId", "==", args.where.userId));
-    const snap = await getDocs(q);
-    for (const d of snap.docs) await deleteDoc(d.ref);
+    const ref = adminDb.collection("xp_transactions");
+    let queryRef: FirebaseFirestore.Query = ref;
+    if (args?.where?.userId) queryRef = ref.where("userId", "==", args.where.userId);
+    const snap = await queryRef.get();
+    const batch = adminDb.batch();
+    for (const d of snap.docs) batch.delete(d.ref);
+    await batch.commit();
     return { count: snap.size };
   },
 };
 
 const notificationService = {
   async create(args: { data: any }) {
-    const ref = doc(collection(firestore, "notifications"));
+    const ref = adminDb.collection("notifications").doc();
     const record = {
       id: ref.id,
       read: false,
       createdAt: new Date(),
       ...args.data,
     };
-    await setDoc(ref, record);
+    await ref.set(record);
     return record;
   },
 
   async findMany(args?: { where?: { userId?: string; read?: boolean; type?: string }; orderBy?: any; take?: number }) {
-    const ref = collection(firestore, "notifications");
-    let q = query(ref);
-    if (args?.where?.userId) q = query(ref, where("userId", "==", args.where.userId));
-    const snap = await getDocs(q);
+    if (!hasAdminCredentials()) return [];
+    const ref = adminDb.collection("notifications");
+    let queryRef: FirebaseFirestore.Query = ref;
+    if (args?.where?.userId) queryRef = ref.where("userId", "==", args.where.userId);
+    const snap = await queryRef.get();
     let list: any[] = snap.docs.map((d) => formatDoc({ id: d.id, ...d.data() }));
     if (args?.where?.read !== undefined) {
       list = list.filter((n) => n.read === args.where?.read);
@@ -1099,15 +1127,16 @@ const notificationService = {
 
   async delete(args: { where: { id: string } }) {
     if (!args?.where?.id) return { id: null };
-    await deleteDoc(doc(firestore, "notifications", args.where.id));
+    await adminDb.collection("notifications").doc(args.where.id).delete();
     return { id: args.where.id };
   },
 
   async deleteMany(args?: { where?: { userId?: string; link?: string | { startsWith?: string }; type?: string } }) {
-    const ref = collection(firestore, "notifications");
-    let q = query(ref);
-    if (args?.where?.userId) q = query(ref, where("userId", "==", args.where.userId));
-    const snap = await getDocs(q);
+    const ref = adminDb.collection("notifications");
+    let queryRef: FirebaseFirestore.Query = ref;
+    if (args?.where?.userId) queryRef = ref.where("userId", "==", args.where.userId);
+    const snap = await queryRef.get();
+    const batch = adminDb.batch();
     let count = 0;
     for (const d of snap.docs) {
       const data = d.data();
@@ -1125,17 +1154,18 @@ const notificationService = {
         }
       }
       if (shouldDelete) {
-        await deleteDoc(d.ref);
+        batch.delete(d.ref);
         count++;
       }
     }
+    await batch.commit();
     return { count };
   },
 };
 
 const friendChallengeService = {
   async create(args: { data: any }) {
-    const ref = doc(collection(firestore, "friend_challenges"));
+    const ref = adminDb.collection("friend_challenges").doc();
     const record = {
       id: ref.id,
       xpStake: 150,
@@ -1145,25 +1175,25 @@ const friendChallengeService = {
       completedAt: null,
       ...args.data,
     };
-    await setDoc(ref, record);
+    await ref.set(record);
     return record;
   },
 
   async findMany(args?: any) {
-    const snap = await getDocs(collection(firestore, "friend_challenges"));
+    const snap = await adminDb.collection("friend_challenges").get();
     return snap.docs.map((d) => formatDoc({ id: d.id, ...d.data() }));
   },
 
   async update(args: { where: { id: string }; data: any }) {
-    const ref = doc(firestore, "friend_challenges", args.where.id);
-    await updateDoc(ref, { ...args.data, updatedAt: new Date() });
-    const snap = await getDoc(ref);
+    const ref = adminDb.collection("friend_challenges").doc(args.where.id);
+    await ref.update({ ...args.data, updatedAt: new Date() });
+    const snap = await ref.get();
     return formatDoc({ id: snap.id, ...snap.data() });
   },
 
   async findUnique(args: { where: { id: string } }) {
-    const snap = await getDoc(doc(firestore, "friend_challenges", args.where.id));
-    if (!snap.exists()) return null;
+    const snap = await adminDb.collection("friend_challenges").doc(args.where.id).get();
+    if (!snap.exists) return null;
     return formatDoc({ id: snap.id, ...snap.data() });
   },
 
@@ -1173,11 +1203,15 @@ const friendChallengeService = {
   },
 
   async deleteMany(args?: any) {
-    const snap = await getDocs(collection(firestore, "friend_challenges"));
-    for (const d of snap.docs) await deleteDoc(d.ref);
+    const snap = await adminDb.collection("friend_challenges").get();
+    const batch = adminDb.batch();
+    for (const d of snap.docs) batch.delete(d.ref);
+    await batch.commit();
     return { count: snap.size };
   },
 };
+
+export { adminDb, FieldValue, Timestamp };
 
 export const db = {
   user: userService,
@@ -1195,6 +1229,10 @@ export const db = {
   xpTransaction: xpTransactionService,
   notification: notificationService,
   friendChallenge: friendChallengeService,
+
+  runTransaction: <T>(updateFunction: (transaction: FirebaseFirestore.Transaction) => Promise<T>): Promise<T> => {
+    return adminDb.runTransaction(updateFunction);
+  },
 
   async $transaction<T>(input: ((trx: any) => Promise<T>) | Promise<any>[]): Promise<T | any[]> {
     if (Array.isArray(input)) {

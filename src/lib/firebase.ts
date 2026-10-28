@@ -1,5 +1,4 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
 import {
   getAuth,
   GoogleAuthProvider,
@@ -26,7 +25,7 @@ const firebaseConfig = {
 // Initialize Firebase singleton safely
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const firestore = getFirestore(app);
+
 
 // Auth Providers
 const googleProvider = new GoogleAuthProvider();
@@ -37,11 +36,12 @@ githubProvider.addScope("read:user");
 githubProvider.addScope("user:email");
 
 export interface FirebaseUserInfo {
-  email: string;
-  name: string;
+  email: string | null;
+  name: string | null;
   uid: string;
   photoURL?: string;
   provider: "google" | "github" | "password";
+  idToken: string;
 }
 
 /**
@@ -51,12 +51,14 @@ export async function signInWithGooglePopup(): Promise<FirebaseUserInfo> {
   try {
     const result: UserCredential = await signInWithPopup(auth, googleProvider);
     const user = result.user;
+    const idToken = await user.getIdToken(true);
     return {
-      email: user.email || `${user.uid}@google.dsaarena.gg`,
-      name: user.displayName || user.email?.split("@")[0] || "Google Warrior",
+      email: user.email,
+      name: user.displayName,
       uid: user.uid,
       photoURL: user.photoURL || undefined,
       provider: "google",
+      idToken,
     };
   } catch (error: any) {
     console.warn("Firebase Google popup note:", error.message);
@@ -71,12 +73,14 @@ export async function signInWithGithubPopup(): Promise<FirebaseUserInfo> {
   try {
     const result: UserCredential = await signInWithPopup(auth, githubProvider);
     const user = result.user;
+    const idToken = await user.getIdToken(true);
     return {
-      email: user.email || `${user.uid}@github.dsaarena.gg`,
-      name: user.displayName || user.email?.split("@")[0] || "GitHub Warrior",
+      email: user.email,
+      name: user.displayName,
       uid: user.uid,
       photoURL: user.photoURL || undefined,
       provider: "github",
+      idToken,
     };
   } catch (error: any) {
     console.warn("Firebase GitHub popup note:", error.message);
@@ -93,12 +97,14 @@ export async function signInWithEmailPasswordAuth(
 ): Promise<FirebaseUserInfo> {
   const result: UserCredential = await signInWithEmailAndPassword(auth, email, pass);
   const user = result.user;
+  const idToken = await user.getIdToken(true);
   return {
-    email: user.email || email,
-    name: user.displayName || email.split("@")[0],
+    email: user.email,
+    name: user.displayName,
     uid: user.uid,
     photoURL: user.photoURL || undefined,
     provider: "password",
+    idToken,
   };
 }
 
@@ -112,14 +118,17 @@ export async function signUpWithEmailPassword(
 ): Promise<FirebaseUserInfo> {
   const result: UserCredential = await createUserWithEmailAndPassword(auth, email, pass);
   const user = result.user;
+  const idToken = await user.getIdToken(true);
   return {
-    email: user.email || email,
-    name: displayName || user.displayName || email.split("@")[0],
+    email: user.email,
+    name: displayName || user.displayName,
     uid: user.uid,
     photoURL: user.photoURL || undefined,
     provider: "password",
+    idToken,
   };
 }
+
 
 /**
  * Get current user's Firebase ID token for secure API calls
@@ -143,4 +152,5 @@ export function onFirebaseAuthStateChanged(callback: (user: User | null) => void
   return onAuthStateChanged(auth, callback);
 }
 
-export { app, auth, firestore, googleProvider, githubProvider };
+export { app, auth, googleProvider, githubProvider };
+

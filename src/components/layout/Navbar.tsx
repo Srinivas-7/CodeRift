@@ -122,9 +122,10 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
               <span
                 className="font-pixel"
                 style={{
+                  fontFamily: "'ArcadeClassic', monospace",
                   fontSize: "1.9rem",
-                  fontWeight: 700,
-                  letterSpacing: "0.02em",
+                  fontWeight: 400,
+                  letterSpacing: "0.05em",
                   lineHeight: 1,
                   color: "var(--text-primary)",
                   textShadow: "2px 2px 0px rgba(99, 102, 241, 0.35), 3px 3px 0px var(--shadow-neo)",
@@ -136,9 +137,10 @@ export function Navbar({ user, unreadCount = 0 }: NavbarProps) {
               <span
                 className="font-pixel"
                 style={{
+                  fontFamily: "'ArcadeClassic', monospace",
                   fontSize: "1.9rem",
-                  fontWeight: 700,
-                  letterSpacing: "0.02em",
+                  fontWeight: 400,
+                  letterSpacing: "0.05em",
                   lineHeight: 1,
                   color: "var(--accent-purple)",
                   textShadow: "2px 2px 0px #C7D2FE, 3px 3px 0px var(--shadow-neo)",

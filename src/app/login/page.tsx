@@ -24,15 +24,11 @@ export default function LoginPage() {
     setErrorMsg("");
 
     try {
-      let email = "";
-      let name = "";
-      let uid = "";
+      let idToken = "";
 
       try {
         const firebaseUser = await signInWithGooglePopup();
-        email = firebaseUser.email;
-        name = firebaseUser.name;
-        uid = firebaseUser.uid;
+        idToken = firebaseUser.idToken;
       } catch (popupErr: any) {
         console.warn("Firebase popup error:", popupErr);
         setErrorMsg(popupErr?.message || "Google sign-in was cancelled or failed.");
@@ -40,12 +36,13 @@ export default function LoginPage() {
         return;
       }
 
-      const res = await loginWithFirebaseAuth({
-        email,
-        name,
-        firebaseUid: uid,
-        provider: "google",
-      });
+      if (!idToken) {
+        setErrorMsg("Authentication token not received. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      const res = await loginWithFirebaseAuth({ idToken });
 
       if (res.success) {
         if (res.isNewUser) {
@@ -56,13 +53,14 @@ export default function LoginPage() {
           router.push("/dashboard");
         }
       } else {
-        setErrorMsg(res.error || "Authentication failed.");
+        setErrorMsg(res.error || "Authentication failed. Please try again.");
         setLoading(false);
       }
     } catch (err: any) {
-      setErrorMsg(err.message || "Failed to authenticate with Google.");
+      setErrorMsg("Failed to complete authentication. Please try again.");
       setLoading(false);
     }
+
   };
 
   const handleCompleteOnboarding = async () => {

@@ -1,4 +1,31 @@
 @font-face {
+  font-family: 'ArcadeClassic';
+  src: url('/font/ARCADECLASSIC.TTF') format('truetype'),
+       url('/fonts/ARCADECLASSIC.TTF') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'ArcadeClassic';
+  src: url('/font/ARCADECLASSIC.TTF') format('truetype'),
+       url('/fonts/ARCADECLASSIC.TTF') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'ArcadeClassic';
+  src: url('/font/ARCADECLASSIC.TTF') format('truetype'),
+       url('/fonts/ARCADECLASSIC.TTF') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
   font-family: 'SuperMario256';
   src: url('/fonts/SuperMario256.ttf') format('truetype');
   font-weight: normal;
@@ -54,8 +81,9 @@
   --font-mono: var(--font-mono-src), 'JetBrains Mono', monospace;
   --font-display: var(--font-display-src), var(--font-syne-src), 'Unbounded', 'Syne', sans-serif;
   --font-brand: var(--font-display-src), var(--font-syne-src), 'Unbounded', sans-serif;
-  --font-pixel: var(--font-pixelify-src), 'Pixelify Sans', cursive, monospace;
-  --font-silkscreen: var(--font-pixelify-src), 'Pixelify Sans', cursive, monospace;
+  --font-arcade: 'ArcadeClassic', monospace;
+  --font-pixel: 'ArcadeClassic', monospace;
+  --font-silkscreen: 'ArcadeClassic', monospace;
 }
 
 [data-theme="light"] {
@@ -642,13 +670,18 @@ body {
    ============================================================ */
 
 .font-pixel {
-  font-family: var(--font-pixel);
-  letter-spacing: 0.04em;
+  font-family: 'ArcadeClassic', monospace !important;
+  letter-spacing: 0.05em;
 }
 
 .font-silkscreen {
-  font-family: var(--font-silkscreen);
-  letter-spacing: 0.06em;
+  font-family: 'ArcadeClassic', monospace !important;
+  letter-spacing: 0.05em;
+}
+
+.font-arcade {
+  font-family: 'ArcadeClassic', monospace !important;
+  letter-spacing: 0.05em;
 }
 
 .font-serif {

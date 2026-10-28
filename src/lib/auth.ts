@@ -1,10 +1,8 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import { cache } from "react";
 import { db } from "./db";
-
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "dsa-arena-hyper-maximalist-super-secret-key-2026"
-);
+import { syncUserStreak } from "./streaks";
 
 const COOKIE_NAME = "dsa_arena_session";
 
@@ -13,14 +11,26 @@ export interface SessionPayload {
   username: string;
   email: string;
   role: string;
+  sessionVersion?: number;
+}
+
+export function getJwtSecretKey(): Uint8Array {
+  const secret = process.env.JWT_SECRET;
+  if (!secret || secret.trim().length < 32) {
+    throw new Error(
+      "FATAL: JWT_SECRET environment variable is missing or shorter than 32 characters."
+    );
+  }
+  return new TextEncoder().encode(secret);
 }
 
 export async function createSession(payload: SessionPayload) {
+  const secretKey = getJwtSecretKey();
   const token = await new SignJWT({ ...payload })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("30d")
-    .sign(JWT_SECRET);
+    .sign(secretKey);
 
   const cookieStore = await cookies();
   cookieStore.set(COOKIE_NAME, token, {
@@ -40,11 +50,14 @@ export async function setSessionCookie(userId: string) {
   });
   if (!user) throw new Error("User not found");
 
+  const sessionVersion = typeof user.sessionVersion === "number" ? user.sessionVersion : 1;
+
   return createSession({
     userId: user.id,
     username: user.username,
     email: user.email,
     role: user.role,
+    sessionVersion,
   });
 }
 
@@ -57,39 +70,74 @@ export async function clearSession() {
   return removeSessionCookie();
 }
 
-import { cache } from "react";
-
 export const getSession = cache(async (): Promise<SessionPayload | null> => {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get(COOKIE_NAME)?.value;
     if (!token) return null;
 
-    const { payload } = await jwtVerify(token, JWT_SECRET);
-    return payload as unknown as SessionPayload;
+    const secretKey = getJwtSecretKey();
+    const { payload } = await jwtVerify(token, secretKey, {
+      algorithms: ["HS256"],
+    });
+
+    // Validate payload shape
+    if (
+      typeof payload.userId !== "string" ||
+      !payload.userId ||
+      typeof payload.exp !== "number" ||
+      typeof payload.username !== "string" ||
+      typeof payload.email !== "string" ||
+      typeof payload.role !== "string"
+    ) {
+      return null;
+    }
+
+    const sessionVersion = typeof payload.sessionVersion === "number" ? payload.sessionVersion : 1;
+
+    return {
+      userId: payload.userId,
+      username: payload.username,
+      email: payload.email,
+      role: payload.role,
+      sessionVersion,
+    };
   } catch {
     return null;
   }
 });
 
-import { syncUserStreak } from "./streaks";
-
 export const getCurrentUser = cache(async () => {
-  const session = await getSession();
-  if (!session?.userId) return null;
+  try {
+    const session = await getSession();
+    if (!session?.userId) return null;
 
-  const user = await db.user.findUnique({
-    where: { id: session.userId },
-    include: {
-      groupMemberships: {
-        include: {
-          group: true,
+    const user = await db.user.findUnique({
+      where: { id: session.userId },
+      include: {
+        groupMemberships: {
+          include: {
+            group: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  if (user) {
+    if (!user) return null;
+
+    // Enforce sessionVersion match for global token revocation
+    const currentDbVersion = typeof user.sessionVersion === "number" ? user.sessionVersion : 1;
+    const sessionVersion = typeof session.sessionVersion === "number" ? session.sessionVersion : 1;
+
+    if (currentDbVersion !== sessionVersion) {
+      try {
+        await removeSessionCookie();
+      } catch {
+        // Ignore if headers are already read-only
+      }
+      return null;
+    }
+
     try {
       const streakInfo = await syncUserStreak(user.id);
       user.currentStreak = streakInfo.currentStreak;
@@ -98,7 +146,10 @@ export const getCurrentUser = cache(async () => {
     } catch (err) {
       console.error("Error syncing streak in getCurrentUser:", err);
     }
-  }
 
-  return user;
+    return user;
+  } catch (err) {
+    console.warn("Could not retrieve current user:", (err as Error)?.message || err);
+    return null;
+  }
 });

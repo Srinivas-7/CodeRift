@@ -24,3 +24,7 @@ prisma/*.db-journal
 # OS files
 .DS_Store
 Thumbs.db
+
+# Firestore Backups
+firestore-backup/
+backup/

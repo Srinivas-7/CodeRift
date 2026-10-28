@@ -43,7 +43,13 @@ export default function GlobalError({
             {error.message || "A core system error occurred."}
           </p>
           <button
-            onClick={() => reset()}
+            onClick={() => {
+              if (typeof reset === "function") {
+                reset();
+              } else {
+                window.location.reload();
+              }
+            }}
             style={{
               background: "#2148FF",
               color: "#FFF",

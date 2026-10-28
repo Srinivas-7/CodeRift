@@ -67,7 +67,13 @@ export default function Error({
 
         <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
           <button
-            onClick={() => reset()}
+            onClick={() => {
+              if (typeof reset === "function") {
+                reset();
+              } else {
+                window.location.reload();
+              }
+            }}
             className="btn-editorial-primary"
             style={{ fontSize: "0.9rem", padding: "0.8rem 1.5rem" }}
           >
